@@ -1,0 +1,6 @@
+# OASIS_START
+# OASIS_STOP
+<**/*.ml>: warn(-40)
+<lib/*.ml{,i}>: syntax_camlp4o, pa_ounit_lib(core_profiler)
+<disabled_lib/*.ml{,i}>: syntax_camlp4o, pa_ounit_lib(core_profiler.disabled)
+<offline_tool/lib/*.ml{,i}>: syntax_camlp4o, pa_ounit_lib(core_profiler.offline_tool)

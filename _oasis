@@ -1,0 +1,189 @@
+OASISFormat:      0.3
+OCamlVersion:     >= 4.00.0
+FindlibVersion:   >= 1.3.2
+Name:             core_profiler
+Version:          112.19.00
+Synopsis:         Profiling library
+Authors:          Jane Street Capital LLC <opensource@janestreet.com>
+Copyrights:       (C) 2013 Jane Street Capital LLC <opensource@janestreet.com>
+Maintainers:      Jane Street Capital LLC <opensource@janestreet.com>
+License:          Apache-2.0
+LicenseFile:      LICENSE.txt
+Homepage:         https://github.com/janestreet/core_profiler
+Plugins:          StdFiles (0.3), DevFiles (0.3), META (0.3)
+XStdFilesAUTHORS: false
+XStdFilesREADME:  false
+BuildTools:       ocamlbuild, camlp4o
+
+# +-------------------------------------------------------------------+
+# | The lib                                                           |
+# +-------------------------------------------------------------------+
+
+Library core_profiler
+  Path:               lib
+  FindlibName:        core_profiler
+  Pack:               true
+  Modules:            Check_environment,
+                      Common,
+                      Fstats,
+                      Header_protocol,
+                      Offline,
+                      Online,
+                      Probe_id,
+                      Probe_type,
+                      Profiler_epoch,
+                      Protocol,
+                      Std_offline,
+                      Std_online
+  BuildDepends:       core,
+                      core.syntax,
+                      textutils,
+                      threads,
+                      pa_test,
+                      pa_test.syntax,
+                      pa_bench,
+                      pa_bench.syntax,
+                      core_profiler.disabled
+  XMETARequires:      core,
+                      core_profiler.disabled,
+                      comparelib,
+                      textutils,
+                      threads,
+                      pa_test,
+                      pa_bench
+
+Library core_profiler_disabled
+  Path:               disabled_lib
+  FindlibName:        disabled
+  FindlibParent:      core_profiler
+  Pack:               true
+  Modules:            Disabled,
+                      Intf,
+                      Profiler_units,
+                      Std
+  BuildDepends:       core,
+                      core.syntax,
+                      textutils,
+                      threads,
+                      pa_test,
+                      pa_test.syntax,
+                      pa_bench,
+                      pa_bench.syntax,
+                      core_profiler.disabled
+  XMETARequires:      core,
+                      core_profiler.disabled,
+                      textutils,
+                      threads,
+                      pa_test,
+                      pa_bench
+
+# +-------------------------------------------------------------------+
+# | Tools                                                             |
+# +-------------------------------------------------------------------+
+
+Library core_profiler_offline_tool
+  Path:               offline_tool/lib
+  FindlibName:        offline_tool
+  FindlibParent:      core_profiler
+  Pack:               true
+  Modules:            Event_generator,
+                      Filter,
+                      Id_table,
+                      Interest,
+                      Path,
+                      Reader,
+                      Reservoir_sampling,
+                      Std,
+                      Util
+  BuildDepends:       core,
+                      core.syntax,
+                      core_profiler,
+                      threads,
+                      pa_ounit,
+                      pa_ounit.syntax,
+                      re2
+  XMETARequires:      core,
+                      core_profiler.offline_tool,
+                      threads,
+                      pa_ounit,
+                      re2
+
+Executable "core-profiler-tool"
+  Path:               offline_tool/bin
+  MainIs:             profiler_tool.ml
+  CompiledObject:     best
+  Install:            true
+  BuildDepends:       core,
+                      core_extended,
+                      core_profiler.offline_tool
+
+Executable "core-profiler-dump-metrics"
+  Path:               offline_tool/bin
+  MainIs:             dump_metrics.ml
+  CompiledObject:     best
+  Install:            true
+  BuildDepends:       core,
+                      core_profiler.offline_tool
+
+# +-------------------------------------------------------------------+
+# | Examples                                                          |
+# +-------------------------------------------------------------------+
+
+Executable "ex-minor-gcs"
+  Path:               examples
+  MainIs:             minor_gcs.ml
+  Build$:             flag(tests)
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       core,
+                      core_profiler
+
+Executable "ex-prog1"
+  Path:               examples
+  MainIs:             prog1.ml
+  Build$:             flag(tests)
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       core,
+                      core_profiler
+
+Executable "ex-prog2"
+  Path:               examples
+  MainIs:             prog2.ml
+  Build$:             flag(tests)
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       core,
+                      core_profiler
+
+Executable "ex-prog3"
+  Path:               examples
+  MainIs:             prog3.ml
+  Build$:             flag(tests)
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       core,
+                      core_profiler
+
+Executable "ex-prog4"
+  Path:               examples
+  MainIs:             prog4.ml
+  Build$:             flag(tests)
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       core,
+                      core_profiler
+
+# +-------------------------------------------------------------------+
+# | Tests/benchmarks                                                  |
+# +-------------------------------------------------------------------+
+
+Executable test_bench
+  Path:               lib_test
+  MainIs:             iobuf_bench.ml
+  Build$:             flag(tests)
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       core,
+                      core_profiler,
+                      core_bench
