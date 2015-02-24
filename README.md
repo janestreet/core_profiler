@@ -9,6 +9,4 @@ estimate various costs. The library comes in three different flavors:
 - `online` to print live stats
 - `offline` to store data on disk for later analysis
 
-The wiki contains everything you need to get started:
-
-[https://github.com/janestreet/core_profiler/wiki/Getting-Started]()
+The wiki contains everything you need to [get started](https://github.com/janestreet/core_profiler/wiki/GettingStarted).
