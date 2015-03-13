@@ -103,7 +103,7 @@ Library core_profiler_offline_tool
                       pa_ounit.syntax,
                       re2
   XMETARequires:      core,
-                      core_profiler.offline_tool,
+                      core_profiler,
                       threads,
                       pa_ounit,
                       re2
