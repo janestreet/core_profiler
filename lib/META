@@ -1,6 +1,6 @@
 # OASIS_START
-# DO NOT EDIT (digest: 53d973ba9332ad6e02e872818497ad3a)
-version = "112.19.00"
+# DO NOT EDIT (digest: 9551f4930696d5bcaf68941200dc4d99)
+version = "112.19.01"
 description = "Profiling library"
 requires =
 "core core_profiler.disabled comparelib textutils threads pa_test pa_bench"
@@ -10,9 +10,9 @@ archive(native) = "core_profiler.cmxa"
 archive(native, plugin) = "core_profiler.cmxs"
 exists_if = "core_profiler.cma"
 package "offline_tool" (
- version = "112.19.00"
+ version = "112.19.01"
  description = "Profiling library"
- requires = "core core_profiler.offline_tool threads pa_ounit re2"
+ requires = "core core_profiler threads pa_ounit re2"
  archive(byte) = "core_profiler_offline_tool.cma"
  archive(byte, plugin) = "core_profiler_offline_tool.cma"
  archive(native) = "core_profiler_offline_tool.cmxa"
@@ -21,9 +21,9 @@ package "offline_tool" (
 )
 
 package "disabled" (
- version = "112.19.00"
+ version = "112.19.01"
  description = "Profiling library"
- requires = "core core_profiler.disabled textutils threads pa_test pa_bench"
+ requires = "core textutils threads pa_test pa_bench"
  archive(byte) = "core_profiler_disabled.cma"
  archive(byte, plugin) = "core_profiler_disabled.cma"
  archive(native) = "core_profiler_disabled.cmxa"

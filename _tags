@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 4e4dedcf1e400fc35e13120071f7b16e)
+# DO NOT EDIT (digest: ad32adeaabc5707905ab376f8c60404e)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -28,7 +28,6 @@ true: annot, bin_annot
 <disabled_lib/*.ml{,i,y}>: package(pa_test.syntax)
 <disabled_lib/*.ml{,i,y}>: package(textutils)
 <disabled_lib/*.ml{,i,y}>: package(threads)
-<disabled_lib/*.ml{,i,y}>: use_core_profiler_disabled
 # Library core_profiler
 "lib/core_profiler.cmxs": use_core_profiler
 "lib/check_environment.cmx": for-pack(Core_profiler)
