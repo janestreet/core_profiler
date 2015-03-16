@@ -68,10 +68,8 @@ Library core_profiler_disabled
                       pa_test,
                       pa_test.syntax,
                       pa_bench,
-                      pa_bench.syntax,
-                      core_profiler.disabled
+                      pa_bench.syntax
   XMETARequires:      core,
-                      core_profiler.disabled,
                       textutils,
                       threads,
                       pa_test,
