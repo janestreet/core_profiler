@@ -20,7 +20,7 @@ BuildTools:       ocamlbuild, camlp4o
 # +-------------------------------------------------------------------+
 
 Library core_profiler
-  Path:               lib
+  Path:               src
   FindlibName:        core_profiler
   Pack:               true
   Modules:            Check_environment,
@@ -128,7 +128,7 @@ Executable "core-profiler-dump-metrics"
 # +-------------------------------------------------------------------+
 
 Executable "ex-minor-gcs"
-  Path:               examples
+  Path:               example
   MainIs:             minor_gcs.ml
   Build$:             flag(tests)
   CompiledObject:     best
@@ -137,7 +137,7 @@ Executable "ex-minor-gcs"
                       core_profiler
 
 Executable "ex-prog1"
-  Path:               examples
+  Path:               example
   MainIs:             prog1.ml
   Build$:             flag(tests)
   CompiledObject:     best
@@ -146,7 +146,7 @@ Executable "ex-prog1"
                       core_profiler
 
 Executable "ex-prog2"
-  Path:               examples
+  Path:               example
   MainIs:             prog2.ml
   Build$:             flag(tests)
   CompiledObject:     best
@@ -155,7 +155,7 @@ Executable "ex-prog2"
                       core_profiler
 
 Executable "ex-prog3"
-  Path:               examples
+  Path:               example
   MainIs:             prog3.ml
   Build$:             flag(tests)
   CompiledObject:     best
@@ -164,7 +164,7 @@ Executable "ex-prog3"
                       core_profiler
 
 Executable "ex-prog4"
-  Path:               examples
+  Path:               example
   MainIs:             prog4.ml
   Build$:             flag(tests)
   CompiledObject:     best
@@ -177,7 +177,7 @@ Executable "ex-prog4"
 # +-------------------------------------------------------------------+
 
 Executable test_bench
-  Path:               lib_test
+  Path:               test
   MainIs:             iobuf_bench.ml
   Build$:             flag(tests)
   CompiledObject:     best
