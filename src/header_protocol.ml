@@ -80,7 +80,7 @@ module New_single = struct
     Core.Iobuf.Poke.padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5) field;
   ;;
   let to_sub_iobuf t = 
-    Iobuf.sub t ~len:(get_message_length t + 0)
+    Iobuf.sub_shared t ~len:(get_message_length t + 0)
   ;;
   let to_unpacked buf =
     assert(buffer_length <= Iobuf.length buf);
@@ -175,7 +175,7 @@ module New_group = struct
     Core.Iobuf.Poke.padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5) field;
   ;;
   let to_sub_iobuf t = 
-    Iobuf.sub t ~len:(get_message_length t + 0)
+    Iobuf.sub_shared t ~len:(get_message_length t + 0)
   ;;
   let to_unpacked buf =
     assert(buffer_length <= Iobuf.length buf);
@@ -286,7 +286,7 @@ module New_group_point = struct
     Core.Iobuf.Poke.uint16_le buf ~pos:(pos  + 0) (Probe_id.to_int_exn field);
   ;;
   let to_sub_iobuf t = 
-    Iobuf.sub t ~len:(get_message_length t + 0)
+    Iobuf.sub_shared t ~len:(get_message_length t + 0)
   ;;
   let to_unpacked buf =
     assert(buffer_length ~sources_count:0 <= Iobuf.length buf && (let pos = 0 in buffer_length ~sources_count:(Core.Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos  + 70)) <= Iobuf.length buf));
@@ -356,7 +356,7 @@ module End_of_header = struct
     (Core.Iobuf.Unsafe.Peek.char buf ~pos:(pos  + 1))
   ;;
   let to_sub_iobuf t = 
-    Iobuf.sub t ~len:(get_message_length t + 0)
+    Iobuf.sub_shared t ~len:(get_message_length t + 0)
   ;;
   let to_unpacked buf =
     assert(buffer_length <= Iobuf.length buf);
@@ -425,7 +425,7 @@ module Epoch = struct
     Core.Iobuf.Poke.int64_le buf ~pos:(pos  + 2) (Profiler_epoch.to_int field);
   ;;
   let to_sub_iobuf t = 
-    Iobuf.sub t ~len:(get_message_length t + 0)
+    Iobuf.sub_shared t ~len:(get_message_length t + 0)
   ;;
   let to_unpacked buf =
     assert(buffer_length <= Iobuf.length buf);
@@ -688,7 +688,7 @@ let of_unpacked iobuf u =
   | Epoch_unpacked msg -> (Epoch.of_unpacked iobuf msg)
 
 let to_unpacked buf =
-  consuming_dispatch (Iobuf.sub buf) ~on_error:(function
+  consuming_dispatch (Iobuf.sub_shared buf) ~on_error:(function
     | `Need_more_data -> R.Need_more_data
     | `Invalid_message_type_or_subtype ->
         let exn = Failure "Invalid_message_type_or_subtype" in
@@ -703,7 +703,7 @@ let to_unpacked buf =
 type ('ty, -'rw) message = ('rw, Iobuf.no_seek) Iobuf.t constraint 'rw = [> read ]
 
 let sexp_of_message _ _ message =
-  match to_unpacked (Iobuf.sub message) with
+  match to_unpacked (Iobuf.sub_shared message) with
   | R.Need_more_data
   | R.Junk _ as e -> failwiths "invalid message" e <:sexp_of< Nothing.t R.t >>
   | R.Ok (t, _) -> sexp_of_t_unpacked t

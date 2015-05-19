@@ -152,7 +152,7 @@ let consume_header buffer =
   in
 
   let get_message_buffer buffer =
-    let b = Iobuf.sub buffer in
+    let b = Iobuf.sub_shared buffer in
     HP.skip_message buffer;
     b
   in
@@ -390,7 +390,7 @@ TEST_UNIT "consume_short_message" =
       let (epoch, header) = consume_header (Buffer.get_header_chunk ()) in
       let short_messages_chunk =
         match Buffer.get_chunks () with
-        | [x] -> Iobuf.sub x
+        | [x] -> Iobuf.sub_shared x
         | _ -> assert false
       in
 

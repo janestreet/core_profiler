@@ -156,7 +156,7 @@ end = struct
 
     if not (Iobuf.is_empty current_chunk) then begin
       (* Use sub to copy the Iobuf.t structure (and narrow the chunk in the process). *)
-      let copy = Iobuf.sub current_chunk in
+      let copy = Iobuf.sub_shared current_chunk in
       previous_chunks := copy :: !previous_chunks
     end;
 

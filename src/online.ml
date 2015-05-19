@@ -45,10 +45,17 @@ let columns =
     ]
   )
 
-(* Used for benchmarks, tests etc. *)
-let disable_print = ref false
+(* If we ever create an online probe we expect this will be set. *)
+let we_are_using_online_profiler = ref false
 
-(* Printing configuration *)
+let online_profiler_is_used () =
+  we_are_using_online_profiler := true
+
+(* Used for benchmarks, tests etc where we don't what the online outputs, we can disable
+   the printing by setting this. *)
+let internal_disable_print = ref false
+
+(* Printing configuration supplied by the user. *)
 let print_enabled =
   let env = "PRINT_ENABLED" in
   let v =
@@ -62,6 +69,7 @@ let print_enabled =
   in
   ref v
 
+(* Printing configuration supplied by the user. *)
 let print_interval =
   let env = "PRINT_INTERVAL" in
   let v =
@@ -72,7 +80,7 @@ let print_interval =
   ref v
 
 let online_print () =
-  if not !disable_print then begin
+  if not !internal_disable_print && !we_are_using_online_profiler then begin
     Core.Std.printf !"%{Time}\n%!" (Time.now ());
     let table =
       Map.fold_right
@@ -162,6 +170,7 @@ module Timer = struct
       }
 
     let create name () =
+      online_profiler_is_used ();
       Check_environment.check_safety_exn ();
       let t = { name; count = 0 } in
       add_row name (fun () -> Count_only t.count) Profiler_units.Int;
@@ -178,7 +187,9 @@ module Timer = struct
       ; mutable session : int
       }
 
-    let create ~name = { name; session = 0 }
+    let create ~name =
+      online_profiler_is_used ();
+      { name; session = 0 }
 
     let reset group =
       Common.maybe_do_slow_tasks Common.Online_profiler ~reluctance:2;
@@ -212,6 +223,7 @@ module Timer = struct
 
 
     let create group ~sources ~name =
+      online_profiler_is_used ();
       Check_environment.check_safety_exn ();
       let probe =
         { name
@@ -283,7 +295,7 @@ BENCH_MODULE "Timer" = struct
 
   BENCH "group_reset" = Timer.Group.reset group2
 
-  let () = disable_print := true
+  let () = internal_disable_print := true
 end
 
 
@@ -293,6 +305,7 @@ module Probe = struct
     type t = Fstats.t
 
     let create name units =
+      online_profiler_is_used ();
       Check_environment.check_safety_exn ();
       let t = Fstats.create () in
       add_row name (fun () -> Stats (Fstats.copy t)) units;
@@ -311,7 +324,9 @@ module Probe = struct
       ; mutable session : int
       }
 
-    let create ~name ~units = { name; units; session = 0 }
+    let create ~name ~units =
+      online_profiler_is_used ();
+      { name; units; session = 0 }
 
     let reset group =
       Common.maybe_do_slow_tasks Common.Online_profiler ~reluctance:2;
@@ -329,6 +344,7 @@ module Probe = struct
       }
 
     let create group ~sources ~name =
+      online_profiler_is_used ();
       Check_environment.check_safety_exn ();
       let probe =
         { name
@@ -417,7 +433,7 @@ BENCH_MODULE "Probe" = struct
 
   BENCH "group_reset" = Probe.Group.reset group2
 
-  let () = disable_print := true
+  let () = internal_disable_print := true
 end
 
 
@@ -436,6 +452,7 @@ module Delta_timer = struct
       ; state = Time_ns.epoch
       }
     in
+    online_profiler_is_used ();
     add_row name (fun () -> Stats (Fstats.copy t.stats)) Profiler_units.Nanoseconds;
     t
 
@@ -516,7 +533,7 @@ BENCH_MODULE "Delta_timer" = struct
   BENCH "start" = Delta_timer.start delta
   BENCH "stop" = Delta_timer.stop delta
 
-  let () = disable_print := true
+  let () = internal_disable_print := true
 end
 
 BENCH_MODULE "Delta_timer.wrap_sync" = struct
@@ -540,7 +557,7 @@ BENCH_MODULE "Delta_timer.wrap_sync" = struct
   BENCH "count_256" = count_256 ()
   BENCH "wrapped_count_256" = wrapped_count_256 ()
 
-  let () = disable_print := true
+  let () = internal_disable_print := true
 end
 
 
@@ -559,6 +576,7 @@ module Delta_probe = struct
       ; state = 0
       }
     in
+    online_profiler_is_used ();
     add_row name (fun () -> Stats (Fstats.copy t.stats)) units;
     t
 
@@ -580,5 +598,5 @@ BENCH_MODULE "Delta_probe" = struct
   BENCH "start_async" = Delta_probe.stateless_start delta 123
   BENCH "stop_async" = Delta_probe.stateless_stop delta started 456
 
-  let () = disable_print := true
+  let () = internal_disable_print := true
 end
