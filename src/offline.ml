@@ -131,18 +131,23 @@ BENCH_MODULE "Probe" = struct
   let () = Protocol.Writer.set_at_exit_handler `Disable
 end
 
-
 module Delta_timer = struct
   type state = Time_ns.t
   type t =
     { probe : Probe.t
     ; mutable state : state
+    ; mutable accum : int
     }
 
   let create ~name =
     { probe = Probe.create ~name ~units:Profiler_units.Nanoseconds
     ; state = Time_ns.epoch
+    ; accum = 0
     }
+
+  let diff n state =
+    Time_ns.diff n state
+    |> Time_ns.Span.to_int_ns
 
   (* If we calibrate on start, we get back the time before we started calibrating,
      and those 300ns will be included in the delta. *)
@@ -150,14 +155,34 @@ module Delta_timer = struct
   let stateless_stop t state =
     (* Avoid calling Common.now () twice: *)
     let n = Common.now Common.Offline_profiler ~reluctance:2 () in
-    let d =
-      Time_ns.diff n state
-      |> Time_ns.Span.to_int_ns
-    in
+    let d = diff n state in
     Protocol.Writer.write_probe_at t.probe n d
 
-  let start t = t.state <- stateless_start t
-  let stop t = stateless_stop t t.state
+  let start t =
+    let n = Common.now Common.Offline_profiler ~reluctance:4 () in
+    t.state <- n
+
+  let accumulate t n =
+    t.accum <- t.accum + (diff n t.state);
+    t.state <- n
+
+  let write_probe_at t n =
+    Protocol.Writer.write_probe_at t.probe n t.accum;
+    t.accum <- 0;
+    t.state <- n
+
+  let pause t =
+    let n = Common.now Common.Offline_profiler ~reluctance:4 () in
+    accumulate t n
+
+  let record t =
+    let n = Common.now Common.Offline_profiler ~reluctance:2 () in
+    write_probe_at t n
+
+  let stop t =
+    let n = Common.now Common.Offline_profiler ~reluctance:2 () in
+    accumulate t n;
+    write_probe_at t n
 
   let wrap_sync t f x =
     let state = stateless_start t in
@@ -255,24 +280,35 @@ BENCH_MODULE "Delta_timer.wrap_sync" = struct
   BENCH "wrapped_count_256" = wrapped_count_256 ()
 end
 
-
+(* stateless Delta_probe does not support pausing *)
 module Delta_probe = struct
   type state = int
   type t =
     { probe : Probe.t
     ; mutable state : state
+    ; mutable accum : state
     }
 
   let create ~name ~units =
     { probe = Probe.create ~name ~units
     ; state = 0
+    ; accum = 0
     }
 
   let stateless_start _t value = value
   let stateless_stop t state value = Probe.record t.probe (value - state)
 
-  let start t value = t.state <- stateless_start t value
-  let stop t value = stateless_stop t t.state value
+  let start t value =
+    t.state <- value
+  let record t =
+    Probe.record t.probe t.accum;
+    t.accum <- 0
+  let pause t value =
+    t.accum <- t.accum + (value - t.state)
+  let stop t value =
+    pause t value;
+    record t;
+
 end
 
 BENCH_MODULE "Delta_probe" = struct

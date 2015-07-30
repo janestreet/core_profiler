@@ -178,10 +178,31 @@ module type Profiler_intf = sig
 
     val create : name:string -> units:Profiler_units.t -> t
 
-    (** These are stateful and expect strict interleaving, i.e. for a [t] each call to
-        [start] and [stop] must be interleaved. *)
+    (** To measure changes in a value, one can call [start] followed by a call [stop]
+        after some time.  The call to [stop] will record the delta.  Calls to
+        [start]/[stop] must be interleaved for each [t].
+
+        Calling [pause] in place of [stop] causes [t] to accumulate, but not record, the
+        delta.  [start] and [pause] can then be interleaved multiple times.  Afterwards,
+        calling [record] will record the sum of the deltas between each [start]/[pause],
+        and reset [t].
+
+        Valid sequences should satisfy this regular expression:
+
+        {v
+          start;(pause;start;)*((pause;record;)|stop;)
+        v}
+
+        Calling these functions out of order will cause bad data to be recorded. This API
+        does not raise exceptions, so one will not be warned of errors.
+
+        For each [t], there are two valid sequences of calls.  The first is calling
+        [start] then [stop].  The second is calling [start] then [pause] an arbitrary
+        number of times, and ending with [record]. *)
     val start : t -> int -> unit
     val stop  : t -> int -> unit
+    val pause : t -> int -> unit
+    val record: t -> unit
 
     (** These are non-stateful and can be used in Async, wherein multiple jobs might call
         [stateless_start] before the corresponding [stop_async] is called.  One can use
@@ -200,7 +221,9 @@ module type Profiler_intf = sig
             | Ok x -> return x
             | Error ex -> Exn.reraise ex "Core_profiler wrap_async"
         ]}
-    *)
+
+        The stateless API does not support pausing.  This is because state would require
+        memory allocation if it supported accumulating the counter. *)
     val stateless_start : t          -> int -> state
     val stateless_stop  : t -> state -> int -> unit
   end
@@ -213,6 +236,8 @@ module type Profiler_intf = sig
 
     val start : t -> unit
     val stop  : t -> unit
+    val pause : t -> unit
+    val record: t -> unit
 
     val stateless_start : t -> state
     val stateless_stop  : t -> state -> unit

@@ -436,13 +436,14 @@ BENCH_MODULE "Probe" = struct
   let () = internal_disable_print := true
 end
 
-
+(* stateless Delta_timer does not support pausing *)
 module Delta_timer = struct
   type state = Time_ns.t
   type t =
     { name : string
     ; stats : Fstats.t
     ; mutable state : state
+    ; mutable accum : int
     }
 
   let create ~name =
@@ -450,21 +451,43 @@ module Delta_timer = struct
       { name
       ; stats = Fstats.create ()
       ; state = Time_ns.epoch
+      ; accum = 0
       }
     in
     online_profiler_is_used ();
     add_row name (fun () -> Stats (Fstats.copy t.stats)) Profiler_units.Nanoseconds;
     t
 
+  let diff n state =
+    Time_ns.diff n state
+    |> Time_ns.Span.to_int_ns
+
+  let update_in_place t d =
+    Fstats.update_in_place t.stats (float d)
+  let update_in_place_and_reset_accum t d =
+    update_in_place t d;
+    t.accum <- 0
+
   let stateless_start _ = Common.now Common.Online_profiler ~reluctance:4 ()
   let stateless_stop t state =
-    Time_ns.diff (Common.now Common.Online_profiler ~reluctance:2 ()) state
-    |> Time_ns.Span.to_int_ns
-    |> float
-    |> Fstats.update_in_place t.stats
+    let n = Common.now Common.Online_profiler ~reluctance:4 () in
+    let d = diff n state in
+    update_in_place t d
 
-  let start t = t.state <- stateless_start t
-  let stop t = stateless_stop t t.state
+  let start t =
+    t.state <- Common.now Common.Online_profiler ~reluctance:4 ()
+
+  let pause t =
+    let n = Common.now Common.Online_profiler ~reluctance:4 () in
+    t.accum <- t.accum + (diff n t.state)
+
+  let record t =
+    update_in_place_and_reset_accum t t.accum;
+    Common.maybe_do_slow_tasks Common.Online_profiler ~reluctance:2
+
+  let stop t =
+    pause t;
+    update_in_place_and_reset_accum t t.accum
 
   let wrap_sync t f x =
     let state = stateless_start t in
@@ -560,13 +583,14 @@ BENCH_MODULE "Delta_timer.wrap_sync" = struct
   let () = internal_disable_print := true
 end
 
-
+(* stateless Delta_probe does not support pausing *)
 module Delta_probe = struct
   type state = int
   type t =
     { name : string
     ; stats : Fstats.t
     ; mutable state : state
+    ; mutable accum : state
     }
 
   let create ~name ~units =
@@ -574,6 +598,7 @@ module Delta_probe = struct
       { name
       ; stats = Fstats.create ()
       ; state = 0
+      ; accum = 0
       }
     in
     online_profiler_is_used ();
@@ -585,8 +610,21 @@ module Delta_probe = struct
     Fstats.update_in_place t.stats (float (value - state));
     Common.maybe_do_slow_tasks Common.Online_profiler ~reluctance:3
 
-  let start t v = t.state <- stateless_start t v
-  let stop t v = stateless_stop t t.state v
+  let start t value =
+    t.state <- value
+
+  let pause t value =
+    t.accum <- t.accum + value - t.state
+
+  let record t =
+    t.accum <- 0;
+    Fstats.update_in_place t.stats (float t.accum);
+    Common.maybe_do_slow_tasks Common.Online_profiler ~reluctance:3
+
+  let stop t value =
+    pause t value;
+    record t
+
 end
 
 BENCH_MODULE "Delta_probe" = struct

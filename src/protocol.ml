@@ -78,34 +78,6 @@ end = struct
     , unpack_time epoch header
     )
 
-  TEST_MODULE "unpack_pack" = struct
-    let epoch = Profiler_epoch.of_time (Time_ns.of_int_ns_since_epoch 1405085600000000000)
-
-    let test id time =
-      let id = Probe_id.of_int_exn id in
-      let time = Time_ns.of_int_ns_since_epoch time in
-
-      let packed = pack_exn epoch id time in
-      let packed_unsafe = pack_unsafe epoch id time in
-      let unpacked = unpack epoch packed_unsafe in
-
-      <:test_eq< int >> packed packed_unsafe;
-      <:test_eq< Probe_id.t * Time_ns.t >> unpacked (id, time)
-
-    TEST_UNIT "0 0"         = test 0    1405085600000000000
-    TEST_UNIT "max max"     = test 511  1423099998509481983
-    TEST_UNIT "1 1"         = test 1    1405085600000000001
-    TEST_UNIT "256 100_000" = test 256  1405085600000100000
-  end
-
-  BENCH_MODULE "Short message header packing" = struct
-    let epoch = Profiler_epoch.of_time (Time_ns.of_int_ns_since_epoch 1405085600000000000)
-    let id = Probe_id.of_int_exn 123
-    let time = Time_ns.of_int_ns_since_epoch 1405085600123123000
-
-    BENCH "pack_exn"     = ignore (pack_exn     epoch id time : int)
-    BENCH "pack_unsafe"  = ignore (pack_unsafe  epoch id time : int)
-  end
 end
 
 module Buffer : sig

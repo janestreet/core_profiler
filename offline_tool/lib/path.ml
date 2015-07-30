@@ -115,7 +115,7 @@ let examples =
     }
   ]
 
-let readme = lazy
+let readme = lazy (
   let examples =
     examples
     |> List.map ~f:(fun p -> "    " ^ string_t_to_string p)
@@ -127,7 +127,7 @@ let readme = lazy
   points (\"a..b\"). \
   A point may not appear twice, except for when its second appearance is as the last \
   point in the path.\n\n\
-  Some examples:" ^ examples
+  Some examples:" ^ examples)
 
 let lookup_ids path { Util.Name_map.children = name_map; _ } =
   let lookup_point = function

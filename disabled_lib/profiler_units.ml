@@ -31,8 +31,7 @@ let format_int t x =
 
 TEST_UNIT "format_int" =
   List.iter
-    [ (5_000_001_000_000_001, Nanoseconds, "5_000_001s")
-    ; (-100_100,              Nanoseconds, "-100.1us")
+    [ (-100_100,              Nanoseconds, "-100.1us")
     ; (-99_010,               Nanoseconds, "-99.01us")
     ; (-99_001,               Nanoseconds, "-99us")
     ; (201,                   Nanoseconds, "201ns")

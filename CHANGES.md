@@ -1,3 +1,8 @@
+## 113.00.00
+
+- Changed delta timers and probes so they record the total amount of time/value
+  change between each start and pause.
+
 ## 112.19.00
 
 Initial release

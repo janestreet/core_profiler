@@ -36,7 +36,8 @@ module New_single = struct
     Core.Iobuf.Unsafe.Poke.char buf ~pos:(pos  + 1) (message_type);
     Core.Iobuf.Unsafe.Poke.uint16_le buf ~pos:(pos  + 2) (Probe_id.to_int_exn id);
     Core.Iobuf.Unsafe.Poke.char buf ~pos:(pos  + 4) ((Probe_type.to_char spec));
-    Core.Iobuf.Unsafe.Poke.padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5) name;
+    Core.Iobuf.Unsafe.Poke.tail_padded_fixed_string
+      ~padding buf ~len:64 ~pos:(pos  + 5) name;
     let total_bytes_packed = 69 in
     Core.Iobuf.Unsafe.Poke.uint8 buf ~pos:(pos  + 0) (total_bytes_packed - 0);
     total_bytes_packed
@@ -65,7 +66,7 @@ module New_single = struct
   ;;
   let get_name buf =
     let pos = 0 in
-    Core.Iobuf.Unsafe.Peek.padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5)
+    Core.Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5)
   ;;
   let set_id buf field =
     let pos = 0 in
@@ -77,7 +78,7 @@ module New_single = struct
   ;;
   let set_name buf field =
     let pos = 0 in
-    Core.Iobuf.Poke.padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5) field;
+    Core.Iobuf.Poke.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5) field;
   ;;
   let to_sub_iobuf t = 
     Iobuf.sub_shared t ~len:(get_message_length t + 0)
@@ -131,7 +132,7 @@ module New_group = struct
     Core.Iobuf.Unsafe.Poke.char buf ~pos:(pos  + 1) (message_type);
     Core.Iobuf.Unsafe.Poke.uint16_le buf ~pos:(pos  + 2) (Probe_id.to_int_exn id);
     Core.Iobuf.Unsafe.Poke.char buf ~pos:(pos  + 4) ((Probe_type.to_char spec));
-    Core.Iobuf.Unsafe.Poke.padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5) name;
+    Core.Iobuf.Unsafe.Poke.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5) name;
     let total_bytes_packed = 69 in
     Core.Iobuf.Unsafe.Poke.uint8 buf ~pos:(pos  + 0) (total_bytes_packed - 0);
     total_bytes_packed
@@ -160,7 +161,7 @@ module New_group = struct
   ;;
   let get_name buf =
     let pos = 0 in
-    Core.Iobuf.Unsafe.Peek.padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5)
+    Core.Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5)
   ;;
   let set_id buf field =
     let pos = 0 in
@@ -172,7 +173,7 @@ module New_group = struct
   ;;
   let set_name buf field =
     let pos = 0 in
-    Core.Iobuf.Poke.padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5) field;
+    Core.Iobuf.Poke.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5) field;
   ;;
   let to_sub_iobuf t = 
     Iobuf.sub_shared t ~len:(get_message_length t + 0)
@@ -227,7 +228,7 @@ module New_group_point = struct
     Core.Iobuf.Unsafe.Poke.char buf ~pos:(pos  + 1) (message_type);
     Core.Iobuf.Unsafe.Poke.uint16_le buf ~pos:(pos  + 2) (Probe_id.to_int_exn group_id);
     Core.Iobuf.Unsafe.Poke.uint16_le buf ~pos:(pos  + 4) (Probe_id.to_int_exn id);
-    Core.Iobuf.Unsafe.Poke.padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 6) name;
+    Core.Iobuf.Unsafe.Poke.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 6) name;
     Core.Iobuf.Unsafe.Poke.uint16_le buf ~pos:(pos  + 70) sources_count;
     let total_bytes_packed = 72 + sources_count * 2 in
     Core.Iobuf.Unsafe.Poke.uint8 buf ~pos:(pos  + 0) (total_bytes_packed - 0);
@@ -257,7 +258,7 @@ module New_group_point = struct
   ;;
   let get_name buf =
     let pos = 0 in
-    Core.Iobuf.Unsafe.Peek.padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 6)
+    Core.Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 6)
   ;;
   let get_sources_count buf =
     let pos = 0 in
@@ -278,7 +279,7 @@ module New_group_point = struct
   ;;
   let set_name buf field =
     let pos = 0 in
-    Core.Iobuf.Poke.padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 6) field;
+    Core.Iobuf.Poke.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 6) field;
   ;;
   let set_sources_id buf ~count ~index field =
     if index < 0 || index >= count then invalid_arg "index out of bounds";

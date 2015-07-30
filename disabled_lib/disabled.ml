@@ -55,8 +55,11 @@ module Delta_timer = struct
 
   let stateless_start _t = ()
   let stateless_stop  _t _state = ()
+
   let start _t = ()
   let stop _t = ()
+  let pause _t = ()
+  let record _t = ()
 
   let wrap_sync  _t f x       = f x
   let wrap_sync2 _t f x y     = f x y
@@ -76,4 +79,6 @@ module Delta_probe = struct
 
   let start _t _value = ()
   let stop  _t _value = ()
+  let pause _t _value = ()
+  let record _t = ()
 end

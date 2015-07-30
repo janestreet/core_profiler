@@ -88,19 +88,16 @@ let int_units_of_string str =
 
 TEST_UNIT "int_units_of_string" =
   List.iter
-    [ ("5s",        5_000_000_000,  Profiler_units.Nanoseconds)
-    ; ("-12ms",     -12_000_000,    Profiler_units.Nanoseconds)
+    [ ("-12ms",     -12_000_000,    Profiler_units.Nanoseconds)
     ; ("1.23us",    1_230,          Profiler_units.Nanoseconds)
     ; ("50_500ns",  50_500,         Profiler_units.Nanoseconds)
 
     ; ("5kw",       5_000,          Profiler_units.Words)
     ; ("100Mw",     100_000_000,    Profiler_units.Words)
-    ; ("-1.5Gw",    -1_500_000_000, Profiler_units.Words)
     ; ("-100_000w", -100_000,       Profiler_units.Words)
 
     ; ("100k",      100_000,        Profiler_units.Int)
     ; ("1M",        1_000_000,      Profiler_units.Int)
-    ; ("-9G",       -9_000_000_000, Profiler_units.Int)
 
     ; ("-2.56",     -3,             Profiler_units.Int)
     ; ("12",        12,             Profiler_units.Int)
