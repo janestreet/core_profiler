@@ -1,0 +1,34 @@
+# OASIS_START
+# DO NOT EDIT (digest: 8af416f36bca76d4f757e1eb2a6837a4)
+version = "113.00.00"
+description = "Profiling library"
+requires =
+"core core_profiler.disabled comparelib textutils threads pa_test pa_bench"
+archive(byte) = "core_profiler.cma"
+archive(byte, plugin) = "core_profiler.cma"
+archive(native) = "core_profiler.cmxa"
+archive(native, plugin) = "core_profiler.cmxs"
+exists_if = "core_profiler.cma"
+package "offline_tool" (
+ version = "113.00.00"
+ description = "Profiling library"
+ requires = "core core_profiler threads pa_ounit re2"
+ archive(byte) = "core_profiler_offline_tool.cma"
+ archive(byte, plugin) = "core_profiler_offline_tool.cma"
+ archive(native) = "core_profiler_offline_tool.cmxa"
+ archive(native, plugin) = "core_profiler_offline_tool.cmxs"
+ exists_if = "core_profiler_offline_tool.cma"
+)
+
+package "disabled" (
+ version = "113.00.00"
+ description = "Profiling library"
+ requires = "core textutils threads pa_test pa_bench"
+ archive(byte) = "core_profiler_disabled.cma"
+ archive(byte, plugin) = "core_profiler_disabled.cma"
+ archive(native) = "core_profiler_disabled.cmxa"
+ archive(native, plugin) = "core_profiler_disabled.cmxs"
+ exists_if = "core_profiler_disabled.cma"
+)
+# OASIS_STOP
+
