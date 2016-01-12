@@ -24,7 +24,7 @@ open Core_profiler_disabled
 type 'a point =
   | Direct_point of 'a
   | Point of 'a
-with sexp, compare
+[@@deriving sexp, compare]
 
 type 'a t =
   { first : 'a point
@@ -32,11 +32,11 @@ type 'a t =
   ; rest_rev : 'a point list
   ; last : 'a
   }
-with sexp, compare
+[@@deriving sexp, compare]
 
 module I : sig
-  type id_path = Probe_id.t t with sexp, compare
-  type t = id_path      with sexp, compare
+  type id_path = Probe_id.t t [@@deriving sexp, compare]
+  type t = id_path      [@@deriving sexp, compare]
   include Comparable.S with type t := t
   include Hashable  .S with type t := t
 end

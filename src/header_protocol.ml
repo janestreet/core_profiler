@@ -4,134 +4,132 @@
 open Core.Std
 let padding = ' '
 let _ = padding
-
-
 module R = struct
   type 'message t =
    | Need_more_data
    | Ok of 'message * int
    | Junk of exn * (int, exn) Result.t
-   with sexp_of
+   [@@deriving sexp_of]
 end
+
+
+module Message_type_and_errors = struct
+  type _ t =
+    | New_single : [ `New_single ] t
+    | New_group : [ `New_group ] t
+    | New_group_point : [ `New_group_point ] t
+    | End_of_header : [ `End_of_header ] t
+    | Epoch : [ `Epoch ] t
+    | Need_more_data : [ `Error ] t
+    | Invalid_message_type_or_subtype : [ `Error ] t
+    | Message_length_too_short : [ `Error ] t
+  [@@deriving sexp_of]
+  
+  type packed = T : _ t -> packed [@@deriving sexp_of]
+  
+  let to_wire_exn : type ty. ty t -> char = function
+    | Epoch -> 'E'
+    | New_single -> 'N'
+    | New_group_point -> 'O'
+    | New_group -> 'P'
+    | End_of_header -> 'Z'
+    | Need_more_data -> invalid_arg "to_wire_exn: received Need_more_data"
+    | Invalid_message_type_or_subtype -> invalid_arg "to_wire_exn: received Invalid_message_type_or_subtype"
+    | Message_length_too_short -> invalid_arg "to_wire_exn: received Message_length_too_short"
+  let of_wire = function
+    | 'E' -> T Epoch
+    | 'N' -> T New_single
+    | 'O' -> T New_group_point
+    | 'P' -> T New_group
+    | 'Z' -> T End_of_header
+    | _ -> T Invalid_message_type_or_subtype
+  
+  let to_index_exn : type ty. ty t -> int = function
+    | New_single -> 0
+    | New_group -> 1
+    | New_group_point -> 2
+    | End_of_header -> 3
+    | Epoch -> 4
+    | Need_more_data -> invalid_arg "to_index_exn: received Need_more_data"
+    | Invalid_message_type_or_subtype -> invalid_arg "to_index_exn: received Invalid_message_type_or_subtype"
+    | Message_length_too_short -> invalid_arg "to_index_exn: received Message_length_too_short"
+  let of_index_exn = function
+    | 0 -> T New_single
+    | 1 -> T New_group
+    | 2 -> T New_group_point
+    | 3 -> T End_of_header
+    | 4 -> T Epoch
+    | _ -> invalid_arg "of_index_exn: invalid index"
+  
+  let max_index = 4
+  
+  module Packed = struct
+    module T = struct
+      type 'ty message_type_and_errors = 'ty t [@@deriving sexp_of]
+      type t = packed = T : _ message_type_and_errors -> t [@@deriving sexp_of]
+      let to_index_exn (T t) = to_index_exn t
+      let compare   t1 t2 = Int.compare (to_index_exn t1) (to_index_exn t2)
+      let hash      t     = Int.hash    (to_index_exn t)
+      let t_of_sexp _     = failwith "unimplemented"
+    end
+    include T
+    include Comparable.Make(T)
+    include Hashable.Make(T)
+  end
+end
+
+let get_message_type buf =
+  let len = Iobuf.length buf in
+  let pos = 0 in
+  if len < 2 then
+    Message_type_and_errors.(T Need_more_data)
+  else
+    let message_num_bytes = 0 + Core.Iobuf.Unsafe.Peek.uint8 buf ~pos:(pos  + 0) in
+    if len < message_num_bytes then Message_type_and_errors.(T Need_more_data)
+    else begin
+      match (Core.Iobuf.Unsafe.Peek.char buf ~pos:(pos  + 1)) with
+      | 'E' ->
+        if message_num_bytes < 10 then T Message_length_too_short else
+        Message_type_and_errors.(T Epoch)
+      | 'N' ->
+        if message_num_bytes < 69 then T Message_length_too_short else
+        Message_type_and_errors.(T New_single)
+      | 'O' ->
+        if message_num_bytes < 72 || message_num_bytes < (let pos = 0 in 72 + 2 * (Core.Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos  + 70))) then T Message_length_too_short else
+        Message_type_and_errors.(T New_group_point)
+      | 'P' ->
+        if message_num_bytes < 69 then T Message_length_too_short else
+        Message_type_and_errors.(T New_group)
+      | 'Z' ->
+        if message_num_bytes < 2 then T Message_length_too_short else
+        Message_type_and_errors.(T End_of_header)
+      | other -> ignore other; Message_type_and_errors.(T Invalid_message_type_or_subtype)
+    end
+;;
+
+let of_iobuf buf ~trusted:_ = Iobuf.no_seek buf
+let of_iobuf_exn buf ty =
+  let Message_type_and_errors.T mt = get_message_type buf in
+  if Message_type_and_errors.to_index_exn mt = Message_type_and_errors.to_index_exn ty
+  then of_iobuf buf ~trusted:ty
+  else failwiths "unexpected message type" mt [%sexp_of: _ Message_type_and_errors.t]
+;;
 
 module New_single = struct
   
-
-  type t_unpacked = {
-    message_length : int;
-    message_type : char;
-    id : Probe_id.t;
-    spec : Probe_type.t;
-    name : string;
-  } with sexp
   type (-'rw) t = ('rw, Iobuf.no_seek) Iobuf.t constraint 'rw = [> read ]
 
-  let message_length = 69 - 0
   let message_type = 'N'
 
-  let buffer_length  = message_length + 0
+  let buffer_length  = 69
+  
+  let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.New_single
   let write ~id ~spec ~name buf =
     let pos = 0 in
-    assert(Iobuf.length buf >= message_length + 0);
-    Core.Iobuf.Unsafe.Poke.char buf ~pos:(pos  + 1) (message_type);
+    assert(Iobuf.length buf >= 69);
+    Core.Iobuf.Unsafe.Poke.char buf ~pos:(pos  + 1) message_type;
     Core.Iobuf.Unsafe.Poke.uint16_le buf ~pos:(pos  + 2) (Probe_id.to_int_exn id);
-    Core.Iobuf.Unsafe.Poke.char buf ~pos:(pos  + 4) ((Probe_type.to_char spec));
-    Core.Iobuf.Unsafe.Poke.tail_padded_fixed_string
-      ~padding buf ~len:64 ~pos:(pos  + 5) name;
-    let total_bytes_packed = 69 in
-    Core.Iobuf.Unsafe.Poke.uint8 buf ~pos:(pos  + 0) (total_bytes_packed - 0);
-    total_bytes_packed
-  ;;
-
-  let create ~id ~spec ~name =
-    let iobuf = Iobuf.create ~len:(message_length + 0) in
-    let size = write ~id ~spec ~name iobuf in
-    assert (Iobuf.length iobuf = size);
-    iobuf
-  let get_message_length buf =
-    let pos = 0 in
-    Core.Iobuf.Unsafe.Peek.uint8 buf ~pos:(pos  + 0)
-  ;;
-  let get_message_type buf =
-    let pos = 0 in
-    (Core.Iobuf.Unsafe.Peek.char buf ~pos:(pos  + 1))
-  ;;
-  let get_id buf =
-    let pos = 0 in
-    Probe_id.of_int_exn (Core.Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos  + 2))
-  ;;
-  let get_spec buf =
-    let pos = 0 in
-    Probe_type.of_char ((Core.Iobuf.Unsafe.Peek.char buf ~pos:(pos  + 4)))
-  ;;
-  let get_name buf =
-    let pos = 0 in
-    Core.Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5)
-  ;;
-  let set_id buf field =
-    let pos = 0 in
-    Core.Iobuf.Poke.uint16_le buf ~pos:(pos  + 2) (Probe_id.to_int_exn field);
-  ;;
-  let set_spec buf field =
-    let pos = 0 in
-    Core.Iobuf.Poke.char buf ~pos:(pos  + 4) ((Probe_type.to_char field));
-  ;;
-  let set_name buf field =
-    let pos = 0 in
-    Core.Iobuf.Poke.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5) field;
-  ;;
-  let to_sub_iobuf t = 
-    Iobuf.sub_shared t ~len:(get_message_length t + 0)
-  ;;
-  let to_unpacked buf =
-    assert(buffer_length <= Iobuf.length buf);
-    {
-      message_length = get_message_length buf;
-      message_type = get_message_type buf;
-      id = get_id buf;
-      spec = get_spec buf;
-      name = get_name buf;
-    }
-  let of_unpacked iobuf u =
-    let res = write iobuf
-      ~id:u.id
-      ~spec:u.spec
-      ~name:u.name
-    in
-    res
-  let sexp_of_t _ t = sexp_of_t_unpacked (to_unpacked t)
-
-  let t_of_sexp _ sexp =
-    let unpacked = t_unpacked_of_sexp sexp in
-    let t = Iobuf.create ~len:(message_length + 0) in
-    ignore (of_unpacked t unpacked : int);
-    Iobuf.of_string (Iobuf.to_string t)
-  ;;
-  
-end
-
-module New_group = struct
-  
-
-  type t_unpacked = {
-    message_length : int;
-    message_type : char;
-    id : Probe_id.t;
-    spec : Probe_type.t;
-    name : string;
-  } with sexp
-  type (-'rw) t = ('rw, Iobuf.no_seek) Iobuf.t constraint 'rw = [> read ]
-
-  let message_length = 69 - 0
-  let message_type = 'P'
-
-  let buffer_length  = message_length + 0
-  let write ~id ~spec ~name buf =
-    let pos = 0 in
-    assert(Iobuf.length buf >= message_length + 0);
-    Core.Iobuf.Unsafe.Poke.char buf ~pos:(pos  + 1) (message_type);
-    Core.Iobuf.Unsafe.Poke.uint16_le buf ~pos:(pos  + 2) (Probe_id.to_int_exn id);
-    Core.Iobuf.Unsafe.Poke.char buf ~pos:(pos  + 4) ((Probe_type.to_char spec));
+    Core.Iobuf.Unsafe.Poke.char buf ~pos:(pos  + 4) (Probe_type.to_char spec);
     Core.Iobuf.Unsafe.Poke.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5) name;
     let total_bytes_packed = 69 in
     Core.Iobuf.Unsafe.Poke.uint8 buf ~pos:(pos  + 0) (total_bytes_packed - 0);
@@ -139,38 +137,54 @@ module New_group = struct
   ;;
 
   let create ~id ~spec ~name =
-    let iobuf = Iobuf.create ~len:(message_length + 0) in
+    let iobuf = Iobuf.create ~len:(69) in
     let size = write ~id ~spec ~name iobuf in
     assert (Iobuf.length iobuf = size);
     iobuf
+  
   let get_message_length buf =
     let pos = 0 in
     Core.Iobuf.Unsafe.Peek.uint8 buf ~pos:(pos  + 0)
   ;;
+  
   let get_message_type buf =
     let pos = 0 in
     (Core.Iobuf.Unsafe.Peek.char buf ~pos:(pos  + 1))
   ;;
+  
   let get_id buf =
     let pos = 0 in
     Probe_id.of_int_exn (Core.Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos  + 2))
   ;;
+  
   let get_spec buf =
     let pos = 0 in
     Probe_type.of_char ((Core.Iobuf.Unsafe.Peek.char buf ~pos:(pos  + 4)))
   ;;
+  
   let get_name buf =
     let pos = 0 in
     Core.Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5)
   ;;
+  
+  let get_name_zero buf f =
+    let buf = Iobuf.read_only buf in
+    let pos = 5 in
+    let len = ref 64 in
+    while !len > 0 && Char.(=) padding (Iobuf.Unsafe.Peek.char buf ~pos:(pos + !len - 1)); do decr len; done;
+    f buf ~safe_pos:pos ~safe_len:!len
+  ;;
+  
   let set_id buf field =
     let pos = 0 in
     Core.Iobuf.Poke.uint16_le buf ~pos:(pos  + 2) (Probe_id.to_int_exn field);
   ;;
+  
   let set_spec buf field =
     let pos = 0 in
-    Core.Iobuf.Poke.char buf ~pos:(pos  + 4) ((Probe_type.to_char field));
+    Core.Iobuf.Poke.char buf ~pos:(pos  + 4) (Probe_type.to_char field);
   ;;
+  
   let set_name buf field =
     let pos = 0 in
     Core.Iobuf.Poke.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5) field;
@@ -178,7 +192,27 @@ module New_group = struct
   let to_sub_iobuf t = 
     Iobuf.sub_shared t ~len:(get_message_length t + 0)
   ;;
-  let to_unpacked buf =
+  module Unpacked = struct
+    type t = {
+      message_length : int;
+      message_type : char;
+      id : Probe_id.t;
+      spec : Probe_type.t;
+      name : string;
+    } [@@deriving sexp]
+
+    let num_bytes t =
+      t.message_length + 0
+  
+    let write (t : t) iobuf =
+      let res = write iobuf
+        ~id:t.id
+        ~spec:t.spec
+        ~name:t.name
+      in
+      res
+  end
+  let to_unpacked buf : Unpacked.t =
     assert(buffer_length <= Iobuf.length buf);
     {
       message_length = get_message_length buf;
@@ -187,45 +221,147 @@ module New_group = struct
       spec = get_spec buf;
       name = get_name buf;
     }
-  let of_unpacked iobuf u =
-    let res = write iobuf
-      ~id:u.id
-      ~spec:u.spec
-      ~name:u.name
-    in
-    res
-  let sexp_of_t _ t = sexp_of_t_unpacked (to_unpacked t)
+  let sexp_of_t _ t = Unpacked.sexp_of_t (to_unpacked t)
 
-  let t_of_sexp _ sexp =
-    let unpacked = t_unpacked_of_sexp sexp in
-    let t = Iobuf.create ~len:(message_length + 0) in
-    ignore (of_unpacked t unpacked : int);
+  let of_unpacked (unpacked : Unpacked.t) =
+    let t = Iobuf.create ~len:(69) in
+    ignore (Unpacked.write unpacked t : int);
     Iobuf.of_string (Iobuf.to_string t)
   ;;
   
+  let t_of_sexp _ sexp = of_unpacked (Unpacked.t_of_sexp sexp)
+end
+
+module New_group = struct
+  
+  type (-'rw) t = ('rw, Iobuf.no_seek) Iobuf.t constraint 'rw = [> read ]
+
+  let message_type = 'P'
+
+  let buffer_length  = 69
+  
+  let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.New_group
+  let write ~id ~spec ~name buf =
+    let pos = 0 in
+    assert(Iobuf.length buf >= 69);
+    Core.Iobuf.Unsafe.Poke.char buf ~pos:(pos  + 1) message_type;
+    Core.Iobuf.Unsafe.Poke.uint16_le buf ~pos:(pos  + 2) (Probe_id.to_int_exn id);
+    Core.Iobuf.Unsafe.Poke.char buf ~pos:(pos  + 4) (Probe_type.to_char spec);
+    Core.Iobuf.Unsafe.Poke.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5) name;
+    let total_bytes_packed = 69 in
+    Core.Iobuf.Unsafe.Poke.uint8 buf ~pos:(pos  + 0) (total_bytes_packed - 0);
+    total_bytes_packed
+  ;;
+
+  let create ~id ~spec ~name =
+    let iobuf = Iobuf.create ~len:(69) in
+    let size = write ~id ~spec ~name iobuf in
+    assert (Iobuf.length iobuf = size);
+    iobuf
+  
+  let get_message_length buf =
+    let pos = 0 in
+    Core.Iobuf.Unsafe.Peek.uint8 buf ~pos:(pos  + 0)
+  ;;
+  
+  let get_message_type buf =
+    let pos = 0 in
+    (Core.Iobuf.Unsafe.Peek.char buf ~pos:(pos  + 1))
+  ;;
+  
+  let get_id buf =
+    let pos = 0 in
+    Probe_id.of_int_exn (Core.Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos  + 2))
+  ;;
+  
+  let get_spec buf =
+    let pos = 0 in
+    Probe_type.of_char ((Core.Iobuf.Unsafe.Peek.char buf ~pos:(pos  + 4)))
+  ;;
+  
+  let get_name buf =
+    let pos = 0 in
+    Core.Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5)
+  ;;
+  
+  let get_name_zero buf f =
+    let buf = Iobuf.read_only buf in
+    let pos = 5 in
+    let len = ref 64 in
+    while !len > 0 && Char.(=) padding (Iobuf.Unsafe.Peek.char buf ~pos:(pos + !len - 1)); do decr len; done;
+    f buf ~safe_pos:pos ~safe_len:!len
+  ;;
+  
+  let set_id buf field =
+    let pos = 0 in
+    Core.Iobuf.Poke.uint16_le buf ~pos:(pos  + 2) (Probe_id.to_int_exn field);
+  ;;
+  
+  let set_spec buf field =
+    let pos = 0 in
+    Core.Iobuf.Poke.char buf ~pos:(pos  + 4) (Probe_type.to_char field);
+  ;;
+  
+  let set_name buf field =
+    let pos = 0 in
+    Core.Iobuf.Poke.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5) field;
+  ;;
+  let to_sub_iobuf t = 
+    Iobuf.sub_shared t ~len:(get_message_length t + 0)
+  ;;
+  module Unpacked = struct
+    type t = {
+      message_length : int;
+      message_type : char;
+      id : Probe_id.t;
+      spec : Probe_type.t;
+      name : string;
+    } [@@deriving sexp]
+
+    let num_bytes t =
+      t.message_length + 0
+  
+    let write (t : t) iobuf =
+      let res = write iobuf
+        ~id:t.id
+        ~spec:t.spec
+        ~name:t.name
+      in
+      res
+  end
+  let to_unpacked buf : Unpacked.t =
+    assert(buffer_length <= Iobuf.length buf);
+    {
+      message_length = get_message_length buf;
+      message_type = get_message_type buf;
+      id = get_id buf;
+      spec = get_spec buf;
+      name = get_name buf;
+    }
+  let sexp_of_t _ t = Unpacked.sexp_of_t (to_unpacked t)
+
+  let of_unpacked (unpacked : Unpacked.t) =
+    let t = Iobuf.create ~len:(69) in
+    ignore (Unpacked.write unpacked t : int);
+    Iobuf.of_string (Iobuf.to_string t)
+  ;;
+  
+  let t_of_sexp _ sexp = of_unpacked (Unpacked.t_of_sexp sexp)
 end
 
 module New_group_point = struct
   
-
-  type t_unpacked = {
-    message_length : int;
-    message_type : char;
-    group_id : Probe_id.t;
-    id : Probe_id.t;
-    name : string;
-    sources_id : Probe_id.t array;
-  } with sexp
   type (-'rw) t = ('rw, Iobuf.no_seek) Iobuf.t constraint 'rw = [> read ]
 
-  let message_length = 72 - 0
   let message_type = 'O'
 
-  let buffer_length ~sources_count = message_length + 0 + 2 * sources_count
+  let buffer_length ~sources_count = 72 + 2 * sources_count
+  
+  let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.New_group_point
   let write ~group_id ~id ~name ~sources_count buf =
     let pos = 0 in
-    assert(Iobuf.length buf >= message_length + 0 + 2 * sources_count);
-    Core.Iobuf.Unsafe.Poke.char buf ~pos:(pos  + 1) (message_type);
+    assert(Iobuf.length buf >= 72 + 2 * sources_count);
+    Core.Iobuf.Unsafe.Poke.char buf ~pos:(pos  + 1) message_type;
     Core.Iobuf.Unsafe.Poke.uint16_le buf ~pos:(pos  + 2) (Probe_id.to_int_exn group_id);
     Core.Iobuf.Unsafe.Poke.uint16_le buf ~pos:(pos  + 4) (Probe_id.to_int_exn id);
     Core.Iobuf.Unsafe.Poke.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 6) name;
@@ -236,51 +372,70 @@ module New_group_point = struct
   ;;
 
   let create ~group_id ~id ~name ~sources_count =
-    let iobuf = Iobuf.create ~len:(message_length + 0 + 2 * sources_count) in
+    let iobuf = Iobuf.create ~len:(72 + 2 * sources_count) in
     let size = write ~group_id ~id ~name ~sources_count iobuf in
     assert (Iobuf.length iobuf = size);
     iobuf
+  
   let get_message_length buf =
     let pos = 0 in
     Core.Iobuf.Unsafe.Peek.uint8 buf ~pos:(pos  + 0)
   ;;
+  
   let get_message_type buf =
     let pos = 0 in
     (Core.Iobuf.Unsafe.Peek.char buf ~pos:(pos  + 1))
   ;;
+  
   let get_group_id buf =
     let pos = 0 in
     Probe_id.of_int_exn (Core.Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos  + 2))
   ;;
+  
   let get_id buf =
     let pos = 0 in
     Probe_id.of_int_exn (Core.Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos  + 4))
   ;;
+  
   let get_name buf =
     let pos = 0 in
     Core.Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 6)
   ;;
+  
+  let get_name_zero buf f =
+    let buf = Iobuf.read_only buf in
+    let pos = 6 in
+    let len = ref 64 in
+    while !len > 0 && Char.(=) padding (Iobuf.Unsafe.Peek.char buf ~pos:(pos + !len - 1)); do decr len; done;
+    f buf ~safe_pos:pos ~safe_len:!len
+  ;;
+  
   let get_sources_count buf =
     let pos = 0 in
     Core.Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos  + 70)
   ;;
+  
   let get_sources_id buf ~count ~index =
     if index < 0 || index >= count then invalid_arg "index out of bounds";
     let pos = 72 + 0 * count + index * 2 in
     Probe_id.of_int_exn (Core.Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos  + 0))
   ;;
+  
   let set_group_id buf field =
     let pos = 0 in
     Core.Iobuf.Poke.uint16_le buf ~pos:(pos  + 2) (Probe_id.to_int_exn field);
   ;;
+  
   let set_id buf field =
     let pos = 0 in
     Core.Iobuf.Poke.uint16_le buf ~pos:(pos  + 4) (Probe_id.to_int_exn field);
   ;;
+  
   let set_name buf field =
     let pos = 0 in
     Core.Iobuf.Poke.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 6) field;
   ;;
+  
   let set_sources_id buf ~count ~index field =
     if index < 0 || index >= count then invalid_arg "index out of bounds";
     let pos = 72 + 0 * count + index * 2 in
@@ -289,8 +444,33 @@ module New_group_point = struct
   let to_sub_iobuf t = 
     Iobuf.sub_shared t ~len:(get_message_length t + 0)
   ;;
-  let to_unpacked buf =
-    assert(buffer_length ~sources_count:0 <= Iobuf.length buf && (let pos = 0 in buffer_length ~sources_count:(Core.Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos  + 70)) <= Iobuf.length buf));
+  module Unpacked = struct
+    type t = {
+      message_length : int;
+      message_type : char;
+      group_id : Probe_id.t;
+      id : Probe_id.t;
+      name : string;
+      sources_id : Probe_id.t array;
+    } [@@deriving sexp]
+
+    let num_bytes t =
+      t.message_length + 0
+  
+    let write (t : t) iobuf =
+      let res = write iobuf
+        ~group_id:t.group_id
+        ~id:t.id
+        ~name:t.name
+        ~sources_count:(Array.length t.sources_id)
+      in
+      Array.iteri (t.sources_id) ~f:(fun i elt ->
+        set_sources_id iobuf ~count:(Array.length t.sources_id) ~index:i elt
+      );
+      res
+  end
+  let to_unpacked buf : Unpacked.t =
+    assert(buffer_length ~sources_count:0 <= Iobuf.length buf && (let pos = 0 in buffer_length ~sources_count:(Core.Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos  + 70))) <= Iobuf.length buf);
     {
       message_length = get_message_length buf;
       message_type = get_message_type buf;
@@ -299,59 +479,46 @@ module New_group_point = struct
       name = get_name buf;
       sources_id = Array.init (get_sources_count buf) ~f:(fun i -> get_sources_id buf ~count:(get_sources_count buf) ~index:i);
     }
-  let of_unpacked iobuf u =
-    let res = write iobuf
-      ~group_id:u.group_id
-      ~id:u.id
-      ~name:u.name
-      ~sources_count:(Array.length u.sources_id)
-    in
-    Array.iteri (u.sources_id) ~f:(fun i elt ->
-      set_sources_id iobuf ~count:(Array.length u.sources_id) ~index:i elt
-    );
-    res
-  let sexp_of_t _ t = sexp_of_t_unpacked (to_unpacked t)
+  let sexp_of_t _ t = Unpacked.sexp_of_t (to_unpacked t)
 
-  let t_of_sexp _ sexp =
-    let unpacked = t_unpacked_of_sexp sexp in
-    let t = Iobuf.create ~len:(message_length + 0 + 2 * Array.length unpacked.sources_id) in
-    ignore (of_unpacked t unpacked : int);
+  let of_unpacked (unpacked : Unpacked.t) =
+    let t = Iobuf.create ~len:(72 + 2 * Array.length unpacked.sources_id) in
+    ignore (Unpacked.write unpacked t : int);
     Iobuf.of_string (Iobuf.to_string t)
   ;;
   
+  let t_of_sexp _ sexp = of_unpacked (Unpacked.t_of_sexp sexp)
 end
 
 module End_of_header = struct
   
-
-  type t_unpacked = {
-    message_length : int;
-    message_type : char;
-  } with sexp
   type (-'rw) t = ('rw, Iobuf.no_seek) Iobuf.t constraint 'rw = [> read ]
 
-  let message_length = 2 - 0
   let message_type = 'Z'
 
-  let buffer_length  = message_length + 0
+  let buffer_length  = 2
+  
+  let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.End_of_header
   let write  buf =
     let pos = 0 in
-    assert(Iobuf.length buf >= message_length + 0);
-    Core.Iobuf.Unsafe.Poke.char buf ~pos:(pos  + 1) (message_type);
+    assert(Iobuf.length buf >= 2);
+    Core.Iobuf.Unsafe.Poke.char buf ~pos:(pos  + 1) message_type;
     let total_bytes_packed = 2 in
     Core.Iobuf.Unsafe.Poke.uint8 buf ~pos:(pos  + 0) (total_bytes_packed - 0);
     total_bytes_packed
   ;;
 
   let create  =
-    let iobuf = Iobuf.create ~len:(message_length + 0) in
+    let iobuf = Iobuf.create ~len:(2) in
     let size = write  iobuf in
     assert (Iobuf.length iobuf = size);
     iobuf
+  
   let get_message_length buf =
     let pos = 0 in
     Core.Iobuf.Unsafe.Peek.uint8 buf ~pos:(pos  + 0)
   ;;
+  
   let get_message_type buf =
     let pos = 0 in
     (Core.Iobuf.Unsafe.Peek.char buf ~pos:(pos  + 1))
@@ -359,45 +526,50 @@ module End_of_header = struct
   let to_sub_iobuf t = 
     Iobuf.sub_shared t ~len:(get_message_length t + 0)
   ;;
-  let to_unpacked buf =
+  module Unpacked = struct
+    type t = {
+      message_length : int;
+      message_type : char;
+    } [@@deriving sexp]
+
+    let num_bytes t =
+      t.message_length + 0
+  
+    let write (_ : t) iobuf =
+      let res = write iobuf
+      in
+      res
+  end
+  let to_unpacked buf : Unpacked.t =
     assert(buffer_length <= Iobuf.length buf);
     {
       message_length = get_message_length buf;
       message_type = get_message_type buf;
     }
-  let of_unpacked iobuf _ =
-    let res = write iobuf
-    in
-    res
-  let sexp_of_t _ t = sexp_of_t_unpacked (to_unpacked t)
+  let sexp_of_t _ t = Unpacked.sexp_of_t (to_unpacked t)
 
-  let t_of_sexp _ sexp =
-    let unpacked = t_unpacked_of_sexp sexp in
-    let t = Iobuf.create ~len:(message_length + 0) in
-    ignore (of_unpacked t unpacked : int);
+  let of_unpacked (unpacked : Unpacked.t) =
+    let t = Iobuf.create ~len:(2) in
+    ignore (Unpacked.write unpacked t : int);
     Iobuf.of_string (Iobuf.to_string t)
   ;;
   
+  let t_of_sexp _ sexp = of_unpacked (Unpacked.t_of_sexp sexp)
 end
 
 module Epoch = struct
   
-
-  type t_unpacked = {
-    message_length : int;
-    message_type : char;
-    epoch : Profiler_epoch.t;
-  } with sexp
   type (-'rw) t = ('rw, Iobuf.no_seek) Iobuf.t constraint 'rw = [> read ]
 
-  let message_length = 10 - 0
   let message_type = 'E'
 
-  let buffer_length  = message_length + 0
+  let buffer_length  = 10
+  
+  let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.Epoch
   let write ~epoch buf =
     let pos = 0 in
-    assert(Iobuf.length buf >= message_length + 0);
-    Core.Iobuf.Unsafe.Poke.char buf ~pos:(pos  + 1) (message_type);
+    assert(Iobuf.length buf >= 10);
+    Core.Iobuf.Unsafe.Poke.char buf ~pos:(pos  + 1) message_type;
     Core.Iobuf.Unsafe.Poke.int64_le buf ~pos:(pos  + 2) (Profiler_epoch.to_int epoch);
     let total_bytes_packed = 10 in
     Core.Iobuf.Unsafe.Poke.uint8 buf ~pos:(pos  + 0) (total_bytes_packed - 0);
@@ -405,22 +577,26 @@ module Epoch = struct
   ;;
 
   let create ~epoch =
-    let iobuf = Iobuf.create ~len:(message_length + 0) in
+    let iobuf = Iobuf.create ~len:(10) in
     let size = write ~epoch iobuf in
     assert (Iobuf.length iobuf = size);
     iobuf
+  
   let get_message_length buf =
     let pos = 0 in
     Core.Iobuf.Unsafe.Peek.uint8 buf ~pos:(pos  + 0)
   ;;
+  
   let get_message_type buf =
     let pos = 0 in
     (Core.Iobuf.Unsafe.Peek.char buf ~pos:(pos  + 1))
   ;;
+  
   let get_epoch buf =
     let pos = 0 in
     Profiler_epoch.of_int (Core.Iobuf.Unsafe.Peek.int64_le buf ~pos:(pos  + 2))
   ;;
+  
   let set_epoch buf field =
     let pos = 0 in
     Core.Iobuf.Poke.int64_le buf ~pos:(pos  + 2) (Profiler_epoch.to_int field);
@@ -428,283 +604,129 @@ module Epoch = struct
   let to_sub_iobuf t = 
     Iobuf.sub_shared t ~len:(get_message_length t + 0)
   ;;
-  let to_unpacked buf =
+  module Unpacked = struct
+    type t = {
+      message_length : int;
+      message_type : char;
+      epoch : Profiler_epoch.t;
+    } [@@deriving sexp]
+
+    let num_bytes t =
+      t.message_length + 0
+  
+    let write (t : t) iobuf =
+      let res = write iobuf
+        ~epoch:t.epoch
+      in
+      res
+  end
+  let to_unpacked buf : Unpacked.t =
     assert(buffer_length <= Iobuf.length buf);
     {
       message_length = get_message_length buf;
       message_type = get_message_type buf;
       epoch = get_epoch buf;
     }
-  let of_unpacked iobuf u =
-    let res = write iobuf
-      ~epoch:u.epoch
-    in
-    res
-  let sexp_of_t _ t = sexp_of_t_unpacked (to_unpacked t)
+  let sexp_of_t _ t = Unpacked.sexp_of_t (to_unpacked t)
 
-  let t_of_sexp _ sexp =
-    let unpacked = t_unpacked_of_sexp sexp in
-    let t = Iobuf.create ~len:(message_length + 0) in
-    ignore (of_unpacked t unpacked : int);
+  let of_unpacked (unpacked : Unpacked.t) =
+    let t = Iobuf.create ~len:(10) in
+    ignore (Unpacked.write unpacked t : int);
     Iobuf.of_string (Iobuf.to_string t)
   ;;
   
+  let t_of_sexp _ sexp = of_unpacked (Unpacked.t_of_sexp sexp)
 end
 
-type t_unpacked =
-  | New_single_unpacked of New_single.t_unpacked
-  | New_group_unpacked of New_group.t_unpacked
-  | New_group_point_unpacked of New_group_point.t_unpacked
-  | End_of_header_unpacked of End_of_header.t_unpacked
-  | Epoch_unpacked of Epoch.t_unpacked
-with sexp
-
-module Message_type_and_errors = struct
-  type _ t =
-    | New_single : [ `New_single ] t
-    | New_group : [ `New_group ] t
-    | New_group_point : [ `New_group_point ] t
-    | End_of_header : [ `End_of_header ] t
-    | Epoch : [ `Epoch ] t
-    | Need_more_data : [ `Need_more_data ] t
-    | Invalid_message_type_or_subtype : [ `Invalid_message_type_or_subtype ] t
-  let sexp_of_t : type a. _ -> a t -> Sexp.t = fun _ -> function
-    | New_single -> Sexp.Atom "new_single"
-    | New_group -> Sexp.Atom "new_group"
-    | New_group_point -> Sexp.Atom "new_group_point"
-    | End_of_header -> Sexp.Atom "end_of_header"
-    | Epoch -> Sexp.Atom "epoch"
-    | Need_more_data -> Sexp.Atom "need_more_data"
-    | Invalid_message_type_or_subtype -> Sexp.Atom "invalid_message_type_or_subtype"
+module Unpacked = struct
+  type t =
+    | New_single of New_single.Unpacked.t
+    | New_group of New_group.Unpacked.t
+    | New_group_point of New_group_point.Unpacked.t
+    | End_of_header of End_of_header.Unpacked.t
+    | Epoch of Epoch.Unpacked.t
+  [@@deriving sexp]
   
-  type packed = T : _ t -> packed
-  let sexp_of_packed (T t) = <:sexp_of< (string * _ t) >> ("t", t) 
+  let num_bytes = function
+    | New_single m -> New_single.Unpacked.num_bytes m
+    | New_group m -> New_group.Unpacked.num_bytes m
+    | New_group_point m -> New_group_point.Unpacked.num_bytes m
+    | End_of_header m -> End_of_header.Unpacked.num_bytes m
+    | Epoch m -> Epoch.Unpacked.num_bytes m
+  
+  let write t iobuf =
+    match t with
+    | New_single msg -> New_single.Unpacked.write msg iobuf
+    | New_group msg -> New_group.Unpacked.write msg iobuf
+    | New_group_point msg -> New_group_point.Unpacked.write msg iobuf
+    | End_of_header msg -> End_of_header.Unpacked.write msg iobuf
+    | Epoch msg -> Epoch.Unpacked.write msg iobuf
 end
 
-let get_message_type buf =
-  let len = Iobuf.length buf in
-  let pos = 0 in
-  if len < 2 then
-    Message_type_and_errors.(T Need_more_data)
-  else
-    let message_length = 0 + Core.Iobuf.Unsafe.Peek.uint8 buf ~pos:(pos+0) in
-    if len < message_length then Message_type_and_errors.(T Need_more_data)
-    else begin
-      match Core.Iobuf.Unsafe.Peek.char buf ~pos:(pos + 1) with
-      | 'E' ->
-          if Epoch.buffer_length <= len
-          then Message_type_and_errors.(T Epoch)
-          else Message_type_and_errors.(T Need_more_data)
-      | 'N' ->
-          if New_single.buffer_length <= len
-          then Message_type_and_errors.(T New_single)
-          else Message_type_and_errors.(T Need_more_data)
-      | 'O' ->
-          if New_group_point.buffer_length ~sources_count:0 <= len && (let pos = 0 in New_group_point.buffer_length ~sources_count:(Core.Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos  + 70)) <= len)
-          then Message_type_and_errors.(T New_group_point)
-          else Message_type_and_errors.(T Need_more_data)
-      | 'P' ->
-          if New_group.buffer_length <= len
-          then Message_type_and_errors.(T New_group)
-          else Message_type_and_errors.(T Need_more_data)
-      | 'Z' ->
-          if End_of_header.buffer_length <= len
-          then Message_type_and_errors.(T End_of_header)
-          else Message_type_and_errors.(T Need_more_data)
-      | other -> ignore other; Message_type_and_errors.(T Invalid_message_type_or_subtype)
-    end
-;;
 
-let get_message buf _ = Iobuf.no_seek buf
-
-let skip_message buf =
+let num_bytes_needed_for_message_length = 1
+let num_bytes_in_message buf =
   let pos = 0 in
   if Iobuf.length buf < 1
-  then failwith "Not enough data to read a message length to skip over!";
-  Iobuf.advance buf (0 + Core.Iobuf.Unsafe.Peek.uint8 buf ~pos:(pos+0))
+  then failwith "Not enough data to read a message length!";
+  0 + Core.Iobuf.Unsafe.Peek.uint8 buf ~pos:(pos  + 0)
 ;;
 
-let consuming_dispatch buf
-  ~on_error
-  ~on_epoch
-  ~on_new_single
-  ~on_new_group_point
-  ~on_new_group
-  ~on_end_of_header
-    =
-  let len = Iobuf.length buf in
-  let pos = 0 in
-  if len < 2 then
-    on_error `Need_more_data
-  else
-    let message_length = 0 + Core.Iobuf.Unsafe.Peek.uint8 buf ~pos:(pos+0) in
-    if len < message_length then on_error `Need_more_data
-    else begin
-      let no_seek_buf = (buf : (_, Iobuf.seek) Iobuf.t :> (_, Iobuf.no_seek) Iobuf.t) in
-      match Core.Iobuf.Unsafe.Peek.char buf ~pos:(pos + 1) with
-      | 'E' ->
-          if Epoch.buffer_length <= len then begin
-            let result = on_epoch no_seek_buf in
-            Iobuf.advance buf message_length;
-            result
-          end else on_error `Need_more_data
-      | 'N' ->
-          if New_single.buffer_length <= len then begin
-            let result = on_new_single no_seek_buf in
-            Iobuf.advance buf message_length;
-            result
-          end else on_error `Need_more_data
-      | 'O' ->
-          if New_group_point.buffer_length ~sources_count:0 <= len && (let pos = 0 in New_group_point.buffer_length ~sources_count:(Core.Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos  + 70)) <= len) then begin
-            let result = on_new_group_point no_seek_buf in
-            Iobuf.advance buf message_length;
-            result
-          end else on_error `Need_more_data
-      | 'P' ->
-          if New_group.buffer_length <= len then begin
-            let result = on_new_group no_seek_buf in
-            Iobuf.advance buf message_length;
-            result
-          end else on_error `Need_more_data
-      | 'Z' ->
-          if End_of_header.buffer_length <= len then begin
-            let result = on_end_of_header no_seek_buf in
-            Iobuf.advance buf message_length;
-            result
-          end else on_error `Need_more_data
-      | other -> Iobuf.advance buf message_length; ignore other; on_error `Invalid_message_type_or_subtype
-    end
-;;
+let skip_message buf = Iobuf.advance buf (num_bytes_in_message buf)
 
-let consuming_dispatch_with_arg buf arg0
-  ~on_error
-  ~on_epoch
-  ~on_new_single
-  ~on_new_group_point
-  ~on_new_group
-  ~on_end_of_header
-    =
-  let len = Iobuf.length buf in
-  let pos = 0 in
-  if len < 2 then
-    on_error arg0 `Need_more_data
-  else
-    let message_length = 0 + Core.Iobuf.Unsafe.Peek.uint8 buf ~pos:(pos+0) in
-    if len < message_length then on_error arg0 `Need_more_data
-    else begin
-      let no_seek_buf = (buf : (_, Iobuf.seek) Iobuf.t :> (_, Iobuf.no_seek) Iobuf.t) in
-      match Core.Iobuf.Unsafe.Peek.char buf ~pos:(pos + 1) with
-      | 'E' ->
-          if Epoch.buffer_length <= len then begin
-            let result = on_epoch no_seek_buf arg0 in
-            Iobuf.advance buf message_length;
-            result
-          end else on_error arg0 `Need_more_data
-      | 'N' ->
-          if New_single.buffer_length <= len then begin
-            let result = on_new_single no_seek_buf arg0 in
-            Iobuf.advance buf message_length;
-            result
-          end else on_error arg0 `Need_more_data
-      | 'O' ->
-          if New_group_point.buffer_length ~sources_count:0 <= len && (let pos = 0 in New_group_point.buffer_length ~sources_count:(Core.Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos  + 70)) <= len) then begin
-            let result = on_new_group_point no_seek_buf arg0 in
-            Iobuf.advance buf message_length;
-            result
-          end else on_error arg0 `Need_more_data
-      | 'P' ->
-          if New_group.buffer_length <= len then begin
-            let result = on_new_group no_seek_buf arg0 in
-            Iobuf.advance buf message_length;
-            result
-          end else on_error arg0 `Need_more_data
-      | 'Z' ->
-          if End_of_header.buffer_length <= len then begin
-            let result = on_end_of_header no_seek_buf arg0 in
-            Iobuf.advance buf message_length;
-            result
-          end else on_error arg0 `Need_more_data
-      | other -> Iobuf.advance buf message_length; ignore other; on_error arg0 `Invalid_message_type_or_subtype
-    end
-;;
-
-let consuming_dispatch_with_arg2 buf arg0 arg1
-  ~on_error
-  ~on_epoch
-  ~on_new_single
-  ~on_new_group_point
-  ~on_new_group
-  ~on_end_of_header
-    =
-  let len = Iobuf.length buf in
-  let pos = 0 in
-  if len < 2 then
-    on_error arg0 arg1 `Need_more_data
-  else
-    let message_length = 0 + Core.Iobuf.Unsafe.Peek.uint8 buf ~pos:(pos+0) in
-    if len < message_length then on_error arg0 arg1 `Need_more_data
-    else begin
-      let no_seek_buf = (buf : (_, Iobuf.seek) Iobuf.t :> (_, Iobuf.no_seek) Iobuf.t) in
-      match Core.Iobuf.Unsafe.Peek.char buf ~pos:(pos + 1) with
-      | 'E' ->
-          if Epoch.buffer_length <= len then begin
-            let result = on_epoch no_seek_buf arg0 arg1 in
-            Iobuf.advance buf message_length;
-            result
-          end else on_error arg0 arg1 `Need_more_data
-      | 'N' ->
-          if New_single.buffer_length <= len then begin
-            let result = on_new_single no_seek_buf arg0 arg1 in
-            Iobuf.advance buf message_length;
-            result
-          end else on_error arg0 arg1 `Need_more_data
-      | 'O' ->
-          if New_group_point.buffer_length ~sources_count:0 <= len && (let pos = 0 in New_group_point.buffer_length ~sources_count:(Core.Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos  + 70)) <= len) then begin
-            let result = on_new_group_point no_seek_buf arg0 arg1 in
-            Iobuf.advance buf message_length;
-            result
-          end else on_error arg0 arg1 `Need_more_data
-      | 'P' ->
-          if New_group.buffer_length <= len then begin
-            let result = on_new_group no_seek_buf arg0 arg1 in
-            Iobuf.advance buf message_length;
-            result
-          end else on_error arg0 arg1 `Need_more_data
-      | 'Z' ->
-          if End_of_header.buffer_length <= len then begin
-            let result = on_end_of_header no_seek_buf arg0 arg1 in
-            Iobuf.advance buf message_length;
-            result
-          end else on_error arg0 arg1 `Need_more_data
-      | other -> Iobuf.advance buf message_length; ignore other; on_error arg0 arg1 `Invalid_message_type_or_subtype
-    end
-;;
-
-let of_unpacked iobuf u =
+let of_unpacked (u : Unpacked.t) =
   match u with
-  | New_single_unpacked msg -> (New_single.of_unpacked iobuf msg)
-  | New_group_unpacked msg -> (New_group.of_unpacked iobuf msg)
-  | New_group_point_unpacked msg -> (New_group_point.of_unpacked iobuf msg)
-  | End_of_header_unpacked msg -> (End_of_header.of_unpacked iobuf msg)
-  | Epoch_unpacked msg -> (Epoch.of_unpacked iobuf msg)
+  | New_single msg -> New_single.of_unpacked msg
+  | New_group msg -> New_group.of_unpacked msg
+  | New_group_point msg -> New_group_point.of_unpacked msg
+  | End_of_header msg -> End_of_header.of_unpacked msg
+  | Epoch msg -> Epoch.of_unpacked msg
 
 let to_unpacked buf =
-  consuming_dispatch (Iobuf.sub_shared buf) ~on_error:(function
-    | `Need_more_data -> R.Need_more_data
-    | `Invalid_message_type_or_subtype ->
-        let exn = Failure "Invalid_message_type_or_subtype" in
-        R.Junk (exn, Error exn))
-    ~on_new_single:(fun buf -> R.Ok (New_single_unpacked (New_single.to_unpacked buf), Iobuf.length buf))
-    ~on_new_group:(fun buf -> R.Ok (New_group_unpacked (New_group.to_unpacked buf), Iobuf.length buf))
-    ~on_new_group_point:(fun buf -> R.Ok (New_group_point_unpacked (New_group_point.to_unpacked buf), Iobuf.length buf))
-    ~on_end_of_header:(fun buf -> R.Ok (End_of_header_unpacked (End_of_header.to_unpacked buf), Iobuf.length buf))
-    ~on_epoch:(fun buf -> R.Ok (Epoch_unpacked (Epoch.to_unpacked buf), Iobuf.length buf));;
+    let Message_type_and_errors.T mt = get_message_type buf in
+    let m = of_iobuf buf ~trusted:mt in
+    match mt with
+    | Message_type_and_errors.Need_more_data -> R.Need_more_data
+    | Message_type_and_errors.Invalid_message_type_or_subtype ->
+      let len_or_error = Result.try_with (fun () -> num_bytes_in_message buf) in
+      R.Junk (Failure "Invalid_message_type_or_subtype", len_or_error)
+    | Message_type_and_errors.Message_length_too_short ->
+      let len_or_error = Result.try_with (fun () -> num_bytes_in_message buf) in
+      R.Junk (Failure "Message_length_too_short", len_or_error)
+    | Message_type_and_errors.New_single ->
+      R.Ok (Unpacked.New_single (New_single.to_unpacked m), num_bytes_in_message buf)
+    | Message_type_and_errors.New_group ->
+      R.Ok (Unpacked.New_group (New_group.to_unpacked m), num_bytes_in_message buf)
+    | Message_type_and_errors.New_group_point ->
+      R.Ok (Unpacked.New_group_point (New_group_point.to_unpacked m), num_bytes_in_message buf)
+    | Message_type_and_errors.End_of_header ->
+      R.Ok (Unpacked.End_of_header (End_of_header.to_unpacked m), num_bytes_in_message buf)
+    | Message_type_and_errors.Epoch ->
+      R.Ok (Unpacked.Epoch (Epoch.to_unpacked m), num_bytes_in_message buf)
+;;
 
+type ('ty, -'rw) t = ('rw, Iobuf.no_seek) Iobuf.t constraint 'rw = [> read ]
+type ('ty, 'rw) message = ('ty, 'rw) t
+type ('ty, 'rw) t_no_exn = ('ty, 'rw) t
 
-type ('ty, -'rw) message = ('rw, Iobuf.no_seek) Iobuf.t constraint 'rw = [> read ]
-
-let sexp_of_message _ _ message =
-  match to_unpacked (Iobuf.sub_shared message) with
+let sexp_of_t _ _ t =
+  match to_unpacked t with
   | R.Need_more_data
-  | R.Junk _ as e -> failwiths "invalid message" e <:sexp_of< Nothing.t R.t >>
-  | R.Ok (t, _) -> sexp_of_t_unpacked t
+  | R.Junk _ as e -> failwiths "invalid message" e [%sexp_of: Nothing.t R.t]
+  | R.Ok (t, _) -> Unpacked.sexp_of_t t
+;;
+let sexp_of_t_no_exn _ _ t =
+  let sexp_of_error error =
+    let len = try num_bytes_in_message t with _ -> num_bytes_needed_for_message_length in
+    let len = Int.min (Int.min (Iobuf.length t) len) 1000 in
+    let data = Iobuf.to_string t ~len in
+    [%sexp ("invalid message" : string),
+            { error = (error : Error.t); data = (data : string) }]
+  in
+  match to_unpacked t with
+  | exception exn -> sexp_of_error (Error.of_exn exn)
+  | R.Need_more_data -> sexp_of_error (Error.of_string "Need_more_data")
+  | R.Junk (exn, _) -> sexp_of_error (Error.of_exn exn)
+  | R.Ok (t, _) -> Unpacked.sexp_of_t t
+;;
+let to_iobuf t = t

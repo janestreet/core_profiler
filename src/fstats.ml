@@ -83,7 +83,7 @@ let update_in_place t value =
 
 let copy t = { t with sum = t.sum }
 
-TEST_MODULE "Fstats" = struct
+let%test_module "Fstats" = (module struct
   let data =
     [|198215.02492520443; 28715.0284862834887; 434619.094190333097; 800678.330169520807
      ; 200186.54372400351; 137503.258498826239; 566498.60534151; 549219.475914424169
@@ -109,23 +109,23 @@ TEST_MODULE "Fstats" = struct
   let () =
     Array.iter data ~f:(update_in_place stats)
 
-  TEST "samples"  = samples stats = 63
-  TEST "min"      = min   stats = 14526.9831253076572
-  TEST "max"      = max   stats = 974099.221967302146
-  TEST "total"    = total stats = 29970575.106168244
-  TEST "mean"     = mean  stats = 475723.414383622934
-  TEST "var"      = var   stats = 78826737609.7966156
-  TEST "stdev"    = stdev stats = 280760.997308736958
+  let%test "samples"  = samples stats = 63
+  let%test "min"      = min   stats = 14526.9831253076572
+  let%test "max"      = max   stats = 974099.221967302146
+  let%test "total"    = total stats = 29970575.106168244
+  let%test "mean"     = mean  stats = 475723.414383622934
+  let%test "var"      = var   stats = 78826737609.7966156
+  let%test "stdev"    = stdev stats = 280760.997308736958
 
-  TEST_UNIT "copy" =
+  let%test_unit "copy" =
     let stats2 = copy stats in
     update_in_place stats2 0.;
-    <:test_eq< int >> (samples stats) 63;
-    <:test_eq< int >> (samples stats2) 64
-end
+    [%test_eq: int] (samples stats) 63;
+    [%test_eq: int] (samples stats2) 64
+end)
 
-BENCH_MODULE "Fstats" = struct
+let%bench_module "Fstats" = (module struct
   let stats = create ()
 
-  BENCH "update_in_place" = update_in_place stats 5.
-end
+  let%bench "update_in_place" = update_in_place stats 5.
+end)

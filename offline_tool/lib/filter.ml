@@ -44,13 +44,8 @@ let add_interest t interest =
       failwith "Can only filter time deltas / deltas when considering a path"
   end;
 
-  Hashtbl.change
-    t.interests
-    (Interest.raw interest)
-    (fun others ->
-      let others = Option.value others ~default:[] in
-      Some (interest :: others)
-    )
+  Hashtbl.add_multi t.interests ~key:(Interest.raw interest) ~data:interest
+;;
 
 let read_only (t : _ t) = (t :> read t)
 

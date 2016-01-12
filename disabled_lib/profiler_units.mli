@@ -8,7 +8,7 @@ type t =
   | Seconds
   | Nanoseconds
   | Int
-with sexp, compare
+[@@deriving sexp, compare]
 
 val to_string  : t -> string
 val of_string  : string -> t

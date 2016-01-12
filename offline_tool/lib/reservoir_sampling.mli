@@ -1,6 +1,6 @@
 open Core.Std
 
-type t with sexp
+type t [@@deriving sexp]
 
 val create : ?num_samples_to_keep:int -> unit -> t
 

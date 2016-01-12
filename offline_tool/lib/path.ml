@@ -4,7 +4,7 @@ open Core_profiler
 type 'a point =
   | Direct_point of 'a
   | Point of 'a
-with sexp, compare
+[@@deriving sexp, compare]
 
 type 'id t =
   { first : 'id point
@@ -12,7 +12,7 @@ type 'id t =
   ; rest_rev : 'id point list
   ; last : 'id
   }
-with sexp, compare
+[@@deriving sexp, compare]
 
 let first t =
   match t.first with
@@ -70,40 +70,40 @@ let string_t_to_string { first; rest_rev; last } =
 
 
 
-TEST_MODULE = struct
+let%test_module _ = (module struct
   let check s p =
-    <:test_eq<string t option>> (string_t_of_string s) (Some p);
-    <:test_eq<string>> (string_t_to_string p) s
+    [%test_eq: string t option] (string_t_of_string s) (Some p);
+    [%test_eq: string] (string_t_to_string p) s
 
-  TEST_UNIT "aaa..bbb" =
+  let%test_unit "aaa..bbb" =
     check "aaa..bbb"
       { last = "bbb"
       ; rest_rev = []
       ; first = Point "aaa"
       }
 
-  TEST_UNIT "aaa..b..cc..ddd" =
+  let%test_unit "aaa..b..cc..ddd" =
     check "aaa..b..cc..ddd"
       { first = Point "aaa"
       ; rest_rev = [Point "cc"; Point "b"]
       ; last = "ddd"
       }
 
-  TEST_UNIT "aaa,bbb" =
+  let%test_unit "aaa,bbb" =
     check "aaa,bbb"
       { first = Direct_point "aaa"
       ; rest_rev = []
       ; last = "bbb"
       }
 
-  TEST_UNIT "a..b,c..d,e" =
+  let%test_unit "a..b,c..d,e" =
     check "a..b,c..d,e"
       { first = Point "a"
       ; rest_rev = [Direct_point "d"; Point "c"; Direct_point "b"]
       ; last = "e"
       }
 
-end
+end)
 
 
 
@@ -164,9 +164,9 @@ let id_t_to_string path ?with_group id_map =
   string_t_to_string (lookup_names path id_map)
 
 module I = struct
-  type id_path = Probe_id.t t with sexp, compare
+  type id_path = Probe_id.t t [@@deriving sexp, compare]
   module T = struct
-    type t = id_path    with sexp, compare
+    type t = id_path    [@@deriving sexp, compare]
 
     let hash_point = function
       | Direct_point id -> Probe_id.to_int_exn id

@@ -60,7 +60,7 @@ module Timer = struct
   end
 end
 
-BENCH_MODULE "Timer" = struct
+let%bench_module "Timer" = (module struct
   let () = Profiler.configure ()
              ~don't_require_core_profiler_env:()
 
@@ -69,14 +69,14 @@ BENCH_MODULE "Timer" = struct
   (* let group = Timer.Group.create "bench_timer_group" ()
    * let group_probe = Timer.Group.add_probe group "bench_timer_group_probe" *)
 
-  BENCH "at" = Timer.record timer
+  let%bench "at" = Timer.record timer
 
   (* BENCH "group_probe_at" = Timer.Group.Probe.at group_probe
    *
    * BENCH "group_reset" = Timer.Group.reset group *)
 
   let () = Protocol.Writer.set_at_exit_handler `Disable
-end
+end)
 
 
 module Probe = struct
@@ -113,7 +113,7 @@ module Probe = struct
   end
 end
 
-BENCH_MODULE "Probe" = struct
+let%bench_module "Probe" = (module struct
   let () = Profiler.configure ()
              ~don't_require_core_profiler_env:()
 
@@ -122,14 +122,14 @@ BENCH_MODULE "Probe" = struct
   (* let group = Probe.Group.create "bench_probe_group" Profiler_units.Int
    * let group_probe = Probe.Group.add_probe group "bench_probe_group_probe" *)
 
-  BENCH "at" = Probe.record timer 19827312
+  let%bench "at" = Probe.record timer 19827312
 
   (* BENCH "group_probe_at" = Probe.Group.Probe.at group_probe 123812
    *
    * BENCH "group_reset" = Probe.Group.reset group *)
 
   let () = Protocol.Writer.set_at_exit_handler `Disable
-end
+end)
 
 module Delta_timer = struct
   type state = Time_ns.t
@@ -242,20 +242,20 @@ module Delta_timer = struct
    *   | Error ex -> Exn.reraise ex "Core_profiler Delta_timer.wrap_async" *)
 end
 
-BENCH_MODULE "Delta_timer" = struct
+let%bench_module "Delta_timer" = (module struct
   let () = Profiler.configure ()
              ~don't_require_core_profiler_env:()
 
   let delta = Delta_timer.create ~name:"unittest"
   let started = Delta_timer.stateless_start delta
 
-  BENCH "start_async" = Delta_timer.stateless_start delta
-  BENCH "stop_async" = Delta_timer.stateless_stop delta started
-  BENCH "start" = Delta_timer.start delta
-  BENCH "stop" = Delta_timer.stop delta
-end
+  let%bench "start_async" = Delta_timer.stateless_start delta
+  let%bench "stop_async" = Delta_timer.stateless_stop delta started
+  let%bench "start" = Delta_timer.start delta
+  let%bench "stop" = Delta_timer.stop delta
+end)
 
-BENCH_MODULE "Delta_timer.wrap_sync" = struct
+let%bench_module "Delta_timer.wrap_sync" = (module struct
   let () = Profiler.configure ()
              ~don't_require_core_profiler_env:()
 
@@ -266,7 +266,7 @@ BENCH_MODULE "Delta_timer.wrap_sync" = struct
     Delta_timer.wrap_sync delta nop
 
   let count_256 () =
-    for _i = 1 to 256 do
+    for _ = 1 to 256 do
       ()
     done
 
@@ -274,11 +274,11 @@ BENCH_MODULE "Delta_timer.wrap_sync" = struct
     let delta = Delta_timer.create ~name:"count_256" in
     Delta_timer.wrap_sync delta count_256
 
-  BENCH "nop" = nop ()
-  BENCH "wrapped_nop" = wrapped_nop ()
-  BENCH "count_256" = count_256 ()
-  BENCH "wrapped_count_256" = wrapped_count_256 ()
-end
+  let%bench "nop" = nop ()
+  let%bench "wrapped_nop" = wrapped_nop ()
+  let%bench "count_256" = count_256 ()
+  let%bench "wrapped_count_256" = wrapped_count_256 ()
+end)
 
 (* stateless Delta_probe does not support pausing *)
 module Delta_probe = struct
@@ -311,15 +311,15 @@ module Delta_probe = struct
 
 end
 
-BENCH_MODULE "Delta_probe" = struct
+let%bench_module "Delta_probe" = (module struct
   let () = Profiler.configure ()
              ~don't_require_core_profiler_env:()
 
   let delta = Delta_probe.create ~name:"unittest" ~units:Profiler_units.Int
   let started = Delta_probe.stateless_start delta 123
 
-  BENCH "start" = Delta_probe.start delta 123
-  BENCH "stop" = Delta_probe.stop delta 456
-  BENCH "start_async" = Delta_probe.stateless_start delta 123
-  BENCH "stop_async" = Delta_probe.stateless_stop delta started 456
-end
+  let%bench "start" = Delta_probe.start delta 123
+  let%bench "stop" = Delta_probe.stop delta 456
+  let%bench "start_async" = Delta_probe.stateless_start delta 123
+  let%bench "stop_async" = Delta_probe.stateless_stop delta started 456
+end)

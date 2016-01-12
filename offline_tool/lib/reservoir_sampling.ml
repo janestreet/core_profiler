@@ -5,12 +5,12 @@
 open Core.Std
 
 module Make (E : sig
-    type t with sexp, bin_io, compare
+    type t [@@deriving sexp, bin_io, compare]
     val make_array : len:int -> t array
     val set : t array -> int -> t -> unit
   end) = struct
 
-  type element = E.t with sexp, bin_io
+  type element = E.t [@@deriving sexp, bin_io]
 
   type t = {
     mutable total_samples_seen : int;  (* total number of samples seen by [add] *)
@@ -19,7 +19,7 @@ module Make (E : sig
                                           samples_count-1 inclusive; the other values are
                                           meaningless) *)
     mutable samples_are_sorted : bool; (* flag to avoid resorting *)
-  } with sexp, bin_io
+  } [@@deriving sexp, bin_io]
 
   let create ?(num_samples_to_keep=10_000) () =
     if num_samples_to_keep < 1

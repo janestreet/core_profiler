@@ -4,7 +4,7 @@ open Core_profiler_disabled
 type t =
   | Timer
   | Probe of Profiler_units.t
-with sexp, compare
+[@@deriving sexp, compare]
 
 let to_string = function
   | Timer -> "Timer"

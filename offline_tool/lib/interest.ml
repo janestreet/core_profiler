@@ -7,7 +7,7 @@ module Raw = struct
     | Single of 'a
     | Group_point of 'a * 'a
     | Group_path of 'a * 'a Path.t
-  with sexp, compare
+  [@@deriving sexp, compare]
 
   let is_path = function
     | Single _
@@ -15,9 +15,9 @@ module Raw = struct
     | Group_path _ -> true
 
   module I = struct
-    type id_raw_interest = Probe_id.t t with sexp, compare
+    type id_raw_interest = Probe_id.t t [@@deriving sexp, compare]
     module T = struct
-      type t = id_raw_interest    with sexp, compare
+      type t = id_raw_interest    [@@deriving sexp, compare]
 
       let hash = function
         | Single id -> Probe_id.to_int_exn id
@@ -35,7 +35,7 @@ module Interval_subject = struct
     | Value
     | Delta
     | Time_delta
-  with sexp, compare
+  [@@deriving sexp, compare]
 
   let of_string = function
     | "v"  -> Value
@@ -58,7 +58,7 @@ end
 type 'a t =
   | All of 'a Raw.t
   | In_interval of 'a Raw.t * Interval_subject.t * Profiler_units.t * Interval.Int.t
-with sexp
+[@@deriving sexp]
 
 let interval_compare a b =
   match (Interval.Int.bounds a, Interval.Int.bounds b) with
@@ -250,7 +250,7 @@ let examples =
       )
   ]
 
-TEST "of_to_string" =
+let%test "of_to_string" =
   List.for_all examples ~f:(fun ex ->
     let ex2 = ex |> string_t_to_string |> string_t_of_string in
     ex = ex2
@@ -292,9 +292,9 @@ let list_arg =
   )
 
 module I = struct
-  type id_interest = Probe_id.t t with sexp, compare
+  type id_interest = Probe_id.t t [@@deriving sexp, compare]
   module T = struct
-    type t = id_interest    with sexp, compare
+    type t = id_interest    [@@deriving sexp, compare]
 
     let hash_in_interval subj interval =
       let subj = Interval_subject.to_int subj in

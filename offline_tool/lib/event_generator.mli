@@ -10,7 +10,7 @@ type timer_path =
   ; time : Time_ns.t
   ; time_delta : Time_ns.Span.t
   }
-with sexp, compare
+[@@deriving sexp, compare]
 
 type probe_path =
   { interest: Probe_id.t Interest.Raw.t
@@ -19,7 +19,7 @@ type probe_path =
   ; value : int
   ; delta : int
   }
-with sexp, compare
+[@@deriving sexp, compare]
 
 type event =
   (* Timer and probe events are emitted for both singles and points. *)
@@ -27,7 +27,7 @@ type event =
   | Probe      of Probe_id.t Interest.Raw.t * Time_ns.t * int
   | Timer_path of timer_path
   | Probe_path of probe_path
-with sexp, compare
+[@@deriving sexp, compare]
 
 val event_time : event -> Time_ns.t
 

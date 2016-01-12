@@ -4,8 +4,6 @@ open Core_profiler
 open Core_profiler_disabled
 open Core_profiler_offline_tool.Std
 
-module Deque = Dequeue
-
 let iobuf_file_flag () =
   Command.Spec.(
     begin
@@ -335,10 +333,10 @@ module List_command = struct
     |> Textutils.Ascii_table.(
       output
         ~oc:Out_channel.stdout
-        [ Column.create ~align:Align.left "id"
+        [ Column.create ~align:Left "id"
             (fun (id, _, _) -> Probe_id.to_string id )
-        ; Column.create ~align:Align.left "name" snd3
-        ; Column.create ~align:Align.left "spec"
+        ; Column.create ~align:Left "name" snd3
+        ; Column.create ~align:Left "spec"
             (fun (_, _, spec) ->
                Option.map spec ~f:Probe_type.to_string
                |> Option.value ~default:""
@@ -361,22 +359,22 @@ end
 module Summary_command = struct
   module Selections = struct
     type t =
-      { count : bool
-      ; sum   : bool
-      ; mean  : bool
-      ; min   : bool
-      ; max   : bool
-      ; stdev : bool
+      { count       : bool
+      ; sum         : bool
+      ; mean        : bool
+      ; min         : bool
+      ; max         : bool
+      ; stdev       : bool
       ; percentiles : Percent.t list
       }
 
     let default =
-      { count = true
-      ; sum = false
-      ; mean = true
-      ; min = true
-      ; max = true
-      ; stdev = true
+      { count       = true
+      ; sum         = false
+      ; mean        = true
+      ; min         = true
+      ; max         = true
+      ; stdev       = true
       ; percentiles = List.map ~f:Percent.of_percentage [5.; 95.]
       }
 
@@ -467,7 +465,7 @@ module Summary_command = struct
   let table_columns id_map (selections : Selections.t) =
     let add want name func acc =
       if want
-      then Textutils.Ascii_table.(Column.create ~align:Align.right name func) :: acc
+      then Textutils.Ascii_table.(Column.create ~align:Right name func) :: acc
       else acc
     in
 
@@ -480,7 +478,7 @@ module Summary_command = struct
             |> (fun s -> s ^ " %l")
           in
           let func = Fn.flip Row.percentile (Percent.to_mult p) in
-          Textutils.Ascii_table.(Column.create ~align:Align.right name func)
+          Textutils.Ascii_table.(Column.create ~align:Right name func)
         )
     in
 
@@ -495,8 +493,8 @@ module Summary_command = struct
     in
     let (name, what) =
       Textutils.Ascii_table.(
-        ( Column.create ~align:Align.left "name" (Fn.flip Row.name id_map)
-        , Column.create ~align:Align.left ""     Row.what
+        ( Column.create ~align:Left "name" (Fn.flip Row.name id_map)
+        , Column.create ~align:Left ""     Row.what
         )
       )
     in
@@ -517,7 +515,7 @@ module Summary_command = struct
         in
         (3, gp :: points)
     in
-    <:compare< int * Probe_id.t list >> (key a) (key b)
+    [%compare: int * Probe_id.t list] (key a) (key b)
 
   let singles_and_points_rows id_map stats_table =
     (* fold_right, producing rows sorted by Id increasing *)
@@ -650,7 +648,9 @@ module Summary_command = struct
        see the  help-interests  subcommand."
 
   let percentile_arg_type =
-    Command.Spec.Arg_type.create (fun s -> Percent.of_percentage (Float.of_string s))
+    Command.Spec.Arg_type.create (fun comma_separated_str ->
+      List.map (String.split comma_separated_str ~on:',') ~f:(fun s ->
+        Percent.of_percentage (Float.of_string s)))
 
   let command =
     Command.basic
@@ -660,16 +660,23 @@ module Summary_command = struct
         empty
         +> Interest.list_arg
         +> iobuf_file_flag ()
-        +> flag "-count" no_arg ~doc:" Show the number of samples collected"
-        +> flag "-sum"   no_arg ~doc:" ... the sum of the values"
-        +> flag "-mean"  no_arg ~doc:" ... the arithmetic mean"
-        +> flag "-min"   no_arg ~doc:" ... the minimum"
-        +> flag "-max"   no_arg ~doc:" ... the maximum"
-        +> flag "-stdev" no_arg ~doc:" ... the standard deviation"
-        +> flag "-percentile" (listed percentile_arg_type)
+        +> flag "-count"  no_arg ~doc:" Show the number of samples collected"
+        +> flag "-sum"    no_arg ~doc:" ... the sum of the values"
+        +> flag "-mean"   no_arg ~doc:" ... the arithmetic mean"
+        +> flag "-min"    no_arg ~doc:" ... the minimum"
+        +> flag "-max"    no_arg ~doc:" ... the maximum"
+        +> flag "-stdev"  no_arg ~doc:" ... the standard deviation"
+        +> flag "-median" no_arg ~doc:" ... the median (50th percentile)"
+        +> flag "-percentile" ~aliases:["-%"] (listed percentile_arg_type)
              ~doc:"95 ... the Nth percentile (approximate, via reservoir sampling)"
       )
-      (fun interests buffer count sum mean min max stdev percentiles () ->
+      (fun interests buffer count sum mean min max stdev median percentile_lists () ->
+         let percentiles =
+           ((if median then [Percent.of_percentage 50.] else [])
+            @ List.concat percentile_lists)
+           |> List.sort ~cmp:Percent.compare
+           |> List.remove_consecutive_duplicates ~equal:Percent.equal
+         in
          main interests buffer { count; sum; mean; min; max; stdev; percentiles }
       )
 end

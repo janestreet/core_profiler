@@ -1,3 +1,12 @@
+## 113.24.00
+
+- Switched to ppx.
+
+- Minor adjustments to the command line of profiler_tool.exe:
+  - Make '-%' an alias for '-percentile'
+  - Make '-percentile' accept a comma-separated list of numbers
+  - Add '-median' argument that is equivalent to '-percentile 50'
+
 ## 113.00.00
 
 - Changed delta timers and probes so they record the total amount of time/value

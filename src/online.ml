@@ -35,13 +35,13 @@ let columns =
     |> Option.value ~default:""
   in
   Textutils.Ascii_table.(
-    [ Column.create ~align:Align.left  "name"  fst3
-    ; Column.create ~align:Align.right "count" fstats_count
-    ; Column.create ~align:Align.right "sum"   (fstats_fget Fstats.total)
-    ; Column.create ~align:Align.right "mean"  (fstats_fget Fstats.mean)
-    ; Column.create ~align:Align.right "min"   (fstats_fget Fstats.min)
-    ; Column.create ~align:Align.right "max"   (fstats_fget Fstats.max)
-    ; Column.create ~align:Align.right "stdev" (fstats_fget Fstats.stdev)
+    [ Column.create ~align:Left  "name"  fst3
+    ; Column.create ~align:Right "count" fstats_count
+    ; Column.create ~align:Right "sum"   (fstats_fget Fstats.total)
+    ; Column.create ~align:Right "mean"  (fstats_fget Fstats.mean)
+    ; Column.create ~align:Right "min"   (fstats_fget Fstats.min)
+    ; Column.create ~align:Right "max"   (fstats_fget Fstats.max)
+    ; Column.create ~align:Right "stdev" (fstats_fget Fstats.stdev)
     ]
   )
 
@@ -269,7 +269,7 @@ module Timer = struct
   end
 end
 
-BENCH_MODULE "Timer" = struct
+let%bench_module "Timer" = (module struct
   let timer = Timer.create ~name:"bench_timer"
 
   let group = Timer.Group.create ~name:"bench_timer_group"
@@ -286,17 +286,17 @@ BENCH_MODULE "Timer" = struct
     Timer.record group_probe1;
     Timer.record group_probe2
 
-  BENCH "at" = Timer.record timer
-  BENCH "group_probe_at (0 sources)" = Timer.record group_probe0
-  BENCH "group_probe_at (1 sources)" = Timer.record group_probe1
-  BENCH "group_probe_at (2 sources)" = Timer.record group_probe2
+  let%bench "at" = Timer.record timer
+  let%bench "group_probe_at (0 sources)" = Timer.record group_probe0
+  let%bench "group_probe_at (1 sources)" = Timer.record group_probe1
+  let%bench "group_probe_at (2 sources)" = Timer.record group_probe2
 
   let group2 = Timer.Group.create ~name:"bench_timer_group2"
 
-  BENCH "group_reset" = Timer.Group.reset group2
+  let%bench "group_reset" = Timer.Group.reset group2
 
   let () = internal_disable_print := true
-end
+end)
 
 
 module Probe = struct
@@ -406,7 +406,7 @@ module Probe = struct
   end
 end
 
-BENCH_MODULE "Probe" = struct
+let%bench_module "Probe" = (module struct
   let probe = Probe.create ~name:"bench_probe" ~units:Profiler_units.Seconds
 
   let group = Probe.Group.create ~name:"bench_probe_group" ~units:Profiler_units.Words
@@ -423,18 +423,18 @@ BENCH_MODULE "Probe" = struct
     Probe.record group_probe1 3;
     Probe.record group_probe2 4
 
-  BENCH "at" = Probe.record probe 10
+  let%bench "at" = Probe.record probe 10
 
-  BENCH "group_probe_at (0 sources)" = Probe.record group_probe0 5
-  BENCH "group_probe_at (1 sources)" = Probe.record group_probe1 6
-  BENCH "group_probe_at (2 sources)" = Probe.record group_probe2 7
+  let%bench "group_probe_at (0 sources)" = Probe.record group_probe0 5
+  let%bench "group_probe_at (1 sources)" = Probe.record group_probe1 6
+  let%bench "group_probe_at (2 sources)" = Probe.record group_probe2 7
 
   let group2 = Probe.Group.create ~name:"bench_probe_group2" ~units:Profiler_units.Int
 
-  BENCH "group_reset" = Probe.Group.reset group2
+  let%bench "group_reset" = Probe.Group.reset group2
 
   let () = internal_disable_print := true
-end
+end)
 
 (* stateless Delta_timer does not support pausing *)
 module Delta_timer = struct
@@ -547,19 +547,19 @@ module Delta_timer = struct
    *   | Error ex -> Exn.reraise ex "Core_profiler Delta_timer.wrap_async" *)
 end
 
-BENCH_MODULE "Delta_timer" = struct
+let%bench_module "Delta_timer" = (module struct
   let delta = Delta_timer.create ~name:"unittest"
   let started = Delta_timer.stateless_start delta
 
-  BENCH "stateless_start" = Delta_timer.stateless_start delta
-  BENCH "stateless_stop" = Delta_timer.stateless_stop delta started
-  BENCH "start" = Delta_timer.start delta
-  BENCH "stop" = Delta_timer.stop delta
+  let%bench "stateless_start" = Delta_timer.stateless_start delta
+  let%bench "stateless_stop" = Delta_timer.stateless_stop delta started
+  let%bench "start" = Delta_timer.start delta
+  let%bench "stop" = Delta_timer.stop delta
 
   let () = internal_disable_print := true
-end
+end)
 
-BENCH_MODULE "Delta_timer.wrap_sync" = struct
+let%bench_module "Delta_timer.wrap_sync" = (module struct
   let nop () = ()
 
   let wrapped_nop =
@@ -567,7 +567,7 @@ BENCH_MODULE "Delta_timer.wrap_sync" = struct
     Delta_timer.wrap_sync delta nop
 
   let count_256 () =
-    for _i = 1 to 256 do
+    for _ = 1 to 256 do
       ()
     done
 
@@ -575,13 +575,13 @@ BENCH_MODULE "Delta_timer.wrap_sync" = struct
     let delta = Delta_timer.create ~name:"count_256" in
     Delta_timer.wrap_sync delta count_256
 
-  BENCH "nop" = nop ()
-  BENCH "wrapped_nop" = wrapped_nop ()
-  BENCH "count_256" = count_256 ()
-  BENCH "wrapped_count_256" = wrapped_count_256 ()
+  let%bench "nop" = nop ()
+  let%bench "wrapped_nop" = wrapped_nop ()
+  let%bench "count_256" = count_256 ()
+  let%bench "wrapped_count_256" = wrapped_count_256 ()
 
   let () = internal_disable_print := true
-end
+end)
 
 (* stateless Delta_probe does not support pausing *)
 module Delta_probe = struct
@@ -627,14 +627,14 @@ module Delta_probe = struct
 
 end
 
-BENCH_MODULE "Delta_probe" = struct
+let%bench_module "Delta_probe" = (module struct
   let delta = Delta_probe.create ~name:"unittest" ~units:Profiler_units.Int
   let started = Delta_probe.stateless_start delta 123
 
-  BENCH "start" = Delta_probe.start delta 123
-  BENCH "stop" = Delta_probe.stop delta 456
-  BENCH "start_async" = Delta_probe.stateless_start delta 123
-  BENCH "stop_async" = Delta_probe.stateless_stop delta started 456
+  let%bench "start" = Delta_probe.start delta 123
+  let%bench "stop" = Delta_probe.stop delta 456
+  let%bench "start_async" = Delta_probe.stateless_start delta 123
+  let%bench "stop_async" = Delta_probe.stateless_stop delta started 456
 
   let () = internal_disable_print := true
-end
+end)

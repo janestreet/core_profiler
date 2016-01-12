@@ -42,7 +42,7 @@ let init_from_map id_map ~f =
 
   let t = Array.create ~len None in
 
-  Map.iter
+  Map.iteri
     id_map
     ~f:(fun ~key:id ~data:metadata ->
       t.(Probe_id.to_int_exn id) <- Some (f id metadata)

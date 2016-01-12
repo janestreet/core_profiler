@@ -8,7 +8,7 @@
     [Protocol.Short_header]) *)
 open Core.Std
 
-type t with sexp
+type t [@@deriving sexp]
 val of_time : Time_ns.t -> t
 val to_time : t -> Time_ns.t
 

@@ -2,7 +2,7 @@
 open Core.Std
 
 (** Each probe ([Intf.S]) has a unique [Probe_id.t] assigned. *)
-type t = private int with bin_io, compare, sexp
+type t = private int [@@deriving bin_io, compare, sexp]
 include Intable with type t := t
 include Identifiable.S with type t := t
 

@@ -9,7 +9,7 @@ let now_no_calibrate () =
   Time_stamp_counter.now ()
   |> Time_stamp_counter.to_time_ns
 
-BENCH "now_no_calibrate" = now_no_calibrate ()
+let%bench "now_no_calibrate" = now_no_calibrate ()
 
 (* When we last ran the slow tasks *)
 let last_slow_tasks = ref (now_no_calibrate ())
@@ -55,5 +55,5 @@ let maybe_do_slow_tasks kind ~reluctance =
   maybe_do_slow_tasks' kind (now_no_calibrate ()) reluctance
 
 
-BENCH "now" = now Any_profiler ~reluctance:1 ()
-BENCH "maybe_do_slow_tasks (r=4)" = maybe_do_slow_tasks Any_profiler ~reluctance:4
+let%bench "now" = now Any_profiler ~reluctance:1 ()
+let%bench "maybe_do_slow_tasks (r=4)" = maybe_do_slow_tasks Any_profiler ~reluctance:4

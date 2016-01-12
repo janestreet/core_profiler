@@ -1,7 +1,7 @@
 open Core.Std
 
 module T = struct
-  type t = int with bin_io, compare, sexp
+  type t = int [@@deriving bin_io, compare, sexp]
   let to_string = Int.to_string
   let of_string = Int.of_string
   let hash = Int.hash

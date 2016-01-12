@@ -3,7 +3,7 @@ open Core_profiler
 open Core_profiler_disabled
 
 module Interval_subject : sig
-  type t = Value | Delta | Time_delta with sexp, compare
+  type t = Value | Delta | Time_delta [@@deriving sexp, compare]
 
   val of_string : string -> t
   val to_string : t      -> string
@@ -22,7 +22,7 @@ module Raw : sig
     | Single of 'a
     | Group_point of 'a * 'a
     | Group_path of 'a * 'a Path.t
-  with sexp, compare
+  [@@deriving sexp, compare]
 
   module I : sig
     type id_raw_interest = Probe_id.t t
@@ -36,7 +36,7 @@ end
 type 'a t =
   | All of 'a Raw.t
   | In_interval of 'a Raw.t * Interval_subject.t * Profiler_units.t * Interval.Int.t
-with sexp, compare
+[@@deriving sexp, compare]
 
 (** When keyed by [Probe_id.t]s, interests are comparable, hashable. *)
 module I : sig

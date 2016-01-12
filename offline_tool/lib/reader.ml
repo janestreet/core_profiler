@@ -160,7 +160,7 @@ let consume_header buffer =
   let rec scan epoch map =
     let this_message_buffer = get_message_buffer buffer in
     let HP_MsgT.T packed_type = HP.get_message_type this_message_buffer in
-    let message = HP.get_message this_message_buffer packed_type in
+    let message = HP.of_iobuf this_message_buffer ~trusted:packed_type in
 
     match packed_type with
     | HP_MsgT.New_single -> HP.New_single.(
@@ -223,6 +223,8 @@ let consume_header buffer =
       failwith "Invalid header (truncated)"
     | HP_MsgT.Invalid_message_type_or_subtype ->
       failwith "Invalid header (bad message type)"
+    | HP_MsgT.Message_length_too_short ->
+      failwith "Invalid header (message length too short)"
   in
 
   let (epoch, map) = scan None Probe_id.Map.empty in
@@ -232,7 +234,7 @@ let consume_header buffer =
 
   (epoch, table)
 
-TEST_UNIT "read_header" =
+let%test_unit "read_header" =
   let module Buffer = Protocol.Buffer in
   let module Writer = Protocol.Writer in
 
@@ -261,8 +263,8 @@ TEST_UNIT "read_header" =
 
       let (epoch2, id_map) = consume_header (Buffer.get_header_chunk ()) in
       let id_map_alist = Id_table.to_alist id_map in
-      <:test_pred< Profiler_epoch.t >> (fun a -> a = Writer.epoch) epoch2;
-      <:test_eq< int >> (List.length id_map_alist) 9;
+      [%test_pred: Profiler_epoch.t] (fun a -> a = Writer.epoch) epoch2;
+      [%test_eq: int] (List.length id_map_alist) 9;
       let expect =
         [ (to_id 0, HI.Single { name = "probe0"; spec = Probe_type.Probe Profiler_units.Words })
         ; ( to_id 1
@@ -299,7 +301,7 @@ module Short_message = struct
     | Timer of Probe_id.t * Time_ns.t
     | Probe of Probe_id.t * Time_ns.t * int
     | Group_reset of Probe_id.t * Time_ns.t
-  with sexp, compare
+  [@@deriving sexp, compare]
 
   let id = function
     | Timer (id, _) -> id
@@ -359,7 +361,7 @@ let consume_short_message buffer epoch header =
 
   end
 
-TEST_UNIT "consume_short_message" =
+let%test_unit "consume_short_message" =
   let module Buffer = Protocol.Buffer in
   let module Writer = Protocol.Writer in
 
@@ -396,11 +398,11 @@ TEST_UNIT "consume_short_message" =
 
       let read () = consume_short_message short_messages_chunk epoch header in
 
-      <:test_eq< Short_message.t >> (read ()) (Timer (to_id 1, time_past_epoch 100));
-      <:test_eq< Short_message.t >> (read ()) (Probe (to_id 2, time_past_epoch 200, 22));
-      <:test_eq< Short_message.t >> (read ()) (Group_reset (to_id 3, time_past_epoch 300));
-      <:test_eq< Short_message.t >> (read ()) (Timer (to_id 4, time_past_epoch 400));
-      <:test_eq< Short_message.t >> (read ()) (Probe (to_id 6, time_past_epoch 600, 66));
+      [%test_eq: Short_message.t] (read ()) (Timer (to_id 1, time_past_epoch 100));
+      [%test_eq: Short_message.t] (read ()) (Probe (to_id 2, time_past_epoch 200, 22));
+      [%test_eq: Short_message.t] (read ()) (Group_reset (to_id 3, time_past_epoch 300));
+      [%test_eq: Short_message.t] (read ()) (Timer (to_id 4, time_past_epoch 400));
+      [%test_eq: Short_message.t] (read ()) (Probe (to_id 6, time_past_epoch 600, 66));
     )
 
 let fold_short_messages buffer epoch header ~init ~f =

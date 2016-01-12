@@ -1,6 +1,13 @@
+<**/*.ml{,i}>: warn(-40), no_alias_deps
+<**/*>: thread
+# This prevents the implicit addition of -ppx options by ocamlfind
+<**/*.ml{,i}>: predicate(ppx_driver)
+<src/*.ml>: for-pack(Core_profiler)
+<disabled_lib/*.ml>: for-pack(Core_profiler_disabled)
+<offline_tool/lib/*.ml>: for-pack(Core_profiler_offline_tool)
+<disabled_lib/*.ml{,i}>: pp(ppx-jane -dump-ast -inline-test-lib core_profiler.disabled)
+<offline_tool/bin/*.ml{,i}>: pp(ppx-jane -dump-ast)
+<offline_tool/lib/*.ml{,i}>: pp(ppx-jane -dump-ast -inline-test-lib core_profiler.offline_tool)
+<src/*.ml{,i}>: pp(ppx-jane -dump-ast -inline-test-lib core_profiler)
 # OASIS_START
 # OASIS_STOP
-<**/*.ml>: warn(-40)
-<src/*.ml{,i}>: syntax_camlp4o, pa_ounit_lib(core_profiler)
-<disabled_lib/*.ml{,i}>: syntax_camlp4o, pa_ounit_lib(core_profiler.disabled)
-<offline_tool/lib/*.ml{,i}>: syntax_camlp4o, pa_ounit_lib(core_profiler.offline_tool)

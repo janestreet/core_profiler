@@ -46,7 +46,7 @@ type timer_path =
   ; time : Time_ns.t
   ; time_delta : Time_ns.Span.t
   }
-with sexp, compare
+[@@deriving sexp, compare]
 
 type probe_path =
   { interest : Probe_id.t Interest.Raw.t
@@ -55,14 +55,14 @@ type probe_path =
   ; value : int
   ; delta : int
   }
-with sexp, compare
+[@@deriving sexp, compare]
 
 type event =
   | Timer       of Probe_id.t Interest.Raw.t * Time_ns.t
   | Probe       of Probe_id.t Interest.Raw.t * Time_ns.t * int
   | Timer_path  of timer_path
   | Probe_path  of probe_path
-with sexp, compare
+[@@deriving sexp, compare]
 
 let event_time = function
   | Timer      (_, time)     -> time
@@ -246,7 +246,7 @@ let iter_events t ~f =
       group_state.current_session <- group_state.current_session + 1
   )
 
-TEST_MODULE "iter_group_events" = struct
+let%test_module "iter_group_events" = (module struct
   module Protocol = Core_profiler.Protocol
 
   let to_id = Probe_id.of_int_exn
@@ -324,22 +324,22 @@ TEST_MODULE "iter_group_events" = struct
       ; value; delta
       }
 
-  TEST_UNIT "multiple simultaneous events" =
-    <:test_eq< event list >>
+  let%test_unit "multiple simultaneous events" =
+    [%test_eq: event list]
       (run_case "abc" [ to_path_int "a..c"; to_path_int "b,c" ])
       [ to_event (to_path_int "b,c") 2 1; to_event (to_path_int "a..c") 2 2 ]
 
-  TEST_UNIT "reset" =
-    <:test_eq< event list >> (run_case "aaa r ccc" [ to_path_int "a..c" ]) []
+  let%test_unit "reset" =
+    [%test_eq: event list] (run_case "aaa r ccc" [ to_path_int "a..c" ]) []
 
-  TEST_UNIT "directness" =
-    <:test_eq< event list >>
+  let%test_unit "directness" =
+    [%test_eq: event list]
       (run_case "cd d dc r c   d ced r ced" [ to_path_int "c,d" ])
       [ to_event (to_path_int "c,d") 1 1; to_event (to_path_int "c,d") 14 4 ]
 
-  TEST_UNIT "repeated" =
+  let%test_unit "repeated" =
     let p = to_path_int "a,a" in
-    <:test_eq< event list >>
+    [%test_eq: event list]
       (run_case "aaaaa r a" [ p ])
       [ to_event p 1 1; to_event p 2 1; to_event p 3 1; to_event p 4 1 ]
 
@@ -361,4 +361,4 @@ TEST_MODULE "iter_group_events" = struct
    *   <:test_eq< event list >>
    *     (run_case "aaaaa r a" [ p ])
    *     [ to_event p 1 1; to_event p 2 1; to_event p 3 1; to_event p 4 1 ] *)
-end
+end)

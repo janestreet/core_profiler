@@ -33,8 +33,8 @@ module Short_header : sig
   val unpack      : Profiler_epoch.t -> int -> Probe_id.t * Time_ns.t
 end = struct
   let time_bits = 54            (* ~208 days *)
-  TEST = time_bits > 1
-  TEST = time_bits < 63
+  let%test _ = time_bits > 1
+  let%test _ = time_bits < 63
 
   let id_bits = 63 - time_bits  (* you may need to change the size of header_chunk *)
 
@@ -78,6 +78,38 @@ end = struct
     , unpack_time epoch header
     )
 
+  let%test_module "unpack_pack" = (module struct
+    let epoch =
+      Profiler_epoch.of_time
+        (Time_ns.of_int_ns_since_epoch (Int64.to_int_exn 1405085600000000000L))
+
+    let test id time =
+      let id = Probe_id.of_int_exn id in
+      let time = Time_ns.of_int_ns_since_epoch (Int64.to_int_exn time) in
+
+      let packed = pack_exn epoch id time in
+      let packed_unsafe = pack_unsafe epoch id time in
+      let unpacked = unpack epoch packed_unsafe in
+
+      [%test_eq: int] packed packed_unsafe;
+      [%test_eq: Probe_id.t * Time_ns.t] unpacked (id, time)
+
+    let%test_unit "0 0"         = test 0    1405085600000000000L
+    let%test_unit "max max"     = test 511  1423099998509481983L
+    let%test_unit "1 1"         = test 1    1405085600000000001L
+    let%test_unit "256 100_000" = test 256  1405085600000100000L
+  end)
+
+  let%bench_module "Short message header packing" = (module struct
+    let epoch =
+      Profiler_epoch.of_time
+        (Time_ns.of_int_ns_since_epoch (Int64.to_int_exn 1405085600000000000L))
+    let id = Probe_id.of_int_exn 123
+    let time = Time_ns.of_int_ns_since_epoch (Int64.to_int_exn 1405085600123123000L)
+
+    let%bench "pack_exn"     = ignore (pack_exn     epoch id time : int)
+    let%bench "pack_unsafe"  = ignore (pack_unsafe  epoch id time : int)
+  end)
 end
 
 module Buffer : sig
@@ -161,11 +193,11 @@ end = struct
       previous_chunks := []
   end
 
-  TEST_UNIT "allocate_new_chunk" =
+  let%test_unit "allocate_new_chunk" =
     protect
       ~f:(fun () ->
         allocate_new_chunk 1000;
-        <:test_eq< int >> (Iobuf.length current_chunk) 1000;
+        [%test_eq: int] (Iobuf.length current_chunk) 1000;
         Iobuf.Fill.string current_chunk "the first chunk\n";
         Iobuf.Fill.string current_chunk "still the first chunk\n";
 
@@ -174,17 +206,17 @@ end = struct
         Iobuf.Fill.string current_chunk "the second chunk\n";
 
         allocate_new_chunk 0;
-        <:test_eq< int >> (Iobuf.length current_chunk) 0;
+        [%test_eq: int] (Iobuf.length current_chunk) 0;
 
-        <:test_eq< int >> (List.length !previous_chunks) 2;
+        [%test_eq: int] (List.length !previous_chunks) 2;
 
         begin
           match !previous_chunks with
           | [second; first] ->
-            <:test_eq< string >>
+            [%test_eq: string]
               (Iobuf.to_string first)
               "the first chunk\nstill the first chunk\n";
-            <:test_eq< string >>
+            [%test_eq: string]
               (Iobuf.to_string second)
               "the second chunk\n"
           | _ -> assert false
@@ -192,21 +224,21 @@ end = struct
       )
       ~finally:Unsafe_internals.reset
 
-  TEST_UNIT "ensure_free" =
+  let%test_unit "ensure_free" =
     protect
       ~f:(fun () ->
         ensure_free 100;
-        <:test_eq< int >> (Iobuf.length current_chunk) chunk_size;
-        <:test_eq< int >> (List.length !previous_chunks) 0;
+        [%test_eq: int] (Iobuf.length current_chunk) chunk_size;
+        [%test_eq: int] (List.length !previous_chunks) 0;
 
         Iobuf.advance current_chunk (chunk_size - 50);
         ensure_free 500;
-        <:test_eq< int >> (Iobuf.length current_chunk) chunk_size;
-        <:test_eq< int >> (List.length !previous_chunks) 1;
+        [%test_eq: int] (Iobuf.length current_chunk) chunk_size;
+        [%test_eq: int] (List.length !previous_chunks) 1;
       )
       ~finally:Unsafe_internals.reset
 
-  TEST_UNIT "get_header_chunk" =
+  let%test_unit "get_header_chunk" =
     protect
       ~f:(fun () ->
         let header_chunk = Lazy.force header_chunk in
@@ -215,11 +247,11 @@ end = struct
           get_header_chunk ()
           |> Iobuf.to_string
         in
-        <:test_eq< string >> contents "some data"
+        [%test_eq: string] contents "some data"
       )
       ~finally:Unsafe_internals.reset
 
-  TEST_UNIT "get_chunks" =
+  let%test_unit "get_chunks" =
     protect
       ~f:(fun () ->
         allocate_new_chunk 1000;
@@ -230,7 +262,7 @@ end = struct
           get_chunks ()
           |> List.map ~f:Iobuf.to_string
         in
-        <:test_eq< string list >> contents ["the first chunk"; "the second chunk"]
+        [%test_eq: string list] contents ["the first chunk"; "the second chunk"]
       )
       ~finally:Unsafe_internals.reset
 end
@@ -301,19 +333,19 @@ module Writer = struct
 
   let write_group_reset = write_timer_at
 
-  TEST_MODULE "write header messages" = struct
+  let%test_module "write header messages" = (module struct
     let unpack_one () =
       let chunk = Lazy.force Buffer.header_chunk in
       Iobuf.flip_lo chunk;
 
       match Header_protocol.to_unpacked chunk with
       | Ok (unpacked, length) ->
-        <:test_eq< int >> (Iobuf.length chunk) length;
+        [%test_eq: int] (Iobuf.length chunk) length;
         unpacked
       | _ ->
         failwith "to_unpacked failed"
 
-    TEST_UNIT "write_new_single" =
+    let%test_unit "write_new_single" =
       protect
         ~finally:Buffer.Unsafe_internals.reset
         ~f:(fun () ->
@@ -322,15 +354,14 @@ module Writer = struct
             "unittest"
             (Probe_type.Timer);
           match unpack_one () with
-          | Header_protocol.New_single_unpacked
-              { id; spec; name; message_length=_; message_type=_ } ->
-            <:test_eq< Probe_id.t >> id (Probe_id.of_int_exn 100);
-            <:test_eq< Probe_type.t >> spec Probe_type.Timer;
-            <:test_eq< string >> name "unittest"
+          | New_single { id; spec; name; message_length=_; message_type=_ } ->
+            [%test_eq: Probe_id.t] id (Probe_id.of_int_exn 100);
+            [%test_eq: Probe_type.t] spec Probe_type.Timer;
+            [%test_eq: string] name "unittest"
           | _ -> failwith "Incorrect message type"
         )
 
-    TEST_UNIT "write_new_group" =
+    let%test_unit "write_new_group" =
       protect
         ~finally:Buffer.Unsafe_internals.reset
         ~f:(fun () ->
@@ -339,15 +370,14 @@ module Writer = struct
             "unittest"
             (Probe_type.Probe Profiler_units.Seconds);
           match (unpack_one ()) with
-          | Header_protocol.New_group_unpacked
-              { id; spec; name; message_length=_; message_type=_ } ->
-            <:test_eq< Probe_id.t >> id (Probe_id.of_int_exn 100);
-            <:test_eq< Probe_type.t >> spec (Probe_type.Probe Profiler_units.Seconds);
-            <:test_eq< string >> name "unittest"
+          | New_group { id; spec; name; message_length=_; message_type=_ } ->
+            [%test_eq: Probe_id.t] id (Probe_id.of_int_exn 100);
+            [%test_eq: Probe_type.t] spec (Probe_type.Probe Profiler_units.Seconds);
+            [%test_eq: string] name "unittest"
           | _ -> failwith "Incorrect message type"
         )
 
-    TEST_UNIT "write_new_group_point" =
+    let%test_unit "write_new_group_point" =
       protect
         ~finally:Buffer.Unsafe_internals.reset
         ~f:(fun () ->
@@ -357,18 +387,18 @@ module Writer = struct
             "unittest"
             (Array.map ~f:Probe_id.of_int_exn [|500; 700|]);
           match unpack_one () with
-          | Header_protocol.New_group_point_unpacked
+          | New_group_point
               { group_id; id; name; sources_id; message_length=_; message_type=_ } ->
-            <:test_eq< int >> (Probe_id.to_int_exn group_id) 100;
-            <:test_eq< int >> (Probe_id.to_int_exn id) 300;
-            <:test_eq< string >> name "unittest";
-            <:test_eq< int array >>
+            [%test_eq: int] (Probe_id.to_int_exn group_id) 100;
+            [%test_eq: int] (Probe_id.to_int_exn id) 300;
+            [%test_eq: string] name "unittest";
+            [%test_eq: int array]
               (Array.map ~f:Probe_id.to_int_exn sources_id)
               [|500; 700|];
           | _ ->
             assert false
         )
-  end
+  end)
 
   let write_to_fd fd header_chunk chunks =
     List.iter
@@ -380,7 +410,7 @@ module Writer = struct
         )
       )
 
-  TEST_UNIT "write_to_fd" =
+  let%test_unit "write_to_fd" =
     let (filename, fd) = Unix.mkstemp "/tmp/core-profiler-tests" in
     protect
       ~f:(fun () ->
@@ -394,7 +424,7 @@ module Writer = struct
         write_to_fd fd header_chunk chunks;
         Unix.close fd;
 
-        <:test_eq< string >>
+        [%test_eq: string]
           (In_channel.read_all filename)
           "the header chunk\nthe first chunk\nthe second chunk\n";
       )

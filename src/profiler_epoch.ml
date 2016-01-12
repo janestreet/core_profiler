@@ -1,7 +1,7 @@
 open Core.Std
 
 
-type t = Time_ns.t with sexp
+type t = Time_ns.t [@@deriving sexp]
 let of_time = Fn.id
 let to_time = Fn.id
 let add t x = Time_ns.add t x

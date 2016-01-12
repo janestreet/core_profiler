@@ -5,7 +5,7 @@ open Core_profiler_disabled
 type t =
   | Timer
   | Probe of Profiler_units.t
-with sexp, compare
+[@@deriving sexp, compare]
 
 val to_string : t -> string
 val to_char : t -> char
