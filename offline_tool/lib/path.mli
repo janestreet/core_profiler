@@ -1,6 +1,5 @@
-open Core.Std
+open! Core.Std
 open Core_profiler
-open Core_profiler_disabled
 
 (** The first and last points are stored explicitly, not least to ensure that there are
     two of them. The list of points in the middle is stored in reverse order for

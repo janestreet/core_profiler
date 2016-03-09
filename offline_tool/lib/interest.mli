@@ -1,4 +1,4 @@
-open Core.Std
+open! Core.Std
 open Core_profiler
 open Core_profiler_disabled
 

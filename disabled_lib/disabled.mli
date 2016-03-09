@@ -1,7 +1,7 @@
 (** Every function in [Disabled] compiles to a no-op with the least overhead
     possible.  Also see comments in [intf.ml]. *)
 
-open Core.Std
+open! Core.Std
 
 include (Intf.Profiler_intf
          with type Timer.t = private unit

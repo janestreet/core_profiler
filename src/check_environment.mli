@@ -1,4 +1,4 @@
-open Core.Std
+open! Core.Std
 
 val get_var : string -> string option
 

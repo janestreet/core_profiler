@@ -1,5 +1,4 @@
-open Core.Std
-open Core_profiler_disabled
+open! Core.Std
 
 val default_output_filename : string
 val set_current_output_filename : string -> unit

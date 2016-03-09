@@ -43,7 +43,7 @@
    │ [online.ml:Delta_probe] stop_async                  │  17.26ns │      9.24% │
    └─────────────────────────────────────────────────────┴──────────┴────────────┘
 *)
-open Core.Std
+open! Core.Std
 
 include (Core_profiler_disabled.Intf.Profiler_intf
          with type Delta_timer.state = private Time_ns.t

@@ -22,7 +22,7 @@
     │ [offline.ml:Delta_probe] stop_async                  │  22.20ns │     12.54% │
     └──────────────────────────────────────────────────────┴──────────┴────────────┘
 *)
-open Core.Std
+open! Core.Std
 
 (** In [Offline], a [Delta_probe] differs from a two point [Group] in that for each
     start/stop pair, only one message is written to the buffer. This means that only the

@@ -6,7 +6,7 @@
     In the offline protocol, in order to save space in the header, an 'epoch' is written
     to the header, and times are stored as an offset from this epoch.  (See also:
     [Protocol.Short_header]) *)
-open Core.Std
+open! Core.Std
 
 type t [@@deriving sexp]
 val of_time : Time_ns.t -> t

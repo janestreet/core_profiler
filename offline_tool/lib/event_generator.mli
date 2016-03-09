@@ -1,6 +1,5 @@
-open Core.Std
+open! Core.Std
 open Core_profiler
-open Core_profiler_disabled
 
 (** Reads profiler data stored in a file and filters them appropriately *)
 type t

@@ -1,7 +1,7 @@
 (** Units for the measurements made by [Core_profiler], used to get better output
     formatting.  This has no performance implications. *)
 
-open Core.Std
+open! Core.Std
 
 type t =
   | Words

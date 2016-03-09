@@ -1,4 +1,4 @@
-open Core.Std
+open! Core.Std
 
 open Core_profiler.Std_offline
 open Core_profiler
