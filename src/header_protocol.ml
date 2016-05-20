@@ -168,6 +168,7 @@ module New_single = struct
     Probe_type.of_char ((Core.Iobuf.Unsafe.Peek.char buf ~pos:(pos  + 4)))
   ;;
   
+  let name_max_len = 64
   let get_name buf =
     let pos = 0 in
     Core.Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5)
@@ -298,6 +299,7 @@ module New_group = struct
     Probe_type.of_char ((Core.Iobuf.Unsafe.Peek.char buf ~pos:(pos  + 4)))
   ;;
   
+  let name_max_len = 64
   let get_name buf =
     let pos = 0 in
     Core.Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 5)
@@ -429,6 +431,7 @@ module New_group_point = struct
     Probe_id.of_int_exn (Core.Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos  + 4))
   ;;
   
+  let name_max_len = 64
   let get_name buf =
     let pos = 0 in
     Core.Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos  + 6)

@@ -82,6 +82,7 @@ module New_single : sig
   val get_message_type : _ t -> char
   val get_id : _ t -> Probe_id.t
   val get_spec : _ t -> Probe_type.t
+  val name_max_len : int
   val get_name : _ t -> string
   val get_name_zero : _ t -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a) -> 'a
   val set_id : (read_write, _) Iobuf.t -> Probe_id.t -> unit
@@ -132,6 +133,7 @@ module New_group : sig
   val get_message_type : _ t -> char
   val get_id : _ t -> Probe_id.t
   val get_spec : _ t -> Probe_type.t
+  val name_max_len : int
   val get_name : _ t -> string
   val get_name_zero : _ t -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a) -> 'a
   val set_id : (read_write, _) Iobuf.t -> Probe_id.t -> unit
@@ -185,6 +187,7 @@ module New_group_point : sig
   val get_message_type : _ t -> char
   val get_group_id : _ t -> Probe_id.t
   val get_id : _ t -> Probe_id.t
+  val name_max_len : int
   val get_name : _ t -> string
   val get_name_zero : _ t -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a) -> 'a
   val get_sources_count : _ t -> int
