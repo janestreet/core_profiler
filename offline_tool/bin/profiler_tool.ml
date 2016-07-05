@@ -648,9 +648,8 @@ module Summary_command = struct
        see the  help-interests  subcommand."
 
   let percentile_arg_type =
-    Command.Spec.Arg_type.create (fun comma_separated_str ->
-      List.map (String.split comma_separated_str ~on:',') ~f:(fun s ->
-        Percent.of_percentage (Float.of_string s)))
+    let open Command.Arg_type in
+    comma_separated (map Command.Spec.float ~f:Percent.of_percentage)
 
   let command =
     Command.basic
