@@ -812,7 +812,7 @@ module Plot_command = struct
          let x = float size *. 100_000. /. float num_samples in
          if x < 1.
          then 0.
-         else log10 x
+         else Float.log10 x
        end
        else float size *. 100. /. float num_samples
       )
