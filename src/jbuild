@@ -1,0 +1,12 @@
+(rule
+ ((targets (header_protocol.ml header_protocol.mli))
+  (deps (../protogen/header_protocol_dsl.exe))
+  (action "../protogen/header_protocol_dsl.exe")))
+
+
+(library
+  ((name core_profiler)
+   (public_name core_profiler)
+   (libraries (core
+               textutils
+               core_profiler_disabled))))
