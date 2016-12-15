@@ -1,9 +1,13 @@
 (executables
   ((names (dump_metrics profiler_tool))
-   (public_release ((build_and_install ((dump_metrics  core-profiler-dump-metrics)
-                                        (profiler_tool core-profiler-tool)))))
    (libraries (core
                core_extended
                textutils
                core_profiler
                core_profiler_offline_tool))))
+
+(install
+ ((section bin)
+  (files
+   ((dump_metrics.exe  as core-profiler-dump-metrics)
+    (profiler_tool.exe as core-profiler-tool)))))

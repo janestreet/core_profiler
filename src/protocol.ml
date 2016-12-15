@@ -198,12 +198,12 @@ end = struct
       ~f:(fun () ->
         allocate_new_chunk 1000;
         [%test_eq: int] (Iobuf.length current_chunk) 1000;
-        Iobuf.Fill.string current_chunk "the first chunk\n";
-        Iobuf.Fill.string current_chunk "still the first chunk\n";
+        Iobuf.Fill.stringo current_chunk "the first chunk\n";
+        Iobuf.Fill.stringo current_chunk "still the first chunk\n";
 
         allocate_new_chunk 500;
         allocate_new_chunk 500; (* empty, should be ignored *)
-        Iobuf.Fill.string current_chunk "the second chunk\n";
+        Iobuf.Fill.stringo current_chunk "the second chunk\n";
 
         allocate_new_chunk 0;
         [%test_eq: int] (Iobuf.length current_chunk) 0;
@@ -242,7 +242,7 @@ end = struct
     protect
       ~f:(fun () ->
         let header_chunk = Lazy.force header_chunk in
-        Iobuf.Fill.string header_chunk "some data";
+        Iobuf.Fill.stringo header_chunk "some data";
         let contents =
           get_header_chunk ()
           |> Iobuf.to_string
@@ -255,9 +255,9 @@ end = struct
     protect
       ~f:(fun () ->
         allocate_new_chunk 1000;
-        Iobuf.Fill.string current_chunk "the first chunk";
+        Iobuf.Fill.stringo current_chunk "the first chunk";
         allocate_new_chunk 1000;
-        Iobuf.Fill.string current_chunk "the second chunk";
+        Iobuf.Fill.stringo current_chunk "the second chunk";
         let contents =
           get_chunks ()
           |> List.map ~f:Iobuf.to_string
@@ -405,7 +405,7 @@ module Writer = struct
       (header_chunk :: chunks)
       ~f:(fun chunk ->
         Iobuf.protect_window_and_bounds chunk ~f:(fun chunk ->
-          Bigstring.really_write fd (Iobuf.Peek.bigstring ~pos:0 chunk)
+          Bigstring.really_write fd (Iobuf.Peek.bigstringo ~pos:0 chunk)
 
         )
       )

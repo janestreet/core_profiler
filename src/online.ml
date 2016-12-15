@@ -617,8 +617,8 @@ module Delta_probe = struct
     t.accum <- t.accum + value - t.state
 
   let record t =
-    t.accum <- 0;
     Fstats.update_in_place t.stats (float t.accum);
+    t.accum <- 0;
     Common.maybe_do_slow_tasks Common.Online_profiler ~reluctance:3
 
   let stop t value =

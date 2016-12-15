@@ -191,7 +191,7 @@ module New_group_point : sig
   val get_name : _ t -> string
   val get_name_zero : _ t -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a) -> 'a
   val get_sources_count : _ t -> int
-  (* Beware: [count] is trusted. If is it wrong, this function could read the wrong data or segfault. *)
+  (* Beware: [count] is trusted. If it is wrong, this function could read the wrong data or segfault. *)
   val get_sources_id : 'rw t -> count:int -> index:int -> Probe_id.t
   val set_group_id : (read_write, _) Iobuf.t -> Probe_id.t -> unit
   val set_id : (read_write, _) Iobuf.t -> Probe_id.t -> unit
@@ -200,7 +200,7 @@ module New_group_point : sig
       to where [name] is. Even though [f] is given a seekable buffer, it
       must move nothing except the lower bound of the window past the data it wrote. *)
   val set_name_zero : (read_write, Iobuf.seek) Iobuf.t -> ('a -> (read_write, Iobuf.seek) Iobuf.t -> unit) -> 'a -> unit
-  (* Beware: [count] is trusted. If is it wrong, this function could read the wrong data. *)
+  (* Beware: [count] is trusted. If it is wrong, this function could read the wrong data. *)
   val set_sources_id : (read_write, _) Iobuf.t -> count:int -> index:int -> Probe_id.t -> unit
   val to_sub_iobuf : 'rw t -> ('rw, Iobuf.seek) Iobuf.t
   module Unpacked : sig

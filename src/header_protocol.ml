@@ -763,7 +763,7 @@ let sexp_of_t _ _ t =
 ;;
 let sexp_of_t_no_exn _ _ t =
   let sexp_of_error error =
-    let len = try num_bytes_in_message t with _ -> num_bytes_needed_for_message_length in
+    let len = try num_bytes_in_message t with _ -> Iobuf.length t in
     let len = Int.min (Int.min (Iobuf.length t) len) 1000 in
     let data = Iobuf.to_string t ~len in
     [%sexp ("invalid message" : string),
