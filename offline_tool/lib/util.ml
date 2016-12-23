@@ -139,7 +139,7 @@ let time_ns_to_ofday_string t =
 
   let hms =
     Time.of_float (float s)
-    |> Time.to_ofday ~zone:Time.Zone.local
+    |> Time.to_ofday ~zone:(force Time.Zone.local)
     |> Time.Ofday.to_sec_string
   in
 
