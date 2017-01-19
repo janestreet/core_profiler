@@ -100,7 +100,7 @@ module New_single : sig
       id : Probe_id.t;
       spec : Probe_type.t;
       name : string;
-    } [@@deriving sexp]
+    } [@@deriving fields, sexp]
 
     val num_bytes : t -> int
     val write : t -> (read_write, _) Iobuf.t -> int
@@ -151,7 +151,7 @@ module New_group : sig
       id : Probe_id.t;
       spec : Probe_type.t;
       name : string;
-    } [@@deriving sexp]
+    } [@@deriving fields, sexp]
 
     val num_bytes : t -> int
     val write : t -> (read_write, _) Iobuf.t -> int
@@ -211,7 +211,7 @@ module New_group_point : sig
       id : Probe_id.t;
       name : string;
       sources_id : Probe_id.t array;
-    } [@@deriving sexp]
+    } [@@deriving fields, sexp]
 
     val num_bytes : t -> int
     val write : t -> (read_write, _) Iobuf.t -> int
@@ -241,7 +241,7 @@ module End_of_header : sig
     type t = {
       message_length : int;
       message_type : char;
-    } [@@deriving sexp]
+    } [@@deriving fields, sexp]
 
     val num_bytes : t -> int
     val write : t -> (read_write, _) Iobuf.t -> int
@@ -276,7 +276,7 @@ module Epoch : sig
       message_length : int;
       message_type : char;
       epoch : Profiler_epoch.t;
-    } [@@deriving sexp]
+    } [@@deriving fields, sexp]
 
     val num_bytes : t -> int
     val write : t -> (read_write, _) Iobuf.t -> int

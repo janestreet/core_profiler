@@ -217,7 +217,7 @@ module New_single = struct
       id : Probe_id.t;
       spec : Probe_type.t;
       name : string;
-    } [@@deriving sexp]
+    } [@@deriving fields, sexp]
 
     let num_bytes t = t.message_length + 0
   
@@ -348,7 +348,7 @@ module New_group = struct
       id : Probe_id.t;
       spec : Probe_type.t;
       name : string;
-    } [@@deriving sexp]
+    } [@@deriving fields, sexp]
 
     let num_bytes t = t.message_length + 0
   
@@ -498,7 +498,7 @@ module New_group_point = struct
       id : Probe_id.t;
       name : string;
       sources_id : Probe_id.t array;
-    } [@@deriving sexp]
+    } [@@deriving fields, sexp]
 
     let num_bytes t = t.message_length + 0
   
@@ -578,7 +578,7 @@ module End_of_header = struct
     type t = {
       message_length : int;
       message_type : char;
-    } [@@deriving sexp]
+    } [@@deriving fields, sexp]
 
     let num_bytes t = t.message_length + 0
   
@@ -659,7 +659,7 @@ module Epoch = struct
       message_length : int;
       message_type : char;
       epoch : Profiler_epoch.t;
-    } [@@deriving sexp]
+    } [@@deriving fields, sexp]
 
     let num_bytes t = t.message_length + 0
   
