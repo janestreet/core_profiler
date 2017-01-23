@@ -138,7 +138,7 @@ let time_ns_to_ofday_string t =
   let ns = t mod 1_000_000_000 in
 
   let hms =
-    Time.of_float (float s)
+    Time.of_span_since_epoch (Time.Span.of_sec (float s))
     |> Time.to_ofday ~zone:(force Time.Zone.local)
     |> Time.Ofday.to_sec_string
   in
