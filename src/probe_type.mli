@@ -1,4 +1,4 @@
-open! Core.Std
+open! Core
 open Core_profiler_disabled
 
 (** Type of a probe ([Intf.S]). *)

@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open Core_profiler_disabled
 
 let debug = false
@@ -63,7 +63,7 @@ let print_enabled =
     | Some "true" -> true
     | Some "false" -> false
     | Some v ->
-      Core.Std.printf "Unknown value for %s for %s, use true or false\n%!" v env;
+      Core.printf "Unknown value for %s for %s, use true or false\n%!" v env;
       true
     | None -> true
   in
@@ -81,7 +81,7 @@ let print_interval =
 
 let online_print () =
   if not !internal_disable_print && !we_are_using_online_profiler then begin
-    Core.Std.printf !"%{Time}\n%!" (Time.now ());
+    Core.printf !"%{Time}\n%!" (Time.now ());
     let table =
       Map.fold_right
         !all_rows
@@ -114,7 +114,7 @@ let maybe_print =
         |> Time_ns.Span.to_int_sec
       in
       if debug then
-        Core.Std.printf "print_interval = %d, diff = %d\n"
+        Core.printf "print_interval = %d, diff = %d\n"
           !print_interval diff;
       if diff >= !print_interval then begin
         last_print := now;

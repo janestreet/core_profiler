@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 
 module T = struct
   type t = int [@@deriving bin_io, compare, sexp]

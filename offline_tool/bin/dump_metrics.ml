@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open Core_profiler_offline_tool.Std
 
 let rec name id_map id =

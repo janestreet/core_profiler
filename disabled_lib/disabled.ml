@@ -1,4 +1,4 @@
-open! Core.Std
+open! Core
 
 module Profiler = struct
   let is_enabled = false

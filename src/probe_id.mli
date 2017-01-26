@@ -1,5 +1,5 @@
 (** Timer, Probe, Groups and Group points are all assigned globally unique [Id.t]s. *)
-open! Core.Std
+open! Core
 
 (** Each probe ([Intf.S]) has a unique [Probe_id.t] assigned. *)
 type t = private int [@@deriving bin_io, compare, sexp]

@@ -1,4 +1,4 @@
-open! Core.Std
+open! Core
 
 val default_output_filename : string
 val set_current_output_filename : string -> unit

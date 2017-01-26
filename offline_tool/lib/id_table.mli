@@ -1,4 +1,4 @@
-open! Core.Std
+open! Core
 open Core_profiler
 
 (** An [Id_table.t] exploits the fact that [Probe_id.t]s should be consecutive integers

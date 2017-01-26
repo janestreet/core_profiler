@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 
 
 type t = Time_ns.t [@@deriving sexp]

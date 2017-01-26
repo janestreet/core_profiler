@@ -2,7 +2,7 @@
     with several non-essential functions removed.
 
     We can kill this someday when the [Jane] is publicly released. *)
-open Core.Std
+open Core
 
 module Make (E : sig
     type t [@@deriving sexp, bin_io, compare]

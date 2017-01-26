@@ -1,4 +1,4 @@
-open! Core.Std
+open! Core
 open Core_extended.Std
 open Core_profiler
 open Core_profiler_disabled
@@ -474,7 +474,7 @@ module Summary_command = struct
         ~f:(fun p ->
           let name =
             Percent.to_percentage p
-            |> Core.Std.Float.to_string_hum ~decimals:1 ~strip_zero:true
+            |> Core.Float.to_string_hum ~decimals:1 ~strip_zero:true
             |> (fun s -> s ^ " %l")
           in
           let func = Fn.flip Row.percentile (Percent.to_mult p) in

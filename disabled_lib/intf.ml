@@ -29,7 +29,7 @@
     measure.  [Timer]s are strictly less general than [Probe]s, but are slightly more
     efficient. *)
 
-open! Core.Std
+open! Core
 
 module type Probe = sig
   type t

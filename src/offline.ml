@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open Core_profiler_disabled
 
 module Profiler = struct

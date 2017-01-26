@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open Core_profiler
 
 type ('a, +'rw) t = 'a option array

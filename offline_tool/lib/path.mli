@@ -1,4 +1,4 @@
-open! Core.Std
+open! Core
 open Core_profiler
 
 (** The first and last points are stored explicitly, not least to ensure that there are

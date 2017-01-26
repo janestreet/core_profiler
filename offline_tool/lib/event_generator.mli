@@ -1,4 +1,4 @@
-open! Core.Std
+open! Core
 open Core_profiler
 
 (** Reads profiler data stored in a file and filters them appropriately *)
