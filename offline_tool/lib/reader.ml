@@ -190,7 +190,7 @@ let consume_header buffer =
     | HP_MsgT.New_group_point -> HP.New_group_point.(
       let sources =
         let count = get_sources_count message in
-        List.init ~f:(fun i -> get_sources_id message ~count ~index:i) count
+        List.init ~f:(fun i -> get_sources_source_id message ~count ~index:i) count
       in
       let point_id = get_id message in
       let group_id = get_group_id message in

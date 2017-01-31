@@ -140,7 +140,7 @@ module New_single = struct
     Core.Iobuf.Unsafe.Poke.uint8 buf ~pos:pos (total_bytes_packed - 0);
     total_bytes_packed
   ;;
-
+  
   let create ~id ~spec ~name =
     let iobuf = Iobuf.create ~len:(69) in
     let size = write ~id ~spec ~name iobuf in
@@ -271,7 +271,7 @@ module New_group = struct
     Core.Iobuf.Unsafe.Poke.uint8 buf ~pos:pos (total_bytes_packed - 0);
     total_bytes_packed
   ;;
-
+  
   let create ~id ~spec ~name =
     let iobuf = Iobuf.create ~len:(69) in
     let size = write ~id ~spec ~name iobuf in
@@ -399,12 +399,12 @@ module New_group_point = struct
     Core.Iobuf.Unsafe.Poke.uint16_le buf ~pos:(pos + 4) (Probe_id.to_int_exn id);
     Core.Iobuf.Unsafe.Poke.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos + 6) name;
     Core.Iobuf.Unsafe.Poke.uint16_le buf ~pos:(pos + 70) sources_count;
-    let pos_after_sources_id = pos + 72 + sources_count * 2 in
-    let total_bytes_packed = pos_after_sources_id - pos in
+    let pos_after_sources = pos + 72 + sources_count * 2 in
+    let total_bytes_packed = pos_after_sources - pos in
     Core.Iobuf.Unsafe.Poke.uint8 buf ~pos:pos (total_bytes_packed - 0);
     total_bytes_packed
   ;;
-
+  
   let create ~group_id ~id ~name ~sources_count =
     let iobuf = Iobuf.create ~len:(72 + 2 * sources_count) in
     let size = write ~group_id ~id ~name ~sources_count iobuf in
@@ -451,10 +451,11 @@ module New_group_point = struct
     Core.Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos + 70)
   ;;
   
-  let get_sources_id buf ~count ~index =
+  let get_sources_source_id buf ~count ~index =
     if index < 0 || index >= count then invalid_arg "index out of bounds";
-    let pos = 72 + 0 * count + index * 2 in
-    Probe_id.of_int_exn (Core.Iobuf.Unsafe.Peek.uint16_le buf ~pos:pos)
+    let pos = 0 in
+    let pos_of_source_id_using_count_and_index = pos + 72 + count * 0 + index * 2 in
+    Probe_id.of_int_exn (Core.Iobuf.Unsafe.Peek.uint16_le buf ~pos:pos_of_source_id_using_count_and_index)
   ;;
   
   let set_group_id buf field =
@@ -483,22 +484,31 @@ module New_group_point = struct
     Iobuf.Hi_bound.restore hi buf;
   ;;
   
-  let set_sources_id buf ~count ~index field =
+  let set_sources_source_id buf ~count ~index field =
     if index < 0 || index >= count then invalid_arg "index out of bounds";
-    let pos = 72 + 0 * count + index * 2 in
-    Core.Iobuf.Poke.uint16_le buf ~pos:pos (Probe_id.to_int_exn field);
+    let pos = 0 in
+    let pos_of_source_id_using_count_and_index = pos + 72 + count * 0 + index * 2 in
+    Core.Iobuf.Poke.uint16_le buf ~pos:pos_of_source_id_using_count_and_index (Probe_id.to_int_exn field);
   ;;
+  
+  let set_sources buf ~count ~index ~source_id =
+    set_sources_source_id buf ~count ~index source_id;
+  ;;
+  
   let to_sub_iobuf t = 
     Iobuf.sub_shared t ~len:(get_message_length t + 0)
   ;;
   module Unpacked = struct
+    type t_sources = {
+      source_id : Probe_id.t;
+    } [@@deriving fields, sexp]
     type t = {
       message_length : int;
       message_type : char;
       group_id : Probe_id.t;
       id : Probe_id.t;
       name : string;
-      sources_id : Probe_id.t array;
+      sources_grp : t_sources array;
     } [@@deriving fields, sexp]
 
     let num_bytes t = t.message_length + 0
@@ -508,10 +518,11 @@ module New_group_point = struct
         ~group_id:t.group_id
         ~id:t.id
         ~name:t.name
-        ~sources_count:(Array.length t.sources_id)
+        ~sources_count:(Array.length t.sources_grp)
       in
-      Array.iteri (t.sources_id) ~f:(fun i elt ->
-        set_sources_id iobuf ~count:(Array.length t.sources_id) ~index:i elt
+      Array.iteri t.sources_grp ~f:(fun i (record : t_sources) ->
+        set_sources iobuf ~count:(Array.length t.sources_grp) ~index:i
+          ~source_id:record.source_id
       );
       res
   ;;
@@ -523,13 +534,18 @@ module New_group_point = struct
       group_id = get_group_id buf;
       id = get_id buf;
       name = get_name buf;
-      sources_id = Array.init (get_sources_count buf) ~f:(fun i -> get_sources_id buf ~count:(get_sources_count buf) ~index:i);
+      sources_grp =
+       (let sources_count = get_sources_count buf in
+        Array.init sources_count ~f:(fun i ->
+          { Unpacked.
+            source_id = get_sources_source_id buf ~count:sources_count ~index:i;
+          }));
     }
   ;;
   let sexp_of_t _ t = Unpacked.sexp_of_t (to_unpacked t)
 
   let of_unpacked (unpacked : Unpacked.t) =
-    let t = Iobuf.create ~len:(72 + 2 * Array.length unpacked.sources_id) in
+    let t = Iobuf.create ~len:(72 + 2 * Array.length unpacked.sources_grp) in
     ignore (Unpacked.write unpacked t : int);
     Iobuf.of_string (Iobuf.to_string t)
   ;;
@@ -555,7 +571,7 @@ module End_of_header = struct
     Core.Iobuf.Unsafe.Poke.uint8 buf ~pos:pos (total_bytes_packed - 0);
     total_bytes_packed
   ;;
-
+  
   let create  =
     let iobuf = Iobuf.create ~len:(2) in
     let size = write  iobuf in
@@ -625,7 +641,7 @@ module Epoch = struct
     Core.Iobuf.Unsafe.Poke.uint8 buf ~pos:pos (total_bytes_packed - 0);
     total_bytes_packed
   ;;
-
+  
   let create ~epoch =
     let iobuf = Iobuf.create ~len:(10) in
     let size = write ~epoch iobuf in

@@ -310,7 +310,7 @@ module Writer = struct
     let sources_count = Array.length sources in
     let len = NPP.write ~group_id ~id ~name ~sources_count header_chunk in
     Array.iteri sources ~f:(fun index id ->
-      NPP.set_sources_id header_chunk ~count:sources_count ~index id
+      NPP.set_sources header_chunk ~count:sources_count ~index ~source_id:id
     );
     Iobuf.advance header_chunk len
 
@@ -388,12 +388,14 @@ module Writer = struct
             (Array.map ~f:Probe_id.of_int_exn [|500; 700|]);
           match unpack_one () with
           | New_group_point
-              { group_id; id; name; sources_id; message_length=_; message_type=_ } ->
+              { group_id; id; name; sources_grp; message_length=_; message_type=_ } ->
             [%test_eq: int] (Probe_id.to_int_exn group_id) 100;
             [%test_eq: int] (Probe_id.to_int_exn id) 300;
             [%test_eq: string] name "unittest";
             [%test_eq: int array]
-              (Array.map ~f:Probe_id.to_int_exn sources_id)
+              (Array.map sources_grp ~f:(fun r ->
+                 let r : Header_protocol.New_group_point.Unpacked.t_sources = r in
+                 Probe_id.to_int_exn r.source_id))
               [|500; 700|];
           | _ ->
             assert false
