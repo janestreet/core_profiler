@@ -203,7 +203,7 @@ module New_group_point : sig
   (* Beware: [count] is trusted. If it is wrong, this function could read the wrong data. *)
   val set_sources_source_id : (read_write, _) Iobuf.t -> count:int -> index:int -> Probe_id.t -> unit
   (* Beware: [count] is trusted. If it is wrong, this function could read the wrong data. *)
-  val set_sources
+  val write_sources
      : (read_write, _) Iobuf.t
     -> count:int
     -> index:int

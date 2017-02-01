@@ -310,7 +310,7 @@ module Writer = struct
     let sources_count = Array.length sources in
     let len = NPP.write ~group_id ~id ~name ~sources_count header_chunk in
     Array.iteri sources ~f:(fun index id ->
-      NPP.set_sources header_chunk ~count:sources_count ~index ~source_id:id
+      NPP.write_sources header_chunk ~count:sources_count ~index ~source_id:id
     );
     Iobuf.advance header_chunk len
 

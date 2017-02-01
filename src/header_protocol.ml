@@ -491,7 +491,7 @@ module New_group_point = struct
     Core.Iobuf.Poke.uint16_le buf ~pos:pos_of_source_id_using_count_and_index (Probe_id.to_int_exn field);
   ;;
   
-  let set_sources buf ~count ~index ~source_id =
+  let write_sources buf ~count ~index ~source_id =
     set_sources_source_id buf ~count ~index source_id;
   ;;
   
@@ -521,7 +521,7 @@ module New_group_point = struct
         ~sources_count:(Array.length t.sources_grp)
       in
       Array.iteri t.sources_grp ~f:(fun i (record : t_sources) ->
-        set_sources iobuf ~count:(Array.length t.sources_grp) ~index:i
+        write_sources iobuf ~count:(Array.length t.sources_grp) ~index:i
           ~source_id:record.source_id
       );
       res
