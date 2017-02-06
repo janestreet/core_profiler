@@ -538,7 +538,7 @@ module Delta_timer = struct
     r
 
   (* let wrap_async t f x =
-   *   let open Async.Std in
+   *   let open Async in
    *   let state = start_async t in
    *   try_with ~run:`Now (fun () -> f x) >>= fun res ->
    *   stop_async t state;
