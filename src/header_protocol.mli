@@ -85,6 +85,7 @@ module New_single : sig
   val name_max_len : int
   val get_name : _ t -> string
   val get_name_zero : _ t -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a) -> 'a
+  val get_name_zero_padded : _ t -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a) -> 'a
   val set_id : (read_write, _) Iobuf.t -> Probe_id.t -> unit
   val set_spec : (read_write, _) Iobuf.t -> Probe_type.t -> unit
   val set_name : (read_write, _) Iobuf.t -> string -> unit
@@ -136,6 +137,7 @@ module New_group : sig
   val name_max_len : int
   val get_name : _ t -> string
   val get_name_zero : _ t -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a) -> 'a
+  val get_name_zero_padded : _ t -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a) -> 'a
   val set_id : (read_write, _) Iobuf.t -> Probe_id.t -> unit
   val set_spec : (read_write, _) Iobuf.t -> Probe_type.t -> unit
   val set_name : (read_write, _) Iobuf.t -> string -> unit
@@ -190,6 +192,7 @@ module New_group_point : sig
   val name_max_len : int
   val get_name : _ t -> string
   val get_name_zero : _ t -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a) -> 'a
+  val get_name_zero_padded : _ t -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a) -> 'a
   val get_sources_count : _ t -> int
   (* Beware: [count] is trusted. If it is wrong, this function could read the wrong data or segfault. *)
   val get_sources_source_id : 'rw t -> count:int -> index:int -> Probe_id.t
@@ -243,6 +246,7 @@ module End_of_header : sig
     (read_write, _) Iobuf.t ->
     int
   val create :
+    unit -> 
     (read_write, Iobuf.seek) Iobuf.t
   val get_message_length : _ t -> int
   val get_message_type : _ t -> char

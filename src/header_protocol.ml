@@ -182,6 +182,12 @@ module New_single = struct
     f buf ~safe_pos:pos ~safe_len:!len
   ;;
   
+  let get_name_zero_padded buf f =
+    let buf = Iobuf.read_only buf in
+    let pos = 5 in
+    f buf ~safe_pos:pos ~safe_len:64
+  ;;
+  
   let set_id buf field =
     let pos = 0 in
     Core.Iobuf.Poke.uint16_le buf ~pos:(pos + 2) (Probe_id.to_int_exn field);
@@ -311,6 +317,12 @@ module New_group = struct
     let len = ref 64 in
     while !len > 0 && Char.(=) padding (Iobuf.Unsafe.Peek.char buf ~pos:(pos + !len - 1)); do decr len; done;
     f buf ~safe_pos:pos ~safe_len:!len
+  ;;
+  
+  let get_name_zero_padded buf f =
+    let buf = Iobuf.read_only buf in
+    let pos = 5 in
+    f buf ~safe_pos:pos ~safe_len:64
   ;;
   
   let set_id buf field =
@@ -446,6 +458,12 @@ module New_group_point = struct
     f buf ~safe_pos:pos ~safe_len:!len
   ;;
   
+  let get_name_zero_padded buf f =
+    let buf = Iobuf.read_only buf in
+    let pos = 6 in
+    f buf ~safe_pos:pos ~safe_len:64
+  ;;
+  
   let get_sources_count buf =
     let pos = 0 in
     Core.Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos + 70)
@@ -572,7 +590,7 @@ module End_of_header = struct
     total_bytes_packed
   ;;
   
-  let create  =
+  let create () =
     let iobuf = Iobuf.create ~len:(2) in
     let size = write  iobuf in
     assert (Iobuf.length iobuf = size);
