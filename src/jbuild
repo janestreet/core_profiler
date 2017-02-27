@@ -10,3 +10,5 @@
    (libraries (core
                textutils
                core_profiler_disabled))))
+
+(jbuild_version jane_street)

@@ -2,3 +2,5 @@
  ((name core_profiler_disabled)
   (public_name core_profiler.disabled)
   (libraries (core))))
+
+(jbuild_version jane_street)
