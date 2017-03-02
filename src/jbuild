@@ -9,6 +9,7 @@
    (public_name core_profiler)
    (libraries (core
                textutils
-               core_profiler_disabled))))
+               core_profiler_disabled))
+   (preprocess (pps (ppx_jane)))))
 
 (jbuild_version jane_street)

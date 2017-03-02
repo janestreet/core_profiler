@@ -4,7 +4,8 @@
                core_extended
                textutils
                core_profiler
-               core_profiler_offline_tool))))
+               core_profiler_offline_tool))
+   (preprocess (pps (ppx_jane)))))
 
 (install
  ((section bin)
