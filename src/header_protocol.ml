@@ -67,6 +67,8 @@ module Message_type_and_errors = struct
   
   let max_index = 4
   
+  let all_of_packed = List.init (max_index + 1) ~f:of_index_exn
+  
   module Packed = struct
     module T = struct
       type 'ty message_type_and_errors = 'ty t [@@deriving sexp_of]
@@ -75,6 +77,7 @@ module Message_type_and_errors = struct
       let compare   t1 t2 = Int.compare (to_index_exn t1) (to_index_exn t2)
       let hash      t     = Int.hash    (to_index_exn t)
       let t_of_sexp _     = failwith "unimplemented"
+      let all = all_of_packed
     end
     include T
     include Comparable.Make(T)
