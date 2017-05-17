@@ -3,6 +3,7 @@
       - [update_in_place] optimised so that it doesn't allocate (see below)
 
     This copy can be killed when the original is available publicly. *)
+
 open Core
 
 type t = {

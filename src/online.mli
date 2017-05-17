@@ -43,6 +43,7 @@
    │ [online.ml:Delta_probe] stop_async                  │  17.26ns │      9.24% │
    └─────────────────────────────────────────────────────┴──────────┴────────────┘
 *)
+
 open! Core
 
 include (Core_profiler_disabled.Intf.Profiler_intf

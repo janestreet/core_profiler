@@ -6,6 +6,7 @@
     In the offline protocol, in order to save space in the header, an 'epoch' is written
     to the header, and times are stored as an offset from this epoch.  (See also:
     [Protocol.Short_header]) *)
+
 open! Core
 
 type t [@@deriving sexp]
