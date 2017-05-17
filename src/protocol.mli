@@ -54,7 +54,6 @@ module Buffer : sig
   end
 end
 
-(** Writes probes and probe values to the external file *)
 (** The [Writer] module contains functions that invoke parts of [Header_protocol] and
     [Short_header] in order to write into the relevant (global variable) buffers
     in [Buffer] *)

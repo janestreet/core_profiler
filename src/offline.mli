@@ -3,6 +3,7 @@
     then be analyzed using [profiler-tool.exe].
 
     I don't trust these numbers, but here they are:
+    {v
     ┌──────────────────────────────────────────────────────┬──────────┬────────────┐
     │ Name                                                 │ Time/Run │ Percentage │
     ├──────────────────────────────────────────────────────┼──────────┼────────────┤
@@ -21,12 +22,16 @@
     │ [offline.ml:Delta_probe] start_async                 │   2.44ns │      1.38% │
     │ [offline.ml:Delta_probe] stop_async                  │  22.20ns │     12.54% │
     └──────────────────────────────────────────────────────┴──────────┴────────────┘
+    v}
 *)
+
 open! Core
 
 (** In [Offline], a [Delta_probe] differs from a two point [Group] in that for each
     start/stop pair, only one message is written to the buffer. This means that only the
     delta in the probe is available, as opposed to deltas in both probe and time. *)
+
+(** @inline *)
 include (Core_profiler_disabled.Intf.Profiler_intf
          with type Timer.t = private int
           and type Probe.t = private int

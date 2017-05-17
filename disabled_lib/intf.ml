@@ -171,7 +171,7 @@ module type Profiler_intf = sig
     with type 'a create_args := 'a probe_create_args
      and type 'a record_args := 'a probe_record_args
 
-  (** A [Delta] is an optimized two-probe group (See [Offline.Delta]). *)
+  (** [Delta_probe] is an optimized two-probe group to track changes to some counter. *)
   module Delta_probe : sig
     type t
     type state
@@ -228,6 +228,8 @@ module type Profiler_intf = sig
     val stateless_stop  : t -> state -> int -> unit
   end
 
+  (** [Delta_timer] is an optimized two-probe group to track time differences between
+      calls to [start] and [stop]. *)
   module Delta_timer : sig
     type t
     type state
