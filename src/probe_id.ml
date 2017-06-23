@@ -1,10 +1,9 @@
 open Core
 
 module T = struct
-  type t = int [@@deriving bin_io, compare, sexp]
+  type t = int [@@deriving bin_io, compare, sexp, hash]
   let to_string = Int.to_string
   let of_string = Int.of_string
-  let hash = Int.hash
   let module_name = "Core_profiler.Common.Id"
 end
 

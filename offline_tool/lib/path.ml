@@ -186,5 +186,5 @@ module I = struct
   end
   include T
   include Comparable.Make(T)
-  include Hashable.Make(T)
+  include Hashable.Make_and_derive_hash_fold_t(T)
 end

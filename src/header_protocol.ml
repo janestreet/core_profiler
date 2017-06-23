@@ -76,6 +76,7 @@ module Message_type_and_errors = struct
       let to_index_exn (T t) = to_index_exn t
       let compare   t1 t2 = Int.compare (to_index_exn t1) (to_index_exn t2)
       let hash      t     = Int.hash    (to_index_exn t)
+      let hash_fold_t state t = Int.hash_fold_t state (to_index_exn t)
       let t_of_sexp _     = failwith "unimplemented"
       let all = all_of_packed
     end
