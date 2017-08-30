@@ -1,7 +1,8 @@
 (rule
  ((targets (header_protocol.ml header_protocol.mli))
   (deps (../protogen/header_protocol_dsl.exe))
-  (action (bash "../protogen/header_protocol_dsl.exe"))))
+  (action (bash "../protogen/header_protocol_dsl.exe"))
+  (fallback)))
 
 
 (library
