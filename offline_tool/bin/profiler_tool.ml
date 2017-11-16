@@ -242,7 +242,7 @@ module Log_command = struct
        See the  help-interests  subcommand for information on specifying the INTEREST."
 
   let command =
-    Command.basic
+    Command.basic_spec
       ~summary:"Show the (full, or filtered) stream of events \
                 (i.e., the log, having calculated paths deltas)."
       ~readme:readme
@@ -345,7 +345,7 @@ module List_command = struct
     )
 
   let command =
-    Command.basic
+    Command.basic_spec
       ~summary:"List the singles and groups in a core-profiler file"
       Command.Spec.(
         empty
@@ -652,7 +652,7 @@ module Summary_command = struct
     comma_separated (map Command.Spec.float ~f:Percent.of_percentage)
 
   let command =
-    Command.basic
+    Command.basic_spec
       ~summary:"Compute basic statistics from a core-profiler file"
       ~readme
       Command.Spec.(
@@ -949,7 +949,7 @@ module Plot_command = struct
        See the  help-interests  subcommand for information on specifying the INTEREST."
 
   let command =
-    Command.basic
+    Command.basic_spec
       ~summary:"Plot density and percentile graphs"
       ~readme
       Command.Spec.(
@@ -965,7 +965,7 @@ module Plot_command = struct
 end
 
 let interests_readme =
-  Command.basic
+  Command.basic_spec
     ~summary:"Display the readme for INTERESTs"
     Command.Spec.empty
     (fun () ->

@@ -24,7 +24,7 @@ let main buffer () =
   )
 
 let command =
-  Command.basic
+  Command.basic_spec
     ~summary:"Dump the contents of a Core_profiler.Offline file"
     Command.Spec.(
       let iobuf_file_arg_type = Arg_type.create Reader.map_file in
