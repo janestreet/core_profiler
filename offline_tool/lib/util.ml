@@ -27,7 +27,7 @@ module Name_map = struct
             if parent = group_id
             then begin
               warn_if_duplicate warning_what t name id;
-              Map.add t ~key:name ~data:id
+              Map.set t ~key:name ~data:id
             end
             else
               t
@@ -41,12 +41,12 @@ module Name_map = struct
         match item with
         | Single { name; _ } ->
           warn_if_duplicate "single" t.singles name id;
-          { t with singles = Map.add t.singles ~key:name ~data:id }
+          { t with singles = Map.set t.singles ~key:name ~data:id }
 
         | Group { name; _ } ->
           warn_if_duplicate "group" t.groups name id;
           let data = { id; children = collect_children id name } in
-          { t with groups = Map.add t.groups ~key:name ~data:data }
+          { t with groups = Map.set t.groups ~key:name ~data:data }
 
         | Group_point _ ->
           t

@@ -119,14 +119,14 @@ let consume_header buffer =
       failwithf !"Duplicate Id %{Probe_id} (%s, %s)"
         id (Header.Item.name existing) (Header.Item.name data) ()
     | None ->
-      Map.add map ~key:id ~data
+      Map.set map ~key:id ~data
   in
 
   let add_point_to_group map ~group_id ~point_id =
     match Map.find map group_id with
     | Some (Header.Item.Group p) ->
       let p = { p with children = point_id :: p.children } in
-      Map.add map ~key:group_id ~data:(Header.Item.Group p)
+      Map.set map ~key:group_id ~data:(Header.Item.Group p)
 
     | Some (Header.Item.Single _ | Group_point _)
     | None ->

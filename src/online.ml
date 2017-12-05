@@ -136,7 +136,7 @@ let () =
 let add_row  : string -> (unit -> row) -> Profiler_units.t -> unit =
   add_print_to_slow_tasks ();
   fun name fn units ->
-    all_rows := Map.add !all_rows ~key:name ~data:(fn, units)
+    all_rows := Map.set !all_rows ~key:name ~data:(fn, units)
 
 let safe_to_delay () =
   Common.maybe_do_slow_tasks Common.Online_profiler ~reluctance:1
