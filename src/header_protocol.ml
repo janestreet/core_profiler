@@ -794,6 +794,17 @@ let to_unpacked buf =
       R.Ok (Unpacked.Epoch (Epoch.to_unpacked m), num_bytes_in_message buf)
 ;;
 
+let to_unpacked_exn buf =
+  match to_unpacked buf with
+  | Ok (msg, _len) -> msg
+  | (Need_more_data | Junk _) as failure ->
+    let Message_type_and_errors.T message_type = get_message_type buf in
+    raise_s [%message
+      "[to_unpacked_exn] failure"
+       (message_type : _ Message_type_and_errors.t)
+       (failure : _ R.t)]
+;;
+
 let sexp_of_t _ _ t =
   match to_unpacked t with
   | R.Need_more_data

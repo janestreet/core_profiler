@@ -334,3 +334,4 @@ val of_unpacked : Unpacked.t -> (_, _) Iobuf.t
 val to_unpacked :
   ([> read ], _) Iobuf.t
   -> Unpacked.t R.t
+val to_unpacked_exn : ([> read ], _) Iobuf.t -> Unpacked.t
