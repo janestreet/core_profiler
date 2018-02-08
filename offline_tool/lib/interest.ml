@@ -93,9 +93,9 @@ let string_t_of_sexp = t_of_sexp String.t_of_sexp
 let sexp_of_string_t = sexp_of_t String.sexp_of_t
 
 let parse_filter =
-  let regex = Or_error.ok_exn (Re2.Regex.create "(v|dv|dt)\\[(.+)\\,(.+)\\]") in
+  let regex = Or_error.ok_exn (Re2.create "(v|dv|dt)\\[(.+)\\,(.+)\\]") in
   (fun str ->
-     let subs = Re2.Regex.find_submatches_exn regex str in
+     let subs = Re2.find_submatches_exn regex str in
      let subject_str = Option.value_exn subs.(1) ~message:"missing subject" in
      let left_str = Option.value_exn subs.(2) ~message:"missing left limit" in
      let right_str = Option.value_exn subs.(3) ~message:"missing right limit" in
