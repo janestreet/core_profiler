@@ -330,6 +330,8 @@ val num_bytes_in_message : ([> read ], _) Iobuf.t -> int
 (** Equivalent to [Iobuf.advance buf (num_bytes_in_message buf)] *)
 val skip_message : ([> read ], Iobuf.seek) Iobuf.t -> unit
 
+val buffer_contains_full_message : ([> read ], _) Iobuf.t -> bool
+
 val of_unpacked : Unpacked.t -> (_, _) Iobuf.t
 val to_unpacked :
   ([> read ], _) Iobuf.t

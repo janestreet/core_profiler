@@ -763,6 +763,12 @@ let num_bytes_in_message buf =
 
 let skip_message buf = Iobuf.advance buf (num_bytes_in_message buf)
 
+let buffer_contains_full_message buf =
+  let len = Iobuf.length buf in
+  len >= num_bytes_needed_for_message_length
+  && len >= num_bytes_in_message buf
+;;
+
 let of_unpacked (u : Unpacked.t) =
   match u with
   | New_single msg -> New_single.of_unpacked msg
