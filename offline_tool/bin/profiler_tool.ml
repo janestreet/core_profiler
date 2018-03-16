@@ -626,7 +626,7 @@ module Summary_command = struct
         @ probe_paths_rows id_map probe_paths
       )
       |> List.filter ~f:(fun r -> not (Row.is_empty r))
-      |> List.sort ~cmp:row_sort_compare
+      |> List.sort ~compare:row_sort_compare
     in
     if rows = []
     then
@@ -673,7 +673,7 @@ module Summary_command = struct
          let percentiles =
            ((if median then [Percent.of_percentage 50.] else [])
             @ List.concat percentile_lists)
-           |> List.sort ~cmp:Percent.compare
+           |> List.sort ~compare:Percent.compare
            |> List.remove_consecutive_duplicates ~equal:Percent.equal
          in
          main interests buffer { count; sum; mean; min; max; stdev; percentiles }

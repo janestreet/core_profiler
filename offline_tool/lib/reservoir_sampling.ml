@@ -52,7 +52,7 @@ module Make (E : sig
 
   let sort t =
     if not t.samples_are_sorted then begin
-      Array.sort t.samples ~cmp:E.compare ~pos:0 ~len:t.samples_count;
+      Array.sort t.samples ~compare:E.compare ~pos:0 ~len:t.samples_count;
       t.samples_are_sorted <- true;
     end
 

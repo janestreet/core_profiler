@@ -12,7 +12,7 @@
    (libraries (core
                textutils
                core_profiler_disabled))
-   (preprocess (pps (ppx_jane -check-doc-comments ppx_driver.runner)))))
+   (preprocess (pps (ppx_jane -check-doc-comments ppxlib.runner)))))
 
 
 (jbuild_version 1)

@@ -6,7 +6,7 @@ type ('a, +'rw) t = 'a option array
 let ids_range ids =
   let ids = List.map ids ~f:Probe_id.to_int_exn in
   List.iter ids ~f:(fun id -> assert (id >= 0));
-  match List.max_elt ids ~cmp:Int.compare with
+  match List.max_elt ids ~compare:Int.compare with
   | None -> 0
   | Some x -> x + 1
 
