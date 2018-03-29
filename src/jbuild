@@ -8,7 +8,6 @@
 (library
   ((name core_profiler)
    (public_name core_profiler)
-  (flags (:standard -safe-string))
    (libraries (core
                textutils
                core_profiler_disabled))
