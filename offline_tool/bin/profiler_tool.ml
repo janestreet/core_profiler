@@ -649,7 +649,7 @@ module Summary_command = struct
 
   let percentile_arg_type =
     let open Command.Arg_type in
-    comma_separated (map Command.Spec.float ~f:Percent.of_percentage)
+    comma_separated (map Command.Spec.float ~f:Percent.of_percentage) ~allow_empty:true
 
   let command =
     Command.basic_spec
