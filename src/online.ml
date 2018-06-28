@@ -34,7 +34,7 @@ let columns =
     >>| Profiler_units.format_int units
     |> Option.value ~default:""
   in
-  Textutils.Ascii_table.(
+  Ascii_table.(
     [ Column.create ~align:Left  "name"  fst3
     ; Column.create ~align:Right "count" fstats_count
     ; Column.create ~align:Right "sum"   (fstats_fget Fstats.total)
@@ -95,7 +95,7 @@ let online_print () =
     in
     if not (List.is_empty table)
     then begin
-      Textutils.Ascii_table.output
+      Ascii_table.output
         ~oc:Out_channel.stdout
         ~limit_width_to:150
         columns

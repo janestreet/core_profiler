@@ -10,10 +10,11 @@ build: [
 ]
 depends: [
   "core"
-  "core_extended"
   "ppx_jane"
   "re2"
+  "shell"
   "textutils"
+  "textutils_kernel"
   "jbuilder"                {build & >= "1.0+beta18.1"}
   "ocaml-migrate-parsetree" {>= "1.0"}
   "ppxlib"                  {>= "0.1.0"}

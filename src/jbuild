@@ -8,8 +8,8 @@
 (library
   ((name core_profiler)
    (public_name core_profiler)
-   (libraries (core
-               textutils
+   (libraries (ascii_table
+               core
                core_profiler_disabled))
    (preprocess (pps (ppx_jane -check-doc-comments ppxlib.runner)))))
 

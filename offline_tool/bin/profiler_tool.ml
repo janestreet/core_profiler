@@ -1,5 +1,4 @@
 open! Core
-open Core_extended.Std
 open Core_profiler
 open Core_profiler_disabled
 open Core_profiler_offline_tool.Std
@@ -69,7 +68,7 @@ module Log_command = struct
       )
 
   let display_event id_map event ansi_attrs name_length =
-    let printf = Textutils.Console.Ansi.printf in
+    let printf = Console.Ansi.printf in
     let name = raw_interest_name id_map in
     let units ri =
       match (ri : Probe_id.t Interest.Raw.t) with
@@ -233,7 +232,7 @@ module Log_command = struct
     end
 
   let readme () =
-    String.word_wrap ~soft_limit:75
+    String_extended.word_wrap ~soft_limit:75
       "The log may be filtered by specifying some INTERESTs. It may be further filtered \
        by asking only for entries near lines that match -near INTERESTs. \
        The amount of context shown is controlled by -context and may be specified as a \
@@ -330,7 +329,7 @@ module List_command = struct
           (* group points are output immediately after the group *)
           accum
       )
-    |> Textutils.Ascii_table.(
+    |> Ascii_table.(
       output
         ~oc:Out_channel.stdout
         [ Column.create ~align:Left "id"
@@ -465,7 +464,7 @@ module Summary_command = struct
   let table_columns id_map (selections : Selections.t) =
     let add want name func acc =
       if want
-      then Textutils.Ascii_table.(Column.create ~align:Right name func) :: acc
+      then Ascii_table.(Column.create ~align:Right name func) :: acc
       else acc
     in
 
@@ -478,7 +477,7 @@ module Summary_command = struct
             |> (fun s -> s ^ " %l")
           in
           let func = Fn.flip Row.percentile (Percent.to_mult p) in
-          Textutils.Ascii_table.(Column.create ~align:Right name func)
+          Ascii_table.(Column.create ~align:Right name func)
         )
     in
 
@@ -492,7 +491,7 @@ module Summary_command = struct
       |> add selections.count "count" Row.count
     in
     let (name, what) =
-      Textutils.Ascii_table.(
+      Ascii_table.(
         ( Column.create ~align:Left "name" (Fn.flip Row.name id_map)
         , Column.create ~align:Left ""     Row.what
         )
@@ -632,14 +631,14 @@ module Summary_command = struct
     then
       printf "No data to show.\n"
     else
-      Textutils.Ascii_table.output
+      Ascii_table.output
         ~oc:Out_channel.stdout
         ~limit_width_to:150
         (table_columns id_map selections)
         rows
 
   let readme () =
-    String.word_wrap ~soft_limit:75
+    String_extended.word_wrap ~soft_limit:75
       "If no statistics (sum, mean, ...) are requested, a default selection will be \
        shown. \
        You can ask for multiple percentiles by passing the -percentile flag several \
@@ -935,11 +934,11 @@ module Plot_command = struct
     in
 
     bars
-    |> Textutils.Text_graph.render ~narrow:true
+    |> Text_graph.render ~narrow:true
     |> print_endline
 
   let readme () =
-    String.word_wrap ~soft_limit:75
+    String_extended.word_wrap ~soft_limit:75
       "Specify a single interest and the variable you would like plotted. \
        The VARIABLE must be one of time, value, delta or time_delta.\n\n\
        By default, a density plot is produced, with the 'variable' (time, value, ...) \
@@ -970,7 +969,7 @@ let interests_readme =
     Command.Spec.empty
     (fun () ->
        Lazy.force Interest.readme
-       |> String.word_wrap ~soft_limit:75
+       |> String_extended.word_wrap ~soft_limit:75
        |> print_endline
     )
 
