@@ -1,12 +1,12 @@
 (executables
   ((names (dump_metrics profiler_tool))
-   (libraries (ascii_table
-               console
+   (libraries (textutils.ascii_table
+               textutils.console
                core
                core_profiler
                core_profiler_offline_tool
                shell.string_extended
-               text_graph))
+               textutils_kernel.text_graph))
    (preprocess (pps (ppx_jane ppxlib.runner)))))
 
 (install
