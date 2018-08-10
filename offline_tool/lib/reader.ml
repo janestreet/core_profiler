@@ -327,7 +327,7 @@ let consume_short_message buffer epoch header =
   else begin
 
     (* fields common to read_timer, probe and group_reset *)
-    let sm_header = Iobuf.Peek.int64_le buffer ~pos:0 in
+    let sm_header = Iobuf.Peek.int64_le_exn buffer ~pos:0 in
     let sm_id = SM.Header.unpack_id sm_header in
     let sm_time = SM.Header.unpack_time epoch sm_header in
 
@@ -339,7 +339,7 @@ let consume_short_message buffer epoch header =
         if remaining < 16 then
           failwith "Invalid short message: truncated"
         else begin
-          let value = Iobuf.Peek.int64_le buffer ~pos:8 in
+          let value = Iobuf.Peek.int64_le_exn buffer ~pos:8 in
           Iobuf.unsafe_advance buffer 16;
           SM.Probe (sm_id, sm_time, value)
         end

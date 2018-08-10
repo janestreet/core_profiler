@@ -172,7 +172,7 @@ end = struct
     if len > 0
     then
       for i = 0 to (len - 1) / 512 do
-        Iobuf.Unsafe.Poke.uint8 current_chunk ~pos:(i * 512) 0
+        Iobuf.Unsafe.Poke.uint8_trunc current_chunk ~pos:(i * 512) 0
       done
 
   let ensure_free len =
