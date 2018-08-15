@@ -29,7 +29,7 @@ module Message_type_and_errors = struct
     | Message_length_too_short : [ `Error ] t
   [@@deriving sexp_of]
   
-  type packed = T : _ t -> packed [@@deriving sexp_of]
+  type packed = T : _ t -> packed [@@deriving sexp_of] [@@unboxed]
   
   let to_wire_exn : type ty. ty t -> char = function
     | Epoch -> 'E'
@@ -72,7 +72,7 @@ module Message_type_and_errors = struct
   module Packed = struct
     module T = struct
       type 'ty message_type_and_errors = 'ty t [@@deriving sexp_of]
-      type t = packed = T : _ message_type_and_errors -> t [@@deriving sexp_of]
+      type t = packed = T : _ message_type_and_errors -> t [@@deriving sexp_of] [@@unboxed] [@@immediate]
       let to_index_exn (T t) = to_index_exn t
       let compare   t1 t2 = Int.compare (to_index_exn t1) (to_index_exn t2)
       let hash      t     = Int.hash    (to_index_exn t)
