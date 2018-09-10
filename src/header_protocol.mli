@@ -31,13 +31,13 @@ module Message_type_and_errors : sig
   [@@deriving sexp_of]
   
   (** [all_of_packed] does not include the error cases. *)
-  type packed = T : _ t -> packed [@@deriving sexp_of, enumerate]
+  type packed = T : _ t -> packed [@@deriving sexp_of, enumerate] [@@unboxed]
   
   module Packed : sig
     (** The hash and compare functions throw on the error cases of
         [message_type_and_errors]. [all] does not include the error cases. *)
     type 'ty message_type_and_errors = 'ty t
-    type t = packed = T : _ message_type_and_errors -> t [@@deriving sexp_of, enumerate]
+    type t = packed = T : _ message_type_and_errors -> t [@@deriving sexp_of, enumerate] [@@unboxed]
     include Comparable.S with type t := t
     include Hashable.S with type t := t
   end
