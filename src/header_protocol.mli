@@ -70,7 +70,7 @@ val of_iobuf_exn : ('rw, _) Iobuf.t -> 'ty Message_type_and_errors.t -> ('ty, 'r
 
 module New_single : sig
   type phantom = [`New_single]
-  type nonrec -'rw t = (phantom, 'rw) t [@@deriving sexp]
+  type nonrec -'rw t = (phantom, 'rw) t constraint 'rw = [> read] [@@deriving sexp]
 
   val message_type : char
   val buffer_length : int
@@ -141,7 +141,7 @@ end
 
 module New_group : sig
   type phantom = [`New_group]
-  type nonrec -'rw t = (phantom, 'rw) t [@@deriving sexp]
+  type nonrec -'rw t = (phantom, 'rw) t constraint 'rw = [> read] [@@deriving sexp]
 
   val message_type : char
   val buffer_length : int
@@ -212,7 +212,7 @@ end
 
 module New_group_point : sig
   type phantom = [`New_group_point]
-  type nonrec -'rw t = (phantom, 'rw) t [@@deriving sexp]
+  type nonrec -'rw t = (phantom, 'rw) t constraint 'rw = [> read] [@@deriving sexp]
 
   val message_type : char
   val buffer_length : sources_count:int -> int
@@ -309,7 +309,7 @@ end
 
 module End_of_header : sig
   type phantom = [`End_of_header]
-  type nonrec -'rw t = (phantom, 'rw) t [@@deriving sexp]
+  type nonrec -'rw t = (phantom, 'rw) t constraint 'rw = [> read] [@@deriving sexp]
 
   val message_type : char
   val buffer_length : int
@@ -337,7 +337,7 @@ end
 
 module Epoch : sig
   type phantom = [`Epoch]
-  type nonrec -'rw t = (phantom, 'rw) t [@@deriving sexp]
+  type nonrec -'rw t = (phantom, 'rw) t constraint 'rw = [> read] [@@deriving sexp]
 
   val message_type : char
   val buffer_length : int
