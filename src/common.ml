@@ -7,7 +7,7 @@ type t =
 
 let now_no_calibrate () =
   Time_stamp_counter.now ()
-  |> Time_stamp_counter.to_time_ns
+  |> Time_stamp_counter.to_time_ns ~calibrator:(force Time_stamp_counter.calibrator)
 
 let%bench "now_no_calibrate" = now_no_calibrate ()
 
@@ -23,7 +23,9 @@ let add_slow_task kind f =
 
 let () =
   add_slow_task Any_profiler
-    (fun () -> Time_stamp_counter.Calibrator.calibrate ())
+    (fun () ->
+       Time_stamp_counter.Calibrator.calibrate
+         (force Time_stamp_counter.calibrator))
 
 let maybe_do_slow_tasks' kind now reluctance =
   (* We don't want to pay for a [now] call to work out whether we should do slow tasks.
