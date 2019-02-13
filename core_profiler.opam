@@ -1,4 +1,5 @@
 opam-version: "2.0"
+version: "v0.12.0"
 maintainer: "opensource@janestreet.com"
 authors: ["Jane Street Group, LLC <opensource@janestreet.com>"]
 homepage: "https://github.com/janestreet/core_profiler"
@@ -10,13 +11,13 @@ build: [
   ["dune" "build" "-p" name "-j" jobs]
 ]
 depends: [
-  "ocaml" {>= "4.07.0"}
-  "core"
-  "ppx_jane"
-  "re2"
-  "shell"
-  "textutils"
-  "textutils_kernel"
+  "ocaml"            {>= "4.07.0"}
+  "core"             {>= "v0.12" & < "v0.13"}
+  "ppx_jane"         {>= "v0.12" & < "v0.13"}
+  "re2"              {>= "v0.12" & < "v0.13"}
+  "shell"            {>= "v0.12" & < "v0.13"}
+  "textutils"        {>= "v0.12" & < "v0.13"}
+  "textutils_kernel" {>= "v0.12" & < "v0.13"}
   "dune"             {build & >= "1.5.1"}
 ]
 synopsis: "Profiling library"
