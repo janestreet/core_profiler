@@ -3,5 +3,6 @@
  (action (bash ../protogen/header_protocol_dsl.exe)) (mode fallback))
 
 (library (name core_profiler) (public_name core_profiler)
- (libraries textutils.ascii_table core core_profiler_disabled)
+ (libraries textutils.ascii_table core core_profiler_disabled
+  core.time_stamp_counter)
  (preprocess (pps ppx_jane -check-doc-comments)))
