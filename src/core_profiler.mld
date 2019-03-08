@@ -2,7 +2,8 @@
 
 [Core_profiler] is a library that helps you profile programs and
 estimate various various costs.
-The full API is browsable {{!Core_profiler}{b here}}.
+
+{{!Core_profiler}{b The full API is browsable here}}.
 
 Here is a toy program to help understand how to use it:
 {[
