@@ -76,7 +76,7 @@ val coerce_interval_units : Probe_id.t t -> Reader.Header.t -> Probe_id.t t
 val readme : string Lazy.t
 
 val arg_type : string t Command.Spec.Arg_type.t
-val list_arg : string t list Command.Spec.param
+val list_arg : string t list Command.Param.t
 
 (** Generate a (hopefully sane) set of default interests for the items in this header *)
 val default_interests : Reader.Header.t -> Probe_id.t t list
