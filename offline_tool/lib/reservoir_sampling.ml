@@ -3,6 +3,7 @@
 
     We can kill this someday when the [Jane] is publicly released. *)
 open Core
+open Poly
 
 module Make (E : sig
     type t [@@deriving sexp, bin_io, compare]

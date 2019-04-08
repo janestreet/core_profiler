@@ -5,6 +5,7 @@
     This copy can be killed when the original is available publicly. *)
 
 open Core
+open Poly
 
 type t = {
   (* Note: we keep samples as a float instead of an int so that all floats in the record
