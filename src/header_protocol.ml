@@ -6,7 +6,7 @@ open! Core
 let padding = ' '
 let _ = padding
 
-type ('ty, -'rw) t = ('rw, Iobuf.no_seek) Iobuf.t constraint 'rw = [> read]
+type ('ty, -'rw) t = ('rw, Iobuf.no_seek) Iobuf.t constraint 'rw = [> read ]
 type ('ty, 'rw) message = ('ty, 'rw) t
 type ('ty, 'rw) t_no_exn = ('ty, 'rw) t
 
@@ -20,14 +20,14 @@ end
 
 module Message_type_and_errors = struct
   type _ t =
-    | New_single : [`New_single] t
-    | New_group : [`New_group] t
-    | New_group_point : [`New_group_point] t
-    | End_of_header : [`End_of_header] t
-    | Epoch : [`Epoch] t
-    | Need_more_data : [`Error] t
-    | Invalid_message_type_or_subtype : [`Error] t
-    | Message_length_too_short : [`Error] t
+    | New_single : [ `New_single ] t
+    | New_group : [ `New_group ] t
+    | New_group_point : [ `New_group_point ] t
+    | End_of_header : [ `End_of_header ] t
+    | Epoch : [ `Epoch ] t
+    | Need_more_data : [ `Error ] t
+    | Invalid_message_type_or_subtype : [ `Error ] t
+    | Message_length_too_short : [ `Error ] t
   [@@deriving sexp_of]
 
   type packed = T : _ t -> packed [@@deriving sexp_of] [@@unboxed]
@@ -150,7 +150,7 @@ let of_iobuf_exn buf ty =
 ;;
 
 module New_single = struct
-  type phantom = [`New_single]
+  type phantom = [ `New_single ]
   type nonrec -'rw t = (phantom, 'rw) t
 
   let message_type = 'N'
@@ -295,7 +295,7 @@ module New_single = struct
 end
 
 module New_group = struct
-  type phantom = [`New_group]
+  type phantom = [ `New_group ]
   type nonrec -'rw t = (phantom, 'rw) t
 
   let message_type = 'P'
@@ -440,7 +440,7 @@ module New_group = struct
 end
 
 module New_group_point = struct
-  type phantom = [`New_group_point]
+  type phantom = [ `New_group_point ]
   type nonrec -'rw t = (phantom, 'rw) t
 
   let message_type = 'O'
@@ -639,7 +639,7 @@ module New_group_point = struct
 end
 
 module End_of_header = struct
-  type phantom = [`End_of_header]
+  type phantom = [ `End_of_header ]
   type nonrec -'rw t = (phantom, 'rw) t
 
   let message_type = 'Z'
@@ -705,7 +705,7 @@ module End_of_header = struct
 end
 
 module Epoch = struct
-  type phantom = [`Epoch]
+  type phantom = [ `Epoch ]
   type nonrec -'rw t = (phantom, 'rw) t
 
   let message_type = 'E'

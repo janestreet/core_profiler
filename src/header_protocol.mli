@@ -3,7 +3,7 @@
 
 open! Core
 
-type (-'hierarchy, -'rw) t constraint 'rw = [> read]
+type (-'hierarchy, -'rw) t constraint 'rw = [> read ]
 type ('hierarchy, 'rw) message = ('hierarchy, 'rw) t
 
 val sexp_of_t : _ -> _ -> (_, _) t -> Sexp.t
@@ -23,14 +23,14 @@ end
 
 module Message_type_and_errors : sig
   type _ t =
-    | New_single : [`New_single] t
-    | New_group : [`New_group] t
-    | New_group_point : [`New_group_point] t
-    | End_of_header : [`End_of_header] t
-    | Epoch : [`Epoch] t
-    | Need_more_data : [`Error] t
-    | Invalid_message_type_or_subtype : [`Error] t
-    | Message_length_too_short : [`Error] t
+    | New_single : [ `New_single ] t
+    | New_group : [ `New_group ] t
+    | New_group_point : [ `New_group_point ] t
+    | End_of_header : [ `End_of_header ] t
+    | Epoch : [ `Epoch ] t
+    | Need_more_data : [ `Error ] t
+    | Invalid_message_type_or_subtype : [ `Error ] t
+    | Message_length_too_short : [ `Error ] t
   [@@deriving sexp_of]
 
   (** [all_of_packed] does not include the error cases. *)
@@ -59,7 +59,7 @@ module Message_type_and_errors : sig
   val max_index : int
 end
 
-val get_message_type : ([> read], _) Iobuf.t -> Message_type_and_errors.packed
+val get_message_type : ([> read ], _) Iobuf.t -> Message_type_and_errors.packed
 
 (** [of_iobuf] must be fed a message type that comes from a call to
     [get_message_type] on the same window, otherwise it may cause segfaults
@@ -69,8 +69,8 @@ val of_iobuf : ('rw, _) Iobuf.t -> trusted:'ty Message_type_and_errors.t -> ('ty
 val of_iobuf_exn : ('rw, _) Iobuf.t -> 'ty Message_type_and_errors.t -> ('ty, 'rw) t
 
 module New_single : sig
-  type phantom = [`New_single]
-  type nonrec -'rw t = (phantom, 'rw) t constraint 'rw = [> read] [@@deriving sexp]
+  type phantom = [ `New_single ]
+  type nonrec -'rw t = (phantom, 'rw) t constraint 'rw = [> read ] [@@deriving sexp]
 
   val message_type : char
   val buffer_length : int
@@ -140,8 +140,8 @@ module New_single : sig
 end
 
 module New_group : sig
-  type phantom = [`New_group]
-  type nonrec -'rw t = (phantom, 'rw) t constraint 'rw = [> read] [@@deriving sexp]
+  type phantom = [ `New_group ]
+  type nonrec -'rw t = (phantom, 'rw) t constraint 'rw = [> read ] [@@deriving sexp]
 
   val message_type : char
   val buffer_length : int
@@ -211,8 +211,8 @@ module New_group : sig
 end
 
 module New_group_point : sig
-  type phantom = [`New_group_point]
-  type nonrec -'rw t = (phantom, 'rw) t constraint 'rw = [> read] [@@deriving sexp]
+  type phantom = [ `New_group_point ]
+  type nonrec -'rw t = (phantom, 'rw) t constraint 'rw = [> read ] [@@deriving sexp]
 
   val message_type : char
   val buffer_length : sources_count:int -> int
@@ -308,8 +308,8 @@ module New_group_point : sig
 end
 
 module End_of_header : sig
-  type phantom = [`End_of_header]
-  type nonrec -'rw t = (phantom, 'rw) t constraint 'rw = [> read] [@@deriving sexp]
+  type phantom = [ `End_of_header ]
+  type nonrec -'rw t = (phantom, 'rw) t constraint 'rw = [> read ] [@@deriving sexp]
 
   val message_type : char
   val buffer_length : int
@@ -336,8 +336,8 @@ module End_of_header : sig
 end
 
 module Epoch : sig
-  type phantom = [`Epoch]
-  type nonrec -'rw t = (phantom, 'rw) t constraint 'rw = [> read] [@@deriving sexp]
+  type phantom = [ `Epoch ]
+  type nonrec -'rw t = (phantom, 'rw) t constraint 'rw = [> read ] [@@deriving sexp]
 
   val message_type : char
   val buffer_length : int
@@ -383,12 +383,12 @@ val num_bytes_needed_for_message_length : int
 
 (** Assuming the iobuf starts at a message, returns its length or raise if
     the window doesn't contain [num_bytes_needed_for_message_length] bytes. *)
-val num_bytes_in_message : ([> read], _) Iobuf.t -> int
+val num_bytes_in_message : ([> read ], _) Iobuf.t -> int
 
 (** Equivalent to [Iobuf.advance buf (num_bytes_in_message buf)] *)
-val skip_message : ([> read], Iobuf.seek) Iobuf.t -> unit
+val skip_message : ([> read ], Iobuf.seek) Iobuf.t -> unit
 
-val buffer_contains_full_message : ([> read], _) Iobuf.t -> bool
+val buffer_contains_full_message : ([> read ], _) Iobuf.t -> bool
 val of_unpacked : Unpacked.t -> (_, _) Iobuf.t
-val to_unpacked : ([> read], _) Iobuf.t -> Unpacked.t R.t
-val to_unpacked_exn : ([> read], _) Iobuf.t -> Unpacked.t
+val to_unpacked : ([> read ], _) Iobuf.t -> Unpacked.t R.t
+val to_unpacked_exn : ([> read ], _) Iobuf.t -> Unpacked.t
