@@ -1,4 +1,4 @@
-{1 Core_profiler}
+{0 Core_profiler}
 
 [Core_profiler] is a library that helps you profile programs and
 estimate various various costs.
@@ -142,7 +142,7 @@ the cost of computing [exp] when the profiling is disabled.
 If you just want to track times at which various events happened, you
 can use {!Timer} instead of probe.
 
-{2 Groups of probes}
+{1 Groups of probes}
 
 [Core_profiler] includes of a notion of groups of probes.  Groups are
 handy for measuring changes in values between two probes in a group
@@ -200,7 +200,7 @@ in value [dv] between the same probes. The syntax [func:p1,p2] is an
 instance of a more general idea of paths that we will see below.
 
 
-{2 Specifying paths}
+{1 Specifying paths}
 
 The strings in the output [func:p1,p2] are called "interests" in the
 [Core_profiler] speak.
@@ -242,7 +242,7 @@ One can also compose [..] and [,] in interests,  [func:p1,p2..px] and
 twice in a path other than as end points -- i.e. [func:p1..p1] is ok,
 but [func:p1..p1..p1] is not.
 
-{2 Range filters}
+{1 Range filters}
 
 Once can filter interests by value ranges.  Filters have the form
 [~dt[<RANGE>]], [~dv[<RANGE>]] and [~v[<RANGE>]] to filter on time
@@ -251,7 +251,7 @@ delta, value deltas and values respectively.  For example:
 - [g:x..z~dt[0ns,400ns]] filters paths between [g:x..z] to ones where
   the time difference it within 0 and 400ns.
 
-{2 Graphs}
+{1 Graphs}
 
 One can also generate quantile plots. This shows the value difference
 along the path:

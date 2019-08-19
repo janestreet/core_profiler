@@ -26,7 +26,7 @@ let set_env_table_from_string str =
 (** entirely suppress checking for the environment variable if we are in a inline test or
     inline benchmark *)
 let () =
-  match Array.to_list Sys.argv with
+  match Array.to_list (Sys.get_argv ()) with
   | _name :: "inline-test-runner" :: _rest
   | _name :: "-benchmarks-runner" :: _rest
     -> ignore (set_env_table_from_string "" : string String.Table.t option )
