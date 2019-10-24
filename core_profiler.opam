@@ -17,7 +17,7 @@ depends: [
   "shell"
   "textutils"
   "textutils_kernel"
-  "dune"             {build & >= "1.5.1"}
+  "dune"             {>= "1.5.1"}
 ]
 synopsis: "Profiling library"
 description: "
