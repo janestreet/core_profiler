@@ -3,6 +3,7 @@
 
 open! Core
 
+let module_name = __MODULE__
 let padding = ' '
 let _ = padding
 

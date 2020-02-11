@@ -3,6 +3,8 @@
 
 open! Core
 
+val module_name : string
+
 type (-'hierarchy, -'rw) t constraint 'rw = [> read ]
 type ('hierarchy, 'rw) message = ('hierarchy, 'rw) t
 
