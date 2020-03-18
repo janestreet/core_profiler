@@ -13,7 +13,7 @@ val sexp_of_t : _ -> _ -> (_, _) t -> Sexp.t
 type ('hierarchy, 'rw) t_no_exn = ('hierarchy, 'rw) t
 
 val sexp_of_t_no_exn : _ -> _ -> (_, _) t_no_exn -> Sexp.t
-val to_iobuf : (_, 'rw) t -> ('rw, Iobuf.no_seek) Iobuf.t
+val backing_iobuf : (_, 'rw) t -> ('rw, Iobuf.no_seek) Iobuf.t
 
 module R : sig
   type 'message t =

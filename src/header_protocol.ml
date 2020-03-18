@@ -897,4 +897,4 @@ let sexp_of_t_no_exn _ _ t =
   | R.Ok (t, _) -> Unpacked.sexp_of_t t
 ;;
 
-let to_iobuf t = t
+let backing_iobuf t = t
