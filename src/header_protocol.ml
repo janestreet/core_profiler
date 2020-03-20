@@ -147,7 +147,12 @@ let of_iobuf_exn buf ty =
   let (Message_type_and_errors.T mt) = get_message_type buf in
   if Message_type_and_errors.to_index_exn mt = Message_type_and_errors.to_index_exn ty
   then of_iobuf buf ~trusted:ty
-  else failwiths "unexpected message type" mt [%sexp_of: _ Message_type_and_errors.t]
+  else
+    failwiths
+      ~here:[%here]
+      "unexpected message type"
+      mt
+      [%sexp_of: _ Message_type_and_errors.t]
 ;;
 
 module New_single = struct
@@ -876,7 +881,7 @@ let to_unpacked_exn buf =
 let sexp_of_t _ _ t =
   match to_unpacked t with
   | (R.Need_more_data | R.Junk _) as e ->
-    failwiths "invalid message" e [%sexp_of: Nothing.t R.t]
+    failwiths ~here:[%here] "invalid message" e [%sexp_of: Nothing.t R.t]
   | R.Ok (t, _) -> Unpacked.sexp_of_t t
 ;;
 
