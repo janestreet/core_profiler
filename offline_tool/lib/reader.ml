@@ -445,6 +445,6 @@ let map_file filename =
   in
 
   Unix.with_file filename ~mode:[Unix.O_RDONLY] ~f:(fun fd ->
-    let map = Bigstring.map_file ~shared:false fd (file_length fd) in
+    let map = Bigstring_unix.map_file ~shared:false fd (file_length fd) in
     Iobuf.of_bigstring map
   )
