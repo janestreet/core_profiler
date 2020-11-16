@@ -167,11 +167,13 @@ module New_single = struct
     let pos = 0 in
     assert (Iobuf.length buf >= 69);
     Iobuf.Unsafe.Poke.char buf ~pos:(pos + 1) message_type;
-    Iobuf.Unsafe.Poke.uint16_le_trunc buf ~pos:(pos + 2) (Probe_id.to_int_exn id);
+    (let int_to_pack = Probe_id.to_int_exn id in
+     Iobuf.Unsafe.Poke.uint16_le_trunc buf ~pos:(pos + 2) int_to_pack);
     Iobuf.Unsafe.Poke.char buf ~pos:(pos + 4) (Probe_type.to_char spec);
     Iobuf.Unsafe.Poke.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos + 5) name;
     let total_bytes_packed = 69 in
-    Iobuf.Unsafe.Poke.uint8_trunc buf ~pos (total_bytes_packed - 0);
+    (let int_to_pack = total_bytes_packed - 0 in
+     Iobuf.Unsafe.Poke.uint8_trunc buf ~pos int_to_pack);
     total_bytes_packed
   ;;
 
@@ -229,7 +231,8 @@ module New_single = struct
 
   let set_id buf field =
     let pos = 0 in
-    Iobuf.Poke.uint16_le_trunc buf ~pos:(pos + 2) (Probe_id.to_int_exn field)
+    let int_to_pack = Probe_id.to_int_exn field in
+    Iobuf.Poke.uint16_le_trunc buf ~pos:(pos + 2) int_to_pack
   ;;
 
   let set_spec buf field =
@@ -307,11 +310,13 @@ module New_group = struct
     let pos = 0 in
     assert (Iobuf.length buf >= 69);
     Iobuf.Unsafe.Poke.char buf ~pos:(pos + 1) message_type;
-    Iobuf.Unsafe.Poke.uint16_le_trunc buf ~pos:(pos + 2) (Probe_id.to_int_exn id);
+    (let int_to_pack = Probe_id.to_int_exn id in
+     Iobuf.Unsafe.Poke.uint16_le_trunc buf ~pos:(pos + 2) int_to_pack);
     Iobuf.Unsafe.Poke.char buf ~pos:(pos + 4) (Probe_type.to_char spec);
     Iobuf.Unsafe.Poke.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos + 5) name;
     let total_bytes_packed = 69 in
-    Iobuf.Unsafe.Poke.uint8_trunc buf ~pos (total_bytes_packed - 0);
+    (let int_to_pack = total_bytes_packed - 0 in
+     Iobuf.Unsafe.Poke.uint8_trunc buf ~pos int_to_pack);
     total_bytes_packed
   ;;
 
@@ -369,7 +374,8 @@ module New_group = struct
 
   let set_id buf field =
     let pos = 0 in
-    Iobuf.Poke.uint16_le_trunc buf ~pos:(pos + 2) (Probe_id.to_int_exn field)
+    let int_to_pack = Probe_id.to_int_exn field in
+    Iobuf.Poke.uint16_le_trunc buf ~pos:(pos + 2) int_to_pack
   ;;
 
   let set_spec buf field =
@@ -447,13 +453,17 @@ module New_group_point = struct
     let pos = 0 in
     assert (Iobuf.length buf >= 72 + (2 * sources_count));
     Iobuf.Unsafe.Poke.char buf ~pos:(pos + 1) message_type;
-    Iobuf.Unsafe.Poke.uint16_le_trunc buf ~pos:(pos + 2) (Probe_id.to_int_exn group_id);
-    Iobuf.Unsafe.Poke.uint16_le_trunc buf ~pos:(pos + 4) (Probe_id.to_int_exn id);
+    (let int_to_pack = Probe_id.to_int_exn group_id in
+     Iobuf.Unsafe.Poke.uint16_le_trunc buf ~pos:(pos + 2) int_to_pack);
+    (let int_to_pack = Probe_id.to_int_exn id in
+     Iobuf.Unsafe.Poke.uint16_le_trunc buf ~pos:(pos + 4) int_to_pack);
     Iobuf.Unsafe.Poke.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos + 6) name;
-    Iobuf.Unsafe.Poke.uint16_le_trunc buf ~pos:(pos + 70) sources_count;
+    (let int_to_pack = sources_count in
+     Iobuf.Unsafe.Poke.uint16_le_trunc buf ~pos:(pos + 70) int_to_pack);
     let pos_after_sources = pos + 72 + (sources_count * 2) in
     let total_bytes_packed = pos_after_sources - pos in
-    Iobuf.Unsafe.Poke.uint8_trunc buf ~pos (total_bytes_packed - 0);
+    (let int_to_pack = total_bytes_packed - 0 in
+     Iobuf.Unsafe.Poke.uint8_trunc buf ~pos int_to_pack);
     total_bytes_packed
   ;;
 
@@ -524,12 +534,14 @@ module New_group_point = struct
 
   let set_group_id buf field =
     let pos = 0 in
-    Iobuf.Poke.uint16_le_trunc buf ~pos:(pos + 2) (Probe_id.to_int_exn field)
+    let int_to_pack = Probe_id.to_int_exn field in
+    Iobuf.Poke.uint16_le_trunc buf ~pos:(pos + 2) int_to_pack
   ;;
 
   let set_id buf field =
     let pos = 0 in
-    Iobuf.Poke.uint16_le_trunc buf ~pos:(pos + 4) (Probe_id.to_int_exn field)
+    let int_to_pack = Probe_id.to_int_exn field in
+    Iobuf.Poke.uint16_le_trunc buf ~pos:(pos + 4) int_to_pack
   ;;
 
   let set_name buf field =
@@ -554,10 +566,8 @@ module New_group_point = struct
     if index < 0 || index >= count then invalid_arg "index out of bounds";
     let pos = 0 in
     let pos_of_source_id_using_count_and_index = pos + 72 + (count * 0) + (index * 2) in
-    Iobuf.Poke.uint16_le_trunc
-      buf
-      ~pos:pos_of_source_id_using_count_and_index
-      (Probe_id.to_int_exn field)
+    let int_to_pack = Probe_id.to_int_exn field in
+    Iobuf.Poke.uint16_le_trunc buf ~pos:pos_of_source_id_using_count_and_index int_to_pack
   ;;
 
   let write_sources buf ~count ~index ~source_id =
@@ -639,7 +649,8 @@ module End_of_header = struct
     assert (Iobuf.length buf >= 2);
     Iobuf.Unsafe.Poke.char buf ~pos:(pos + 1) message_type;
     let total_bytes_packed = 2 in
-    Iobuf.Unsafe.Poke.uint8_trunc buf ~pos (total_bytes_packed - 0);
+    (let int_to_pack = total_bytes_packed - 0 in
+     Iobuf.Unsafe.Poke.uint8_trunc buf ~pos int_to_pack);
     total_bytes_packed
   ;;
 
@@ -704,9 +715,11 @@ module Epoch = struct
     let pos = 0 in
     assert (Iobuf.length buf >= 10);
     Iobuf.Unsafe.Poke.char buf ~pos:(pos + 1) message_type;
-    Iobuf.Unsafe.Poke.int64_le buf ~pos:(pos + 2) (Profiler_epoch.to_int epoch);
+    (let int_to_pack = Profiler_epoch.to_int epoch in
+     Iobuf.Unsafe.Poke.int64_le buf ~pos:(pos + 2) int_to_pack);
     let total_bytes_packed = 10 in
-    Iobuf.Unsafe.Poke.uint8_trunc buf ~pos (total_bytes_packed - 0);
+    (let int_to_pack = total_bytes_packed - 0 in
+     Iobuf.Unsafe.Poke.uint8_trunc buf ~pos int_to_pack);
     total_bytes_packed
   ;;
 
@@ -734,7 +747,8 @@ module Epoch = struct
 
   let set_epoch buf field =
     let pos = 0 in
-    Iobuf.Poke.int64_le buf ~pos:(pos + 2) (Profiler_epoch.to_int field)
+    let int_to_pack = Profiler_epoch.to_int field in
+    Iobuf.Poke.int64_le buf ~pos:(pos + 2) int_to_pack
   ;;
 
   let to_sub_iobuf t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
