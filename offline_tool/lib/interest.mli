@@ -2,6 +2,8 @@ open! Core
 open Core_profiler
 open Core_profiler_disabled
 
+module Interval := Interval_lib.Interval
+
 module Interval_subject : sig
   type t = Value | Delta | Time_delta [@@deriving sexp, compare]
 

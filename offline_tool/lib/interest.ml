@@ -3,6 +3,8 @@ open Poly
 open Core_profiler
 open Core_profiler_disabled
 
+module Interval = Interval_lib.Interval
+
 module Raw = struct
   type 'a t =
     | Single of 'a

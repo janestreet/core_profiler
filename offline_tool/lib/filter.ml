@@ -2,6 +2,7 @@ open Core
 open Poly
 open Core_profiler
 open Core_profiler_disabled
+module Interval = Interval_lib.Interval
 
 type -'rw t =
   { (* This table maps raw interests (from the event generator) to
