@@ -50,7 +50,9 @@ let var t =
 
 let stdev t = sqrt (var t)
 
-let update_in_place t value =
+(* we need [update_in_place] to be inlined in order to eliminate the float allocation at
+   the callsites where we have an int to hand instead of a float. *)
+let[@inline] update_in_place t value =
   if t.samples <= 0.
   then begin
     (* [Rstats.safe_mean] allocates, even after it's been inlined.
