@@ -1,5 +1,7 @@
 open Core
 open Core_profiler_disabled
+module Unix = Core_unix
+module Time_ns = Time_ns_unix
 
 let debug = false
 

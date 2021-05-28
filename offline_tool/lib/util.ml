@@ -2,6 +2,7 @@ open Core
 open Poly
 open Core_profiler
 open Core_profiler_disabled
+module Time = Time_unix
 
 module Name_map = struct
   type group = { id : Probe_id.t; children : Probe_id.t String.Map.t }

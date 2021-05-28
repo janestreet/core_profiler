@@ -2,6 +2,7 @@
     Do not modify it by hand.  *)
 
 open! Core
+module Time_ns = Time_ns_unix
 
 let module_name = __MODULE__
 let padding = ' '

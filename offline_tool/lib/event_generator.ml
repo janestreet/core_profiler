@@ -2,6 +2,7 @@ open Core
 open Poly
 open Core_profiler
 open Core_profiler_disabled
+module Time_ns = Time_ns_unix
 
 (* (As per Path.readme,) This does not have the full power of regular expressions
    Notably, the same point may not appear in a path twice, except for when its

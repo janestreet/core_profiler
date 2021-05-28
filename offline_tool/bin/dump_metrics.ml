@@ -1,5 +1,6 @@
 open Core
 open Core_profiler_offline_tool.Std
+module Time_ns = Time_ns_unix
 
 let rec name id_map id =
   match Reader.Header.find_exn id_map id with
@@ -35,4 +36,4 @@ let command =
     main
 
 let () =
-  Command.run command
+  Command_unix.run command

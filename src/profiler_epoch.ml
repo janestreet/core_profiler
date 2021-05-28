@@ -1,4 +1,5 @@
 open Core
+module Time_ns = Time_ns_unix
 
 
 type t = Time_ns.t [@@deriving sexp]

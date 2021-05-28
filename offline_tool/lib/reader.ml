@@ -2,6 +2,8 @@ open Core
 open Poly
 open Core_profiler
 open Core_profiler_disabled
+module Unix = Core_unix
+module Time_ns = Time_ns_unix
 
 
 module Header = struct

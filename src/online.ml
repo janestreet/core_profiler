@@ -1,6 +1,7 @@
 open Core
 open Poly
 open Core_profiler_disabled
+module Time = Time_unix
 
 let debug = false
 

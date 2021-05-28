@@ -985,4 +985,4 @@ let command =
     ]
 
 let () =
-  Command.run command
+  Command_unix.run command
