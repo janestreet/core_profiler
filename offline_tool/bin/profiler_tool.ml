@@ -7,7 +7,7 @@ open Core_profiler_offline_tool.Std
 let iobuf_file_flag () =
   Command.Spec.(
     begin
-      match Sys.file_exists Protocol.default_output_filename with
+      match Sys_unix.file_exists Protocol.default_output_filename with
       | `Yes -> optional_with_default Protocol.default_output_filename string
       | `No | `Unknown -> required string
     end

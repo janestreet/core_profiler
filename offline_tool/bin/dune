@@ -1,7 +1,7 @@
 (executables (names dump_metrics profiler_tool)
- (libraries textutils.ascii_table core.command_unix textutils.console core
-  core_profiler core_profiler_offline_tool shell.string_extended
-  textutils_kernel.text_graph)
+ (libraries textutils.ascii_table core.command_unix textutils.console
+  core_kernel.core core_profiler core_profiler_offline_tool
+  shell.string_extended core.sys_unix textutils_kernel.text_graph)
  (preprocess (pps ppx_jane)))
 
 (install (section bin)

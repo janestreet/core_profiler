@@ -443,7 +443,7 @@ module Writer = struct
   let write_to_file name_ref header_chunk chunks =
     let name = !name_ref in
     begin
-      match Sys.file_exists name with
+      match Sys_unix.file_exists name with
       | `Yes -> Unix.rename ~src:name ~dst:(name ^ ".old")
       | `No | `Unknown -> ()
     end;
