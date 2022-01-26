@@ -805,6 +805,14 @@ module Unpacked = struct
     | Epoch m -> Epoch.Unpacked.num_bytes m
   ;;
 
+  let message_type = function
+    | New_single m -> m.message_type
+    | New_group m -> m.message_type
+    | New_group_point m -> m.message_type
+    | End_of_header m -> m.message_type
+    | Epoch m -> m.message_type
+  ;;
+
   let write t iobuf =
     match t with
     | New_single msg -> New_single.Unpacked.write msg iobuf

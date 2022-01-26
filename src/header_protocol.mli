@@ -379,6 +379,7 @@ module Unpacked : sig
   [@@deriving sexp]
 
   val num_bytes : t -> int
+  val message_type : t -> char
   val write : t -> (read_write, _) Iobuf.t -> int
 end
 
