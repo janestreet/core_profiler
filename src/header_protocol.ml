@@ -102,7 +102,7 @@ module Message_type_and_errors = struct
   end
 end
 
-let get_message_type buf =
+let[@inline] get_message_type buf =
   let len = Iobuf.length buf in
   let pos = 0 in
   if len < 2
@@ -142,9 +142,9 @@ let get_message_type buf =
         Message_type_and_errors.(T Invalid_message_type_or_subtype)))
 ;;
 
-let of_iobuf buf ~trusted:_ = Iobuf.no_seek buf
+let[@inline] of_iobuf buf ~trusted:_ = Iobuf.no_seek buf
 
-let of_iobuf_exn buf ty =
+let[@inline] of_iobuf_exn buf ty =
   let (Message_type_and_errors.T mt) = get_message_type buf in
   if Message_type_and_errors.to_index_exn mt = Message_type_and_errors.to_index_exn ty
   then of_iobuf buf ~trusted:ty
@@ -185,29 +185,29 @@ module New_single = struct
     iobuf
   ;;
 
-  let get_message_length buf =
+  let[@inline] get_message_length buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.uint8 buf ~pos
   ;;
 
-  let get_message_type buf =
+  let[@inline] get_message_type buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.char buf ~pos:(pos + 1)
   ;;
 
-  let get_id buf =
+  let[@inline] get_id buf =
     let pos = 0 in
     Probe_id.of_int_exn (Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos + 2))
   ;;
 
-  let get_spec buf =
+  let[@inline] get_spec buf =
     let pos = 0 in
     Probe_type.of_char (Iobuf.Unsafe.Peek.char buf ~pos:(pos + 4))
   ;;
 
   let name_max_len = 64
 
-  let get_name buf =
+  let[@inline] get_name buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos + 5)
   ;;
@@ -230,18 +230,18 @@ module New_single = struct
     f buf ~safe_pos:pos ~safe_len:64
   ;;
 
-  let set_id buf field =
+  let[@inline] set_id buf field =
     let pos = 0 in
     let int_to_pack = Probe_id.to_int_exn field in
     Iobuf.Poke.uint16_le_trunc buf ~pos:(pos + 2) int_to_pack
   ;;
 
-  let set_spec buf field =
+  let[@inline] set_spec buf field =
     let pos = 0 in
     Iobuf.Poke.char buf ~pos:(pos + 4) (Probe_type.to_char field)
   ;;
 
-  let set_name buf field =
+  let[@inline] set_name buf field =
     let pos = 0 in
     Iobuf.Poke.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos + 5) field
   ;;
@@ -328,29 +328,29 @@ module New_group = struct
     iobuf
   ;;
 
-  let get_message_length buf =
+  let[@inline] get_message_length buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.uint8 buf ~pos
   ;;
 
-  let get_message_type buf =
+  let[@inline] get_message_type buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.char buf ~pos:(pos + 1)
   ;;
 
-  let get_id buf =
+  let[@inline] get_id buf =
     let pos = 0 in
     Probe_id.of_int_exn (Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos + 2))
   ;;
 
-  let get_spec buf =
+  let[@inline] get_spec buf =
     let pos = 0 in
     Probe_type.of_char (Iobuf.Unsafe.Peek.char buf ~pos:(pos + 4))
   ;;
 
   let name_max_len = 64
 
-  let get_name buf =
+  let[@inline] get_name buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos + 5)
   ;;
@@ -373,18 +373,18 @@ module New_group = struct
     f buf ~safe_pos:pos ~safe_len:64
   ;;
 
-  let set_id buf field =
+  let[@inline] set_id buf field =
     let pos = 0 in
     let int_to_pack = Probe_id.to_int_exn field in
     Iobuf.Poke.uint16_le_trunc buf ~pos:(pos + 2) int_to_pack
   ;;
 
-  let set_spec buf field =
+  let[@inline] set_spec buf field =
     let pos = 0 in
     Iobuf.Poke.char buf ~pos:(pos + 4) (Probe_type.to_char field)
   ;;
 
-  let set_name buf field =
+  let[@inline] set_name buf field =
     let pos = 0 in
     Iobuf.Poke.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos + 5) field
   ;;
@@ -475,29 +475,29 @@ module New_group_point = struct
     iobuf
   ;;
 
-  let get_message_length buf =
+  let[@inline] get_message_length buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.uint8 buf ~pos
   ;;
 
-  let get_message_type buf =
+  let[@inline] get_message_type buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.char buf ~pos:(pos + 1)
   ;;
 
-  let get_group_id buf =
+  let[@inline] get_group_id buf =
     let pos = 0 in
     Probe_id.of_int_exn (Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos + 2))
   ;;
 
-  let get_id buf =
+  let[@inline] get_id buf =
     let pos = 0 in
     Probe_id.of_int_exn (Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos + 4))
   ;;
 
   let name_max_len = 64
 
-  let get_name buf =
+  let[@inline] get_name buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos + 6)
   ;;
@@ -520,12 +520,12 @@ module New_group_point = struct
     f buf ~safe_pos:pos ~safe_len:64
   ;;
 
-  let get_sources_count buf =
+  let[@inline] get_sources_count buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos + 70)
   ;;
 
-  let get_sources_source_id buf ~count ~index =
+  let[@inline] get_sources_source_id buf ~count ~index =
     if index < 0 || index >= count then invalid_arg "index out of bounds";
     let pos = 0 in
     let pos_of_source_id_using_count_and_index = pos + 72 + (count * 0) + (index * 2) in
@@ -533,19 +533,19 @@ module New_group_point = struct
       (Iobuf.Unsafe.Peek.uint16_le buf ~pos:pos_of_source_id_using_count_and_index)
   ;;
 
-  let set_group_id buf field =
+  let[@inline] set_group_id buf field =
     let pos = 0 in
     let int_to_pack = Probe_id.to_int_exn field in
     Iobuf.Poke.uint16_le_trunc buf ~pos:(pos + 2) int_to_pack
   ;;
 
-  let set_id buf field =
+  let[@inline] set_id buf field =
     let pos = 0 in
     let int_to_pack = Probe_id.to_int_exn field in
     Iobuf.Poke.uint16_le_trunc buf ~pos:(pos + 4) int_to_pack
   ;;
 
-  let set_name buf field =
+  let[@inline] set_name buf field =
     let pos = 0 in
     Iobuf.Poke.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos + 6) field
   ;;
@@ -563,7 +563,7 @@ module New_group_point = struct
     Iobuf.Hi_bound.restore hi buf
   ;;
 
-  let set_sources_source_id buf ~count ~index field =
+  let[@inline] set_sources_source_id buf ~count ~index field =
     if index < 0 || index >= count then invalid_arg "index out of bounds";
     let pos = 0 in
     let pos_of_source_id_using_count_and_index = pos + 72 + (count * 0) + (index * 2) in
@@ -662,12 +662,12 @@ module End_of_header = struct
     iobuf
   ;;
 
-  let get_message_length buf =
+  let[@inline] get_message_length buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.uint8 buf ~pos
   ;;
 
-  let get_message_type buf =
+  let[@inline] get_message_type buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.char buf ~pos:(pos + 1)
   ;;
@@ -731,22 +731,22 @@ module Epoch = struct
     iobuf
   ;;
 
-  let get_message_length buf =
+  let[@inline] get_message_length buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.uint8 buf ~pos
   ;;
 
-  let get_message_type buf =
+  let[@inline] get_message_type buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.char buf ~pos:(pos + 1)
   ;;
 
-  let get_epoch buf =
+  let[@inline] get_epoch buf =
     let pos = 0 in
     Profiler_epoch.of_int (Iobuf.Unsafe.Peek.int64_le_exn buf ~pos:(pos + 2))
   ;;
 
-  let set_epoch buf field =
+  let[@inline] set_epoch buf field =
     let pos = 0 in
     let int_to_pack = Profiler_epoch.to_int field in
     Iobuf.Poke.int64_le buf ~pos:(pos + 2) int_to_pack
@@ -825,7 +825,7 @@ end
 
 let num_bytes_needed_for_message_length = 1
 
-let num_bytes_in_message buf =
+let[@inline] num_bytes_in_message buf =
   let pos = 0 in
   if Iobuf.length buf < 1 then failwith "Not enough data to read a message length!";
   0 + Iobuf.Unsafe.Peek.uint8 buf ~pos
