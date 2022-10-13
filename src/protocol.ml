@@ -408,7 +408,7 @@ module Writer = struct
     List.iter
       (header_chunk :: chunks)
       ~f:(fun chunk ->
-        Iobuf.protect_window_and_bounds chunk ~f:(fun chunk ->
+        Iobuf.protect_window_bounds_and_buffer chunk ~f:(fun chunk ->
           Bigstring_unix.really_write fd (Iobuf.Peek.bigstringo ~pos:0 chunk)
 
         )

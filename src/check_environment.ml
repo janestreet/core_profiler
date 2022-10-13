@@ -18,7 +18,7 @@ let set_env_table_from_string str =
       match String.lsplit2 name_val ~on:'=' with
       | None -> print_help_and_exit ()
       | Some (name, value) ->
-        String.Table.set tbl ~key:name ~data:value
+        Hashtbl.set tbl ~key:name ~data:value
     end);
   core_profiler_env_table_opt := Some tbl;
   Some tbl
@@ -47,7 +47,7 @@ let get_var str =
     if debug then printf "no table\n%!";
     None
   | Some tbl ->
-    let res = String.Table.find tbl str in
+    let res = Hashtbl.find tbl str in
     (match res with
     | Some v ->
       if debug then printf "var %s is %s\n%!" str v;

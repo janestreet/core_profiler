@@ -409,7 +409,7 @@ let%test_unit "consume_short_message" =
     )
 
 let fold_short_messages buffer epoch header ~init ~f =
-  Iobuf.protect_window_and_bounds (Iobuf.no_seek buffer) ~f:(fun buffer ->
+  Iobuf.protect_window_bounds_and_buffer (Iobuf.no_seek buffer) ~f:(fun buffer ->
     let rec loop accum =
       if Iobuf.is_empty buffer
       then accum
@@ -422,14 +422,14 @@ let fold_short_messages buffer epoch header ~init ~f =
   )
 
 let iter_short_messages buffer epoch header ~f =
-  Iobuf.protect_window_and_bounds (Iobuf.no_seek buffer) ~f:(fun buffer ->
+  Iobuf.protect_window_bounds_and_buffer (Iobuf.no_seek buffer) ~f:(fun buffer ->
     while not (Iobuf.is_empty buffer) do
       f (consume_short_message buffer epoch header)
     done
   )
 
 let iteri_short_messages buffer epoch header ~f =
-  Iobuf.protect_window_and_bounds (Iobuf.no_seek buffer) ~f:(fun buffer ->
+  Iobuf.protect_window_bounds_and_buffer (Iobuf.no_seek buffer) ~f:(fun buffer ->
     let i = ref 0 in
     while not (Iobuf.is_empty buffer) do
       f !i (consume_short_message buffer epoch header);
