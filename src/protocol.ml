@@ -262,7 +262,7 @@ end = struct
         Iobuf.Fill.stringo current_chunk "the second chunk";
         let contents =
           get_chunks ()
-          |> List.map ~f:Iobuf.to_string
+          |> List.map ~f:(fun buf -> Iobuf.to_string buf)
         in
         [%test_eq: string list] contents ["the first chunk"; "the second chunk"]
       )

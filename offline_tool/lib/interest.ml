@@ -176,7 +176,7 @@ let lookup_ids t name_map =
   try
     lookup_ids' t name_map
   with
-  | Not_found_s _ | Caml.Not_found as ex ->
+  | Not_found_s _ | Stdlib.Not_found as ex ->
     Exn.reraisef ex
       "Invalid interest %s: name lookup in header failed"
       (string_t_to_string t) ()
