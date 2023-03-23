@@ -69,7 +69,17 @@ val get_message_type : ([> read ], _) Iobuf.t -> Message_type_and_errors.packed
     or nonsensical reads. *)
 val of_iobuf : ('rw, _) Iobuf.t -> trusted:'ty Message_type_and_errors.t -> ('ty, 'rw) t
 
+val of_iobuf_local
+  :  (('rw, _) Iobuf.t[@local])
+  -> trusted:'ty Message_type_and_errors.t
+  -> (('ty, 'rw) t[@local])
+
 val of_iobuf_exn : ('rw, _) Iobuf.t -> 'ty Message_type_and_errors.t -> ('ty, 'rw) t
+
+val of_iobuf_local_exn
+  :  (('rw, _) Iobuf.t[@local])
+  -> 'ty Message_type_and_errors.t
+  -> (('ty, 'rw) t[@local])
 
 module New_single : sig
   type phantom = [ `New_single ]
@@ -78,6 +88,7 @@ module New_single : sig
   val message_type : char
   val buffer_length : int
   val of_iobuf_exn : ('rw, _) Iobuf.t -> 'rw t
+  val of_iobuf_local_exn : (('rw, _) Iobuf.t[@local]) -> ('rw t[@local])
 
   val write
     :  id:Probe_id.t
@@ -92,12 +103,12 @@ module New_single : sig
     -> name:string
     -> (read_write, Iobuf.seek) Iobuf.t
 
-  val get_message_length : _ t -> int
-  val get_message_type : _ t -> char
-  val get_id : _ t -> Probe_id.t
-  val get_spec : _ t -> Probe_type.t
+  val get_message_length : (_ t[@local]) -> int
+  val get_message_type : (_ t[@local]) -> char
+  val get_id : (_ t[@local]) -> Probe_id.t
+  val get_spec : (_ t[@local]) -> Probe_type.t
   val name_max_len : int
-  val get_name : _ t -> string
+  val get_name : (_ t[@local]) -> string
 
   val get_name_zero
     :  _ t
@@ -149,6 +160,7 @@ module New_group : sig
   val message_type : char
   val buffer_length : int
   val of_iobuf_exn : ('rw, _) Iobuf.t -> 'rw t
+  val of_iobuf_local_exn : (('rw, _) Iobuf.t[@local]) -> ('rw t[@local])
 
   val write
     :  id:Probe_id.t
@@ -163,12 +175,12 @@ module New_group : sig
     -> name:string
     -> (read_write, Iobuf.seek) Iobuf.t
 
-  val get_message_length : _ t -> int
-  val get_message_type : _ t -> char
-  val get_id : _ t -> Probe_id.t
-  val get_spec : _ t -> Probe_type.t
+  val get_message_length : (_ t[@local]) -> int
+  val get_message_type : (_ t[@local]) -> char
+  val get_id : (_ t[@local]) -> Probe_id.t
+  val get_spec : (_ t[@local]) -> Probe_type.t
   val name_max_len : int
-  val get_name : _ t -> string
+  val get_name : (_ t[@local]) -> string
 
   val get_name_zero
     :  _ t
@@ -220,6 +232,7 @@ module New_group_point : sig
   val message_type : char
   val buffer_length : sources_count:int -> int
   val of_iobuf_exn : ('rw, _) Iobuf.t -> 'rw t
+  val of_iobuf_local_exn : (('rw, _) Iobuf.t[@local]) -> ('rw t[@local])
 
   val write
     :  group_id:Probe_id.t
@@ -236,12 +249,12 @@ module New_group_point : sig
     -> sources_count:int
     -> (read_write, Iobuf.seek) Iobuf.t
 
-  val get_message_length : _ t -> int
-  val get_message_type : _ t -> char
-  val get_group_id : _ t -> Probe_id.t
-  val get_id : _ t -> Probe_id.t
+  val get_message_length : (_ t[@local]) -> int
+  val get_message_type : (_ t[@local]) -> char
+  val get_group_id : (_ t[@local]) -> Probe_id.t
+  val get_id : (_ t[@local]) -> Probe_id.t
   val name_max_len : int
-  val get_name : _ t -> string
+  val get_name : (_ t[@local]) -> string
 
   val get_name_zero
     :  _ t
@@ -253,7 +266,7 @@ module New_group_point : sig
     -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
     -> 'a
 
-  val get_sources_count : _ t -> int
+  val get_sources_count : (_ t[@local]) -> int
 
   (** Beware: [count] is trusted. If it is wrong, this function could read the wrong data or segfault. *)
   val get_sources_source_id : 'rw t -> count:int -> index:int -> Probe_id.t
@@ -317,10 +330,11 @@ module End_of_header : sig
   val message_type : char
   val buffer_length : int
   val of_iobuf_exn : ('rw, _) Iobuf.t -> 'rw t
+  val of_iobuf_local_exn : (('rw, _) Iobuf.t[@local]) -> ('rw t[@local])
   val write : (read_write, _) Iobuf.t -> int
   val create : unit -> (read_write, Iobuf.seek) Iobuf.t
-  val get_message_length : _ t -> int
-  val get_message_type : _ t -> char
+  val get_message_length : (_ t[@local]) -> int
+  val get_message_type : (_ t[@local]) -> char
   val to_sub_iobuf : 'rw t -> ('rw, Iobuf.seek) Iobuf.t
 
   module Unpacked : sig
@@ -345,11 +359,12 @@ module Epoch : sig
   val message_type : char
   val buffer_length : int
   val of_iobuf_exn : ('rw, _) Iobuf.t -> 'rw t
+  val of_iobuf_local_exn : (('rw, _) Iobuf.t[@local]) -> ('rw t[@local])
   val write : epoch:Profiler_epoch.t -> (read_write, _) Iobuf.t -> int
   val create : epoch:Profiler_epoch.t -> (read_write, Iobuf.seek) Iobuf.t
-  val get_message_length : _ t -> int
-  val get_message_type : _ t -> char
-  val get_epoch : _ t -> Profiler_epoch.t
+  val get_message_length : (_ t[@local]) -> int
+  val get_message_type : (_ t[@local]) -> char
+  val get_epoch : (_ t[@local]) -> Profiler_epoch.t
   val set_epoch : (read_write, _) Iobuf.t -> Profiler_epoch.t -> unit
   val to_sub_iobuf : 'rw t -> ('rw, Iobuf.seek) Iobuf.t
 
