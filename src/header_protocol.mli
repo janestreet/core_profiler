@@ -15,6 +15,7 @@ type ('hierarchy, 'rw) t_no_exn = ('hierarchy, 'rw) t
 
 val sexp_of_t_no_exn : _ -> _ -> (_, _) t_no_exn -> Sexp.t
 val backing_iobuf : (_, 'rw) t -> ('rw, Iobuf.no_seek) Iobuf.t
+val backing_iobuf_local : ((_, 'rw) t[@local]) -> (('rw, Iobuf.no_seek) Iobuf.t[@local])
 
 module R : sig
   type 'message t =
@@ -62,7 +63,7 @@ module Message_type_and_errors : sig
   val max_index : int
 end
 
-val get_message_type : ([> read ], _) Iobuf.t -> Message_type_and_errors.packed
+val get_message_type : (([> read ], _) Iobuf.t[@local]) -> Message_type_and_errors.packed
 
 (** [of_iobuf] must be fed a message type that comes from a call to
     [get_message_type] on the same window, otherwise it may cause segfaults
@@ -149,7 +150,7 @@ module New_single : sig
     val write : t -> (read_write, _) Iobuf.t -> int
   end
 
-  val to_unpacked : 'rw t -> Unpacked.t
+  val to_unpacked : ('rw t[@local]) -> Unpacked.t
   val of_unpacked : Unpacked.t -> 'rw t
 end
 
@@ -221,7 +222,7 @@ module New_group : sig
     val write : t -> (read_write, _) Iobuf.t -> int
   end
 
-  val to_unpacked : 'rw t -> Unpacked.t
+  val to_unpacked : ('rw t[@local]) -> Unpacked.t
   val of_unpacked : Unpacked.t -> 'rw t
 end
 
@@ -269,7 +270,7 @@ module New_group_point : sig
   val get_sources_count : (_ t[@local]) -> int
 
   (** Beware: [count] is trusted. If it is wrong, this function could read the wrong data or segfault. *)
-  val get_sources_source_id : 'rw t -> count:int -> index:int -> Probe_id.t
+  val get_sources_source_id : ('rw t[@local]) -> count:int -> index:int -> Probe_id.t
 
   val set_group_id : (read_write, _) Iobuf.t -> Probe_id.t -> unit
   val set_id : (read_write, _) Iobuf.t -> Probe_id.t -> unit
@@ -319,7 +320,7 @@ module New_group_point : sig
     val write : t -> (read_write, _) Iobuf.t -> int
   end
 
-  val to_unpacked : 'rw t -> Unpacked.t
+  val to_unpacked : ('rw t[@local]) -> Unpacked.t
   val of_unpacked : Unpacked.t -> 'rw t
 end
 
@@ -348,7 +349,7 @@ module End_of_header : sig
     val write : t -> (read_write, _) Iobuf.t -> int
   end
 
-  val to_unpacked : 'rw t -> Unpacked.t
+  val to_unpacked : ('rw t[@local]) -> Unpacked.t
   val of_unpacked : Unpacked.t -> 'rw t
 end
 
@@ -380,7 +381,7 @@ module Epoch : sig
     val write : t -> (read_write, _) Iobuf.t -> int
   end
 
-  val to_unpacked : 'rw t -> Unpacked.t
+  val to_unpacked : ('rw t[@local]) -> Unpacked.t
   val of_unpacked : Unpacked.t -> 'rw t
 end
 
@@ -402,12 +403,12 @@ val num_bytes_needed_for_message_length : int
 
 (** Assuming the iobuf starts at a message, returns its length or raise if
     the window doesn't contain [num_bytes_needed_for_message_length] bytes. *)
-val num_bytes_in_message : ([> read ], _) Iobuf.t -> int
+val num_bytes_in_message : (([> read ], _) Iobuf.t[@local]) -> int
 
 (** Equivalent to [Iobuf.advance buf (num_bytes_in_message buf)] *)
-val skip_message : ([> read ], Iobuf.seek) Iobuf.t -> unit
+val skip_message : (([> read ], Iobuf.seek) Iobuf.t[@local]) -> unit
 
 val buffer_contains_full_message : ([> read ], _) Iobuf.t -> bool
 val of_unpacked : Unpacked.t -> (_, _) Iobuf.t
-val to_unpacked : ([> read ], _) Iobuf.t -> Unpacked.t R.t
-val to_unpacked_exn : ([> read ], _) Iobuf.t -> Unpacked.t
+val to_unpacked : (([> read ], _) Iobuf.t[@local]) -> Unpacked.t R.t
+val to_unpacked_exn : (([> read ], _) Iobuf.t[@local]) -> Unpacked.t

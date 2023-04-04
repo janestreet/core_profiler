@@ -883,9 +883,9 @@ let of_unpacked (u : Unpacked.t) =
   | Epoch msg -> Epoch.of_unpacked msg
 ;;
 
-let to_unpacked buf =
+let to_unpacked (buf [@local]) =
   let (Message_type_and_errors.T mt) = get_message_type buf in
-  let m = of_iobuf buf ~trusted:mt in
+  let m = of_iobuf_local buf ~trusted:mt in
   match mt with
   | Message_type_and_errors.Need_more_data -> R.Need_more_data
   | Message_type_and_errors.Invalid_message_type_or_subtype ->
@@ -944,3 +944,4 @@ let sexp_of_t_no_exn _ _ t =
 ;;
 
 let backing_iobuf t = t
+let backing_iobuf_local t = t

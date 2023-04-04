@@ -943,7 +943,7 @@ module Plot_command = struct
       "Specify a single interest and the variable you would like plotted. \
        The VARIABLE must be one of time, value, delta or time_delta.\n\n\
        By default, a density plot is produced, with the 'variable' (time, value, ...) \
-       as the independent variable, and frequency-of-occurance as the dependent. \
+       as the independent variable, and frequency-of-occurrence as the dependent. \
        Specifying the -percentiles flag causes the value (dependent variable) to be \
        plotted against the percentile (independent variable).\n\n\
        See the  help-interests  subcommand for information on specifying the INTEREST."
