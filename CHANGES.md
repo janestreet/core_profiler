@@ -1,3 +1,11 @@
+## Release v0.16.0
+
+* Updated internal binary protocol functions to support local allocation. Local allocation
+  is an experimental compiler extension found at:
+  https://github.com/ocaml-flambda/ocaml-jst
+
+## Old pre-v0.15 changelogs (very likely stale and incomplete)
+
 ## 113.24.00
 
 - Switched to ppx.
