@@ -111,9 +111,19 @@ module New_single : sig
   val name_max_len : int
   val get_name : (_ t[@local]) -> string
 
+  val get_name_zero_local
+    :  (_ t[@local])
+    -> (((read, Iobuf.no_seek) Iobuf.t[@local]) -> safe_pos:int -> safe_len:int -> 'a)
+    -> 'a
+
   val get_name_zero
     :  _ t
     -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
+    -> 'a
+
+  val get_name_zero_padded_local
+    :  (_ t[@local])
+    -> (((read, Iobuf.no_seek) Iobuf.t[@local]) -> safe_pos:int -> safe_len:int -> 'a)
     -> 'a
 
   val get_name_zero_padded
@@ -183,9 +193,19 @@ module New_group : sig
   val name_max_len : int
   val get_name : (_ t[@local]) -> string
 
+  val get_name_zero_local
+    :  (_ t[@local])
+    -> (((read, Iobuf.no_seek) Iobuf.t[@local]) -> safe_pos:int -> safe_len:int -> 'a)
+    -> 'a
+
   val get_name_zero
     :  _ t
     -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
+    -> 'a
+
+  val get_name_zero_padded_local
+    :  (_ t[@local])
+    -> (((read, Iobuf.no_seek) Iobuf.t[@local]) -> safe_pos:int -> safe_len:int -> 'a)
     -> 'a
 
   val get_name_zero_padded
@@ -257,9 +277,19 @@ module New_group_point : sig
   val name_max_len : int
   val get_name : (_ t[@local]) -> string
 
+  val get_name_zero_local
+    :  (_ t[@local])
+    -> (((read, Iobuf.no_seek) Iobuf.t[@local]) -> safe_pos:int -> safe_len:int -> 'a)
+    -> 'a
+
   val get_name_zero
     :  _ t
     -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
+    -> 'a
+
+  val get_name_zero_padded_local
+    :  (_ t[@local])
+    -> (((read, Iobuf.no_seek) Iobuf.t[@local]) -> safe_pos:int -> safe_len:int -> 'a)
     -> 'a
 
   val get_name_zero_padded

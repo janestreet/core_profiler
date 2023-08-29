@@ -233,6 +233,18 @@ module New_single = struct
     Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos + 5)
   ;;
 
+  let get_name_zero_local buf f =
+    let buf = Iobuf.read_only_local buf in
+    let pos = 5 in
+    let len = ref 64 in
+    while
+      !len > 0 && Char.( = ) padding (Iobuf.Unsafe.Peek.char buf ~pos:(pos + !len - 1))
+    do
+      decr len
+    done;
+    f buf ~safe_pos:pos ~safe_len:!len [@nontail]
+  ;;
+
   let get_name_zero buf f =
     let buf = Iobuf.read_only buf in
     let pos = 5 in
@@ -243,6 +255,12 @@ module New_single = struct
       decr len
     done;
     f buf ~safe_pos:pos ~safe_len:!len
+  ;;
+
+  let get_name_zero_padded_local buf f =
+    let buf = Iobuf.read_only_local buf in
+    let pos = 5 in
+    f buf ~safe_pos:pos ~safe_len:64 [@nontail]
   ;;
 
   let get_name_zero_padded buf f =
@@ -380,6 +398,18 @@ module New_group = struct
     Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos + 5)
   ;;
 
+  let get_name_zero_local buf f =
+    let buf = Iobuf.read_only_local buf in
+    let pos = 5 in
+    let len = ref 64 in
+    while
+      !len > 0 && Char.( = ) padding (Iobuf.Unsafe.Peek.char buf ~pos:(pos + !len - 1))
+    do
+      decr len
+    done;
+    f buf ~safe_pos:pos ~safe_len:!len [@nontail]
+  ;;
+
   let get_name_zero buf f =
     let buf = Iobuf.read_only buf in
     let pos = 5 in
@@ -390,6 +420,12 @@ module New_group = struct
       decr len
     done;
     f buf ~safe_pos:pos ~safe_len:!len
+  ;;
+
+  let get_name_zero_padded_local buf f =
+    let buf = Iobuf.read_only_local buf in
+    let pos = 5 in
+    f buf ~safe_pos:pos ~safe_len:64 [@nontail]
   ;;
 
   let get_name_zero_padded buf f =
@@ -531,6 +567,18 @@ module New_group_point = struct
     Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos + 6)
   ;;
 
+  let get_name_zero_local buf f =
+    let buf = Iobuf.read_only_local buf in
+    let pos = 6 in
+    let len = ref 64 in
+    while
+      !len > 0 && Char.( = ) padding (Iobuf.Unsafe.Peek.char buf ~pos:(pos + !len - 1))
+    do
+      decr len
+    done;
+    f buf ~safe_pos:pos ~safe_len:!len [@nontail]
+  ;;
+
   let get_name_zero buf f =
     let buf = Iobuf.read_only buf in
     let pos = 6 in
@@ -541,6 +589,12 @@ module New_group_point = struct
       decr len
     done;
     f buf ~safe_pos:pos ~safe_len:!len
+  ;;
+
+  let get_name_zero_padded_local buf f =
+    let buf = Iobuf.read_only_local buf in
+    let pos = 6 in
+    f buf ~safe_pos:pos ~safe_len:64 [@nontail]
   ;;
 
   let get_name_zero_padded buf f =
