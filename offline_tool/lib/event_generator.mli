@@ -5,14 +5,14 @@ open Core_profiler
 type t
 
 type timer_path =
-  { interest: Probe_id.t Interest.Raw.t
+  { interest : Probe_id.t Interest.Raw.t
   ; time : Time_ns.t
   ; time_delta : Time_ns.Span.t
   }
 [@@deriving sexp, compare]
 
 type probe_path =
-  { interest: Probe_id.t Interest.Raw.t
+  { interest : Probe_id.t Interest.Raw.t
   ; time : Time_ns.t
   ; time_delta : Time_ns.Span.t
   ; value : int
@@ -22,8 +22,8 @@ type probe_path =
 
 type event =
   (* Timer and probe events are emitted for both singles and points. *)
-  | Timer      of Probe_id.t Interest.Raw.t * Time_ns.t
-  | Probe      of Probe_id.t Interest.Raw.t * Time_ns.t * int
+  | Timer of Probe_id.t Interest.Raw.t * Time_ns.t
+  | Probe of Probe_id.t Interest.Raw.t * Time_ns.t * int
   | Timer_path of timer_path
   | Probe_path of probe_path
 [@@deriving sexp, compare]
@@ -34,8 +34,8 @@ val event_time : event -> Time_ns.t
     raw interests provided. The source of the event is identified
     by passing the raw interest inside the [event]; interests are hashable
     and comparable. *)
-val create :
-  Profiler_epoch.t
+val create
+  :  Profiler_epoch.t
   -> Reader.Header.t
   -> Probe_id.t Interest.Raw.t list
   -> ([> read ], _) Iobuf.t

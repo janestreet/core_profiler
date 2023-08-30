@@ -10,6 +10,5 @@ type t =
 val to_string : t -> string
 val to_char : t -> char
 val of_char : char -> t
-
 val is_probe : t -> bool
 val units : t -> Profiler_units.t option

@@ -32,9 +32,9 @@ open! Core
     delta in the probe is available, as opposed to deltas in both probe and time. *)
 
 (** @inline *)
-include (Core_profiler_disabled.Intf.Profiler_intf
-         with type Timer.t = private int
-          and type Probe.t = private int
-          and type Delta_timer.state = private Time_ns.t
-          and type Delta_probe.state = private int)
-
+include
+  Core_profiler_disabled.Intf.Profiler_intf
+    with type Timer.t = private int
+     and type Probe.t = private int
+     and type Delta_timer.state = private Time_ns.t
+     and type Delta_probe.state = private int

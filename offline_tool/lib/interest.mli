@@ -1,15 +1,18 @@
 open! Core
 open Core_profiler
 open Core_profiler_disabled
-
 module Interval := Interval_lib.Interval
 
 module Interval_subject : sig
-  type t = Value | Delta | Time_delta [@@deriving sexp, compare]
+  type t =
+    | Value
+    | Delta
+    | Time_delta
+  [@@deriving sexp, compare]
 
   val of_string : string -> t
-  val to_string : t      -> string
-  val to_int    : t      -> int
+  val to_string : t -> string
+  val to_int : t -> int
 end
 
 (** A raw or "unfiltered" interest.
@@ -29,8 +32,9 @@ module Raw : sig
   module I : sig
     type id_raw_interest = Probe_id.t t
     type t = id_raw_interest
+
     include Comparable.S with type t := t
-    include Hashable  .S with type t := t
+    include Hashable.S with type t := t
   end
 end
 
@@ -44,8 +48,9 @@ type 'a t =
 module I : sig
   type id_interest = Probe_id.t t
   type t = id_interest
+
   include Comparable.S with type t := t
-  include Hashable  .S with type t := t
+  include Hashable.S with type t := t
 end
 
 (** If this is a filtered interest, this drills down to the 'raw'
@@ -58,10 +63,10 @@ val raw : 'a t -> 'a Raw.t
     [Fn.compose string_t_of_string string_t_to_string] might not be the identify
     function; indeed, it may even raise an error. *)
 val string_t_of_sexp : Sexp.t -> string t
+
 val sexp_of_string_t : string t -> Sexp.t
 val string_t_of_string : string -> string t
 val string_t_to_string : string t -> string
-
 val lookup_ids : string t -> Util.Name_map.t -> Probe_id.t t
 val lookup_names : Probe_id.t t -> Reader.Header.t -> string t
 val id_t_to_string : Probe_id.t t -> Reader.Header.t -> string
@@ -69,6 +74,7 @@ val id_t_to_string : Probe_id.t t -> Reader.Header.t -> string
 (** Retrieve the [Probe_type.t] associated with this interest, by drilling down to
     the relevant [Probe_id.t] of the group or single *)
 val spec : Probe_id.t t -> Reader.Header.t -> Probe_type.t
+
 val is_path : _ t -> bool
 
 (** If necessary, coerce the units of any values in this interest to those that
@@ -76,7 +82,6 @@ val is_path : _ t -> bool
 val coerce_interval_units : Probe_id.t t -> Reader.Header.t -> Probe_id.t t
 
 val readme : string Lazy.t
-
 val arg_type : string t Command.Spec.Arg_type.t
 val list_arg : string t list Command.Param.t
 

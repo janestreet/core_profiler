@@ -23,13 +23,11 @@ module Short_header : sig
 
   val id_bits : int
   val time_bits : int
-
   val max_id : int
   val max_time_diff : Time_ns.Span.t
-
-  val pack_exn    : Profiler_epoch.t -> Probe_id.t -> Time_ns.t -> int
+  val pack_exn : Profiler_epoch.t -> Probe_id.t -> Time_ns.t -> int
   val pack_unsafe : Profiler_epoch.t -> Probe_id.t -> Time_ns.t -> int
-  val unpack_id   : int -> Probe_id.t
+  val unpack_id : int -> Probe_id.t
   val unpack_time : Profiler_epoch.t -> int -> Time_ns.t
   val unpack : Profiler_epoch.t -> int -> Probe_id.t * Time_ns.t
 end
@@ -63,32 +61,32 @@ module Writer : sig
 
   (** These write into the header chunk *)
   val write_new_single : Probe_id.t -> string -> Probe_type.t -> unit
+
   val write_new_group : Probe_id.t -> string -> Probe_type.t -> unit
-  val write_new_group_point :
-    group_id:Probe_id.t ->
-    id:Probe_id.t ->
-    string ->
-    Probe_id.t array ->
-    unit
+
+  val write_new_group_point
+    :  group_id:Probe_id.t
+    -> id:Probe_id.t
+    -> string
+    -> Probe_id.t array
+    -> unit
 
   (** These write into the short message buffer *)
   val write_timer_at : Probe_id.t -> Time_ns.t -> unit
+
   val write_probe_at : Probe_id.t -> Time_ns.t -> int -> unit
   val write_group_reset : Probe_id.t -> Time_ns.t -> unit
-
   val dump_stats : unit -> unit
 
   (** Choose what to do with the in memory stats data at exit.
       The handler function is passed the header chunk and the list of data chunks.
       Defaults to [`Write_file "stats.dat"]. *)
-  val set_at_exit_handler :
-    [ `Write_file of string
-    | `Function of
-        ( (read, Iobuf.no_seek) Iobuf.t
-          -> (read, Iobuf.no_seek) Iobuf.t list
-          -> unit)
-    | `Disable
-    ]
+  val set_at_exit_handler
+    :  [ `Write_file of string
+       | `Function of
+         (read, Iobuf.no_seek) Iobuf.t -> (read, Iobuf.no_seek) Iobuf.t list -> unit
+       | `Disable
+       ]
     -> unit
 
   (** To aid producing test cases for Reader. *)

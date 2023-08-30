@@ -7,30 +7,30 @@ let core_profiler_env_table_opt : string String.Table.t option ref = ref None
 
 let print_help_and_exit () =
   eprintf "%s\n%!" Core_profiler_disabled.Intf.core_profiler_env_help_string;
-  exit(1)
+  exit 1
 ;;
 
 let set_env_table_from_string str =
   if debug then printf "profiler var = %s\n" str;
   let tbl = String.Table.create () in
   List.iter (String.split str ~on:',') ~f:(fun name_val ->
-    if not (String.is_empty name_val) then begin
+    if not (String.is_empty name_val)
+    then (
       match String.lsplit2 name_val ~on:'=' with
       | None -> print_help_and_exit ()
-      | Some (name, value) ->
-        Hashtbl.set tbl ~key:name ~data:value
-    end);
+      | Some (name, value) -> Hashtbl.set tbl ~key:name ~data:value));
   core_profiler_env_table_opt := Some tbl;
   Some tbl
+;;
 
 (** entirely suppress checking for the environment variable if we are in a inline test or
     inline benchmark *)
 let () =
   match Array.to_list (Sys.get_argv ()) with
-  | _name :: "inline-test-runner" :: _rest
-  | _name :: "-benchmarks-runner" :: _rest
-    -> ignore (set_env_table_from_string "" : string String.Table.t option )
+  | _name :: "inline-test-runner" :: _rest | _name :: "-benchmarks-runner" :: _rest ->
+    ignore (set_env_table_from_string "" : string String.Table.t option)
   | _cmd -> ()
+;;
 
 let get_env_table_opt () =
   match !core_profiler_env_table_opt with
@@ -39,7 +39,7 @@ let get_env_table_opt () =
     (match Sys.getenv "CORE_PROFILER" with
      | None -> None
      | Some str -> set_env_table_from_string str)
-
+;;
 
 let get_var str =
   match get_env_table_opt () with
@@ -49,16 +49,16 @@ let get_var str =
   | Some tbl ->
     let res = Hashtbl.find tbl str in
     (match res with
-    | Some v ->
-      if debug then printf "var %s is %s\n%!" str v;
-    | None ->
-      if debug then printf "var %s is not set\n%!" str);
+     | Some v -> if debug then printf "var %s is %s\n%!" str v
+     | None -> if debug then printf "var %s is not set\n%!" str);
     res
+;;
 
 let check_safety_exn () =
-  if Option.is_none (get_env_table_opt ())
-  then print_help_and_exit ()
+  if Option.is_none (get_env_table_opt ()) then print_help_and_exit ()
+;;
 
 let don't_require_core_profiler_env () =
   if Option.is_none (get_env_table_opt ())
-  then ignore (set_env_table_from_string "" : string String.Table.t option )
+  then ignore (set_env_table_from_string "" : string String.Table.t option)
+;;

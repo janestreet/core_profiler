@@ -10,7 +10,6 @@ type t =
   | Int
 [@@deriving sexp, compare]
 
-val to_string  : t -> string
-val of_string  : string -> t
-
+val to_string : t -> string
+val of_string : string -> t
 val format_int : t -> int -> string

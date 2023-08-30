@@ -12,4 +12,3 @@ val var : t -> Float.t
 val stdev : t -> float
 val update_in_place : t -> float -> unit
 val copy : t -> t
-

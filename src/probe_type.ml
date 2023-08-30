@@ -8,14 +8,16 @@ type t =
 
 let to_string = function
   | Timer -> "Timer"
-  | Probe u -> "Probe " ^ (Profiler_units.to_string u)
+  | Probe u -> "Probe " ^ Profiler_units.to_string u
+;;
 
 let to_char = function
-  | Timer              -> 'M'
-  | Probe Words        -> 'W'
-  | Probe Seconds      -> 'S'
-  | Probe Nanoseconds  -> 'N'
-  | Probe Int        -> 'O'
+  | Timer -> 'M'
+  | Probe Words -> 'W'
+  | Probe Seconds -> 'S'
+  | Probe Nanoseconds -> 'N'
+  | Probe Int -> 'O'
+;;
 
 let of_char = function
   | 'M' -> Timer
@@ -23,13 +25,15 @@ let of_char = function
   | 'S' -> Probe Seconds
   | 'N' -> Probe Nanoseconds
   | 'O' -> Probe Int
-  |  _  -> failwith "Invalid Spec character"
+  | _ -> failwith "Invalid Spec character"
+;;
 
 let is_probe = function
   | Timer -> false
   | Probe _ -> true
+;;
 
 let units = function
   | Timer -> None
   | Probe u -> Some u
-
+;;

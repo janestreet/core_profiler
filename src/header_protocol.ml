@@ -123,10 +123,10 @@ let[@inline] get_message_type buf =
         else Message_type_and_errors.(T New_single)
       | 'O' ->
         if message_num_bytes < 72
-        || message_num_bytes
-           <
-           let pos = 0 in
-           72 + (2 * Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos + 70))
+           || message_num_bytes
+              <
+              let pos = 0 in
+              72 + (2 * Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos + 70))
         then T Message_length_too_short
         else Message_type_and_errors.(T New_group_point)
       | 'P' ->

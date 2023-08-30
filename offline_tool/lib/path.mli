@@ -26,8 +26,7 @@ type 'a point =
 [@@deriving sexp, compare]
 
 type 'a t =
-  { first : 'a point
-    (* i.e., penultimate point first *)
+  { first : 'a point (* i.e., penultimate point first *)
   ; rest_rev : 'a point list
   ; last : 'a
   }
@@ -35,23 +34,21 @@ type 'a t =
 
 module I : sig
   type id_path = Probe_id.t t [@@deriving sexp, compare]
-  type t = id_path      [@@deriving sexp, compare]
+  type t = id_path [@@deriving sexp, compare]
+
   include Comparable.S with type t := t
-  include Hashable  .S with type t := t
+  include Hashable.S with type t := t
 end
 
 val string_t_of_string : string -> string t option
 val string_t_to_string : string t -> string
-
 val examples : string t list
-
 val readme : string Lazy.t
-
 val lookup_ids : string t -> Util.Name_map.group -> Probe_id.t t
 val lookup_names : Probe_id.t t -> Reader.Header.t -> string t
-
 val id_t_to_string : Probe_id.t t -> ?with_group:string -> Reader.Header.t -> string
 
 (** Get [t.first], discarding whether the first point is [Direct_point] or a [Point] *)
 val first : 'a t -> 'a
+
 val last : 'a t -> 'a

@@ -10,11 +10,11 @@
 open! Core
 
 type t [@@deriving sexp]
+
 val of_time : Time_ns.t -> t
 val to_time : t -> Time_ns.t
-
-val add    : t -> Time_ns.Span.t -> Time_ns.t
-val diff   : t -> Time_ns.t -> Time_ns.Span.t
+val add : t -> Time_ns.Span.t -> Time_ns.t
+val diff : t -> Time_ns.t -> Time_ns.Span.t
 val of_int : int -> t
 val to_int : t -> int
 val to_string : t -> string

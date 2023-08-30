@@ -38,6 +38,7 @@ module type Probe = sig
   (** The [*_args] below are instantiated differently for [Timer]s and [Probe]s. See
       [Profiler_intf] below. *)
   type 'a create_args
+
   type 'a record_args
 
   (** Create a timer or probe that isn't in a group. *)
@@ -79,14 +80,12 @@ end
 
 type 'a timer_create_args = 'a
 type 'a timer_record_args = 'a -> unit
-
 type 'a probe_create_args = units:Profiler_units.t -> 'a
 type 'a probe_record_args = 'a -> int -> unit
 
 (** All three profilers -- the disabled one, the online one and the offline one --
     implement [Profiler_intf]. *)
 module type Profiler_intf = sig
-
   module Profiler : sig
     (** [is_enabled] can be used to "guard" expensive computations done while recording a
         metric.  For example:
@@ -133,10 +132,10 @@ module type Profiler_intf = sig
         The environment variable [CORE_PROFILER] can be used to configure the
         app. Also see [core_profiler_env_help_string] below. *)
     val configure
-      :  ?don't_require_core_profiler_env : unit
-      -> ?offline_profiler_data_file      : string
-      -> ?online_print_time_interval_secs : int
-      -> ?online_print_by_default         : bool
+      :  ?don't_require_core_profiler_env:unit
+      -> ?offline_profiler_data_file:string
+      -> ?online_print_time_interval_secs:int
+      -> ?online_print_by_default:bool
       -> unit
       -> unit
 
@@ -161,15 +160,17 @@ module type Profiler_intf = sig
 
   (** A [Timer] contains only a time stamp and no extra information; however, it is useful
       because (in [Offline]) the current time is recorded when measurements are made. *)
-  module Timer : Probe
-    with type 'a create_args := 'a timer_create_args
-     and type 'a record_args := 'a timer_record_args
+  module Timer :
+    Probe
+      with type 'a create_args := 'a timer_create_args
+       and type 'a record_args := 'a timer_record_args
 
   (** A [Probe] records some integer value that is passed to [at] along with a
       timestamp. *)
-  module Probe : Probe
-    with type 'a create_args := 'a probe_create_args
-     and type 'a record_args := 'a probe_record_args
+  module Probe :
+    Probe
+      with type 'a create_args := 'a probe_create_args
+       and type 'a record_args := 'a probe_record_args
 
   (** [Delta_probe] is an optimized two-probe group to track changes to some counter. *)
   module Delta_probe : sig
@@ -200,9 +201,10 @@ module type Profiler_intf = sig
         [start] then [stop].  The second is calling [start] then [pause] an arbitrary
         number of times, and ending with [record]. *)
     val start : t -> int -> unit
-    val stop  : t -> int -> unit
+
+    val stop : t -> int -> unit
     val pause : t -> int -> unit
-    val record: t -> unit
+    val record : t -> unit
 
     (** These are non-stateful and can be used in Async, wherein multiple jobs might call
         [stateless_start] before the corresponding [stop_async] is called.  One can use
@@ -224,8 +226,9 @@ module type Profiler_intf = sig
 
         The stateless API does not support pausing.  This is because state would require
         memory allocation if it supported accumulating the counter. *)
-    val stateless_start : t          -> int -> state
-    val stateless_stop  : t -> state -> int -> unit
+    val stateless_start : t -> int -> state
+
+    val stateless_stop : t -> state -> int -> unit
   end
 
   (** [Delta_timer] is an optimized two-probe group to track time differences between
@@ -235,57 +238,47 @@ module type Profiler_intf = sig
     type state
 
     val create : name:string -> t
-
     val start : t -> unit
-    val stop  : t -> unit
+    val stop : t -> unit
     val pause : t -> unit
-    val record: t -> unit
-
+    val record : t -> unit
     val stateless_start : t -> state
-    val stateless_stop  : t -> state -> unit
+    val stateless_stop : t -> state -> unit
 
     (** Typically partially applied (the first two arguments) to produce a 'wrapped'
         function.  This behaves like the identity function on functions, except it times
         the inner function. *)
-    val wrap_sync  : t -> ('a -> 'b)                    -> 'a -> 'b
-    val wrap_sync2 : t -> ('a -> 'b -> 'c)              -> 'a -> 'b -> 'c
-    val wrap_sync3 : t -> ('a -> 'b -> 'c -> 'd)        -> 'a -> 'b -> 'c -> 'd
-    val wrap_sync4 : t -> ('a -> 'b -> 'c -> 'd -> 'e)  -> 'a -> 'b -> 'c -> 'd -> 'e
+    val wrap_sync : t -> ('a -> 'b) -> 'a -> 'b
+
+    val wrap_sync2 : t -> ('a -> 'b -> 'c) -> 'a -> 'b -> 'c
+    val wrap_sync3 : t -> ('a -> 'b -> 'c -> 'd) -> 'a -> 'b -> 'c -> 'd
+    val wrap_sync4 : t -> ('a -> 'b -> 'c -> 'd -> 'e) -> 'a -> 'b -> 'c -> 'd -> 'e
   end
 end
 
-let core_profiler_env_help_string = "
-    Assign a value to environment variable CORE_PROFILER in order to proceed,
-    or replace references to [Core_profiler] with [Core_profiler_disabled].
-
-    The environment variable [CORE_PROFILER] must be set to run a program that uses the
-    [Core_profiler] library.  This check is meant to protect us from accidentally
-    deploying binaries with profiling into production.  The variable can contain zero or
-    more name-value pairs.
-
-    Syntax:
-      CORE_PROFILER=[name=value(,name=value)+] <command to run>
-
-    i.e. commas are separators and invalid names will simply be ignored.
-
-    The valid names are:
-
-    OUTPUT_FILE=<filename>
-    This determines the output filename for the offline profiler.
-
-    PRINT_INTERVAL=<int>
-    This determines the integer number of seconds between outputing online stats
-    summaries. Setting print interval does not affect the offline profiler.
-
-    PRINT_ENABLED=<true|false>
-    Setting this to false disables printing in the online profiler. One can use this to
-    control printing by calling the [Profiler.dump_stats] function.
-
-    Example:
-    CORE_PROFILER=PRINT_INTERVAL=3 myprog.exe
-
-    Example:
-    CORE_PROFILER= myprog.exe
-"
-
-
+let core_profiler_env_help_string =
+  "\n\
+  \    Assign a value to environment variable CORE_PROFILER in order to proceed,\n\
+  \    or replace references to [Core_profiler] with [Core_profiler_disabled].\n\n\
+  \    The environment variable [CORE_PROFILER] must be set to run a program that uses the\n\
+  \    [Core_profiler] library.  This check is meant to protect us from accidentally\n\
+  \    deploying binaries with profiling into production.  The variable can contain zero \
+   or\n\
+  \    more name-value pairs.\n\n\
+  \    Syntax:\n\
+  \      CORE_PROFILER=[name=value(,name=value)+] <command to run>\n\n\
+  \    i.e. commas are separators and invalid names will simply be ignored.\n\n\
+  \    The valid names are:\n\n\
+  \    OUTPUT_FILE=<filename>\n\
+  \    This determines the output filename for the offline profiler.\n\n\
+  \    PRINT_INTERVAL=<int>\n\
+  \    This determines the integer number of seconds between outputing online stats\n\
+  \    summaries. Setting print interval does not affect the offline profiler.\n\n\
+  \    PRINT_ENABLED=<true|false>\n\
+  \    Setting this to false disables printing in the online profiler. One can use this to\n\
+  \    control printing by calling the [Profiler.dump_stats] function.\n\n\
+  \    Example:\n\
+  \    CORE_PROFILER=PRINT_INTERVAL=3 myprog.exe\n\n\
+  \    Example:\n\
+  \    CORE_PROFILER= myprog.exe\n"
+;;
