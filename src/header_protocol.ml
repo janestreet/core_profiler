@@ -145,7 +145,7 @@ let[@inline] get_message_type buf =
 let[@inline] of_iobuf buf ~trusted:_ = Iobuf.no_seek buf
 
 let[@inline] of_iobuf_local (buf [@local]) ~trusted:_ =
-   (Iobuf.no_seek_local buf)
+  [%ocaml.local] (Iobuf.no_seek_local buf)
 ;;
 
 let[@inline] of_iobuf_exn buf ty =
@@ -161,7 +161,7 @@ let[@inline] of_iobuf_exn buf ty =
 ;;
 
 let[@inline] of_iobuf_local_exn (buf [@local]) ty =
-  
+  [%ocaml.local]
     (let (Message_type_and_errors.T mt) = get_message_type buf in
      if Message_type_and_errors.to_index_exn mt = Message_type_and_errors.to_index_exn ty
      then of_iobuf_local buf ~trusted:ty
@@ -182,7 +182,7 @@ module New_single = struct
   let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.New_single
 
   let of_iobuf_local_exn (buf [@local]) =
-     (of_iobuf_local_exn buf Message_type_and_errors.New_single)
+    [%ocaml.local] (of_iobuf_local_exn buf Message_type_and_errors.New_single)
   ;;
 
   let write ~id ~spec ~name buf =
@@ -347,7 +347,7 @@ module New_group = struct
   let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.New_group
 
   let of_iobuf_local_exn (buf [@local]) =
-     (of_iobuf_local_exn buf Message_type_and_errors.New_group)
+    [%ocaml.local] (of_iobuf_local_exn buf Message_type_and_errors.New_group)
   ;;
 
   let write ~id ~spec ~name buf =
@@ -512,7 +512,7 @@ module New_group_point = struct
   let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.New_group_point
 
   let of_iobuf_local_exn (buf [@local]) =
-     (of_iobuf_local_exn buf Message_type_and_errors.New_group_point)
+    [%ocaml.local] (of_iobuf_local_exn buf Message_type_and_errors.New_group_point)
   ;;
 
   let write ~group_id ~id ~name ~sources_count buf =
@@ -728,7 +728,7 @@ module End_of_header = struct
   let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.End_of_header
 
   let of_iobuf_local_exn (buf [@local]) =
-     (of_iobuf_local_exn buf Message_type_and_errors.End_of_header)
+    [%ocaml.local] (of_iobuf_local_exn buf Message_type_and_errors.End_of_header)
   ;;
 
   let write buf =
@@ -799,7 +799,7 @@ module Epoch = struct
   let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.Epoch
 
   let of_iobuf_local_exn (buf [@local]) =
-     (of_iobuf_local_exn buf Message_type_and_errors.Epoch)
+    [%ocaml.local] (of_iobuf_local_exn buf Message_type_and_errors.Epoch)
   ;;
 
   let write ~epoch buf =
