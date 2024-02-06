@@ -143,10 +143,7 @@ let[@inline] get_message_type buf =
 ;;
 
 let[@inline] of_iobuf buf ~trusted:_ = Iobuf.no_seek buf
-
-let[@inline] of_iobuf_local (buf [@local]) ~trusted:_ =
-   (Iobuf.no_seek_local buf)
-;;
+let[@inline] of_iobuf_local buf ~trusted:_ = Iobuf.no_seek_local buf
 
 let[@inline] of_iobuf_exn buf ty =
   let (Message_type_and_errors.T mt) = get_message_type buf in
@@ -160,17 +157,16 @@ let[@inline] of_iobuf_exn buf ty =
       [%sexp_of: _ Message_type_and_errors.t]
 ;;
 
-let[@inline] of_iobuf_local_exn (buf [@local]) ty =
-  
-    (let (Message_type_and_errors.T mt) = get_message_type buf in
-     if Message_type_and_errors.to_index_exn mt = Message_type_and_errors.to_index_exn ty
-     then of_iobuf_local buf ~trusted:ty
-     else
-       failwiths
-         ~here:[%here]
-         "unexpected message type"
-         mt
-         [%sexp_of: _ Message_type_and_errors.t])
+let[@inline] of_iobuf_local_exn buf ty =
+  let (Message_type_and_errors.T mt) = get_message_type buf in
+  if Message_type_and_errors.to_index_exn mt = Message_type_and_errors.to_index_exn ty
+  then of_iobuf_local buf ~trusted:ty
+  else
+    failwiths
+      ~here:[%here]
+      "unexpected message type"
+      mt
+      [%sexp_of: _ Message_type_and_errors.t]
 ;;
 
 module New_single = struct
@@ -180,10 +176,7 @@ module New_single = struct
   let message_type = 'N'
   let buffer_length = 69
   let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.New_single
-
-  let of_iobuf_local_exn (buf [@local]) =
-     (of_iobuf_local_exn buf Message_type_and_errors.New_single)
-  ;;
+  let of_iobuf_local_exn buf = of_iobuf_local_exn buf Message_type_and_errors.New_single
 
   let write ~id ~spec ~name buf =
     let pos = 0 in
@@ -206,29 +199,29 @@ module New_single = struct
     iobuf
   ;;
 
-  let[@inline] get_message_length (buf [@local]) =
+  let[@inline] get_message_length buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.uint8 buf ~pos
   ;;
 
-  let[@inline] get_message_type (buf [@local]) =
+  let[@inline] get_message_type buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.char buf ~pos:(pos + 1)
   ;;
 
-  let[@inline] get_id (buf [@local]) =
+  let[@inline] get_id buf =
     let pos = 0 in
     Probe_id.of_int_exn (Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos + 2))
   ;;
 
-  let[@inline] get_spec (buf [@local]) =
+  let[@inline] get_spec buf =
     let pos = 0 in
     Probe_type.of_char (Iobuf.Unsafe.Peek.char buf ~pos:(pos + 4))
   ;;
 
   let name_max_len = 64
 
-  let[@inline] get_name (buf [@local]) =
+  let[@inline] get_name buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos + 5)
   ;;
@@ -345,10 +338,7 @@ module New_group = struct
   let message_type = 'P'
   let buffer_length = 69
   let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.New_group
-
-  let of_iobuf_local_exn (buf [@local]) =
-     (of_iobuf_local_exn buf Message_type_and_errors.New_group)
-  ;;
+  let of_iobuf_local_exn buf = of_iobuf_local_exn buf Message_type_and_errors.New_group
 
   let write ~id ~spec ~name buf =
     let pos = 0 in
@@ -371,29 +361,29 @@ module New_group = struct
     iobuf
   ;;
 
-  let[@inline] get_message_length (buf [@local]) =
+  let[@inline] get_message_length buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.uint8 buf ~pos
   ;;
 
-  let[@inline] get_message_type (buf [@local]) =
+  let[@inline] get_message_type buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.char buf ~pos:(pos + 1)
   ;;
 
-  let[@inline] get_id (buf [@local]) =
+  let[@inline] get_id buf =
     let pos = 0 in
     Probe_id.of_int_exn (Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos + 2))
   ;;
 
-  let[@inline] get_spec (buf [@local]) =
+  let[@inline] get_spec buf =
     let pos = 0 in
     Probe_type.of_char (Iobuf.Unsafe.Peek.char buf ~pos:(pos + 4))
   ;;
 
   let name_max_len = 64
 
-  let[@inline] get_name (buf [@local]) =
+  let[@inline] get_name buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos + 5)
   ;;
@@ -511,8 +501,8 @@ module New_group_point = struct
   let buffer_length ~sources_count = 72 + (2 * sources_count)
   let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.New_group_point
 
-  let of_iobuf_local_exn (buf [@local]) =
-     (of_iobuf_local_exn buf Message_type_and_errors.New_group_point)
+  let of_iobuf_local_exn buf =
+    of_iobuf_local_exn buf Message_type_and_errors.New_group_point
   ;;
 
   let write ~group_id ~id ~name ~sources_count buf =
@@ -540,29 +530,29 @@ module New_group_point = struct
     iobuf
   ;;
 
-  let[@inline] get_message_length (buf [@local]) =
+  let[@inline] get_message_length buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.uint8 buf ~pos
   ;;
 
-  let[@inline] get_message_type (buf [@local]) =
+  let[@inline] get_message_type buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.char buf ~pos:(pos + 1)
   ;;
 
-  let[@inline] get_group_id (buf [@local]) =
+  let[@inline] get_group_id buf =
     let pos = 0 in
     Probe_id.of_int_exn (Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos + 2))
   ;;
 
-  let[@inline] get_id (buf [@local]) =
+  let[@inline] get_id buf =
     let pos = 0 in
     Probe_id.of_int_exn (Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos + 4))
   ;;
 
   let name_max_len = 64
 
-  let[@inline] get_name (buf [@local]) =
+  let[@inline] get_name buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos + 6)
   ;;
@@ -603,7 +593,7 @@ module New_group_point = struct
     f buf ~safe_pos:pos ~safe_len:64
   ;;
 
-  let[@inline] get_sources_count (buf [@local]) =
+  let[@inline] get_sources_count buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.uint16_le buf ~pos:(pos + 70)
   ;;
@@ -727,8 +717,8 @@ module End_of_header = struct
   let buffer_length = 2
   let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.End_of_header
 
-  let of_iobuf_local_exn (buf [@local]) =
-     (of_iobuf_local_exn buf Message_type_and_errors.End_of_header)
+  let of_iobuf_local_exn buf =
+    of_iobuf_local_exn buf Message_type_and_errors.End_of_header
   ;;
 
   let write buf =
@@ -748,12 +738,12 @@ module End_of_header = struct
     iobuf
   ;;
 
-  let[@inline] get_message_length (buf [@local]) =
+  let[@inline] get_message_length buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.uint8 buf ~pos
   ;;
 
-  let[@inline] get_message_type (buf [@local]) =
+  let[@inline] get_message_type buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.char buf ~pos:(pos + 1)
   ;;
@@ -797,10 +787,7 @@ module Epoch = struct
   let message_type = 'E'
   let buffer_length = 10
   let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.Epoch
-
-  let of_iobuf_local_exn (buf [@local]) =
-     (of_iobuf_local_exn buf Message_type_and_errors.Epoch)
-  ;;
+  let of_iobuf_local_exn buf = of_iobuf_local_exn buf Message_type_and_errors.Epoch
 
   let write ~epoch buf =
     let pos = 0 in
@@ -821,17 +808,17 @@ module Epoch = struct
     iobuf
   ;;
 
-  let[@inline] get_message_length (buf [@local]) =
+  let[@inline] get_message_length buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.uint8 buf ~pos
   ;;
 
-  let[@inline] get_message_type (buf [@local]) =
+  let[@inline] get_message_type buf =
     let pos = 0 in
     Iobuf.Unsafe.Peek.char buf ~pos:(pos + 1)
   ;;
 
-  let[@inline] get_epoch (buf [@local]) =
+  let[@inline] get_epoch buf =
     let pos = 0 in
     Profiler_epoch.of_int (Iobuf.Unsafe.Peek.int64_le_exn buf ~pos:(pos + 2))
   ;;
@@ -937,7 +924,7 @@ let of_unpacked (u : Unpacked.t) =
   | Epoch msg -> Epoch.of_unpacked msg
 ;;
 
-let to_unpacked (buf [@local]) =
+let to_unpacked buf =
   let (Message_type_and_errors.T mt) = get_message_type buf in
   let m = of_iobuf_local buf ~trusted:mt in
   match mt with

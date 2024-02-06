@@ -1,9 +1,14 @@
-(executables (names dump_metrics profiler_tool)
+(executables
+ (modes byte exe)
+ (names dump_metrics profiler_tool)
  (libraries textutils.ascii_table core_unix.command_unix textutils.console
-  core core_profiler core_profiler_offline_tool shell.string_extended
-  core_unix.sys_unix textutils_kernel.text_graph)
- (preprocess (pps ppx_jane)))
+   core core_profiler core_profiler_offline_tool shell.string_extended
+   core_unix.sys_unix textutils_kernel.text_graph)
+ (preprocess
+  (pps ppx_jane)))
 
-(install (section bin)
- (files (dump_metrics.exe as core-profiler-dump-metrics)
+(install
+ (section bin)
+ (files
+  (dump_metrics.exe as core-profiler-dump-metrics)
   (profiler_tool.exe as core-profiler-tool)))
