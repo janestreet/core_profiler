@@ -292,6 +292,7 @@ module New_single = struct
   ;;
 
   let to_sub_iobuf t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
+  let to_sub_iobuf_local t = Iobuf.sub_shared_local t ~len:(get_message_length t + 0)
 
   module Unpacked = struct
     type t =
@@ -454,6 +455,7 @@ module New_group = struct
   ;;
 
   let to_sub_iobuf t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
+  let to_sub_iobuf_local t = Iobuf.sub_shared_local t ~len:(get_message_length t + 0)
 
   module Unpacked = struct
     type t =
@@ -649,6 +651,7 @@ module New_group_point = struct
   ;;
 
   let to_sub_iobuf t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
+  let to_sub_iobuf_local t = Iobuf.sub_shared_local t ~len:(get_message_length t + 0)
 
   module Unpacked = struct
     type t_sources = { source_id : Probe_id.t } [@@deriving sexp]
@@ -749,6 +752,7 @@ module End_of_header = struct
   ;;
 
   let to_sub_iobuf t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
+  let to_sub_iobuf_local t = Iobuf.sub_shared_local t ~len:(get_message_length t + 0)
 
   module Unpacked = struct
     type t =
@@ -830,6 +834,7 @@ module Epoch = struct
   ;;
 
   let to_sub_iobuf t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
+  let to_sub_iobuf_local t = Iobuf.sub_shared_local t ~len:(get_message_length t + 0)
 
   module Unpacked = struct
     type t =

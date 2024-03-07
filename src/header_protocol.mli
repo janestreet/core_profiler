@@ -141,6 +141,7 @@ module New_single : sig
     -> unit
 
   val to_sub_iobuf : 'rw t -> ('rw, Iobuf.seek) Iobuf.t
+  val to_sub_iobuf_local : 'rw t -> ('rw, Iobuf.seek) Iobuf.t
 
   module Unpacked : sig
     type t =
@@ -223,6 +224,7 @@ module New_group : sig
     -> unit
 
   val to_sub_iobuf : 'rw t -> ('rw, Iobuf.seek) Iobuf.t
+  val to_sub_iobuf_local : 'rw t -> ('rw, Iobuf.seek) Iobuf.t
 
   module Unpacked : sig
     type t =
@@ -328,6 +330,7 @@ module New_group_point : sig
     -> unit
 
   val to_sub_iobuf : 'rw t -> ('rw, Iobuf.seek) Iobuf.t
+  val to_sub_iobuf_local : 'rw t -> ('rw, Iobuf.seek) Iobuf.t
 
   module Unpacked : sig
     type t_sources = { source_id : Probe_id.t } [@@deriving sexp]
@@ -363,6 +366,7 @@ module End_of_header : sig
   val get_message_length : _ t -> int
   val get_message_type : _ t -> char
   val to_sub_iobuf : 'rw t -> ('rw, Iobuf.seek) Iobuf.t
+  val to_sub_iobuf_local : 'rw t -> ('rw, Iobuf.seek) Iobuf.t
 
   module Unpacked : sig
     type t =
@@ -394,6 +398,7 @@ module Epoch : sig
   val get_epoch : _ t -> Profiler_epoch.t
   val set_epoch : (read_write, _) Iobuf.t -> Profiler_epoch.t -> unit
   val to_sub_iobuf : 'rw t -> ('rw, Iobuf.seek) Iobuf.t
+  val to_sub_iobuf_local : 'rw t -> ('rw, Iobuf.seek) Iobuf.t
 
   module Unpacked : sig
     type t =
