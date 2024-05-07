@@ -1,3 +1,10 @@
+## Release v0.17.0
+
+* Automated style changes.
+
+* Additional support for reading locally-allocated values in `Header_protocol`.
+
+
 ## Release v0.16.0
 
 * Updated internal binary protocol functions to support local allocation. Local allocation
@@ -154,4 +161,3 @@ Initial release
     values fit a line.  Even dots that are fairly scattered can give
     tight confidence intervals.  We would like to have to number to have
     a sense of how much noise we have.
-
