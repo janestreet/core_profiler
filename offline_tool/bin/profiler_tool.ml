@@ -284,10 +284,10 @@ module List_command = struct
       | Group { name; points_spec; children } ->
         (id, name, Some points_spec)
         :: List.fold children ~init:accum ~f:(fun accum id ->
-             let { Reader.Header.Item.name; _ } =
-               Reader.Header.find_group_point_exn id_map id
-             in
-             (id, "    " ^ name, None) :: accum)
+          let { Reader.Header.Item.name; _ } =
+            Reader.Header.find_group_point_exn id_map id
+          in
+          (id, "    " ^ name, None) :: accum)
       | Group_point _ ->
         (* group points are output immediately after the group *)
         accum)
@@ -487,15 +487,17 @@ module Summary_command = struct
       tbl
       ~init:[]
       ~f:(fun ~key:interest ~data:{ delta_stats; time_delta_stats } accum ->
-      assert (Stats.is_empty delta_stats = Stats.is_empty time_delta_stats);
-      let units = Interest.spec interest id_map |> Probe_type.units |> Option.value_exn in
-      { Row.interest
-      ; what = "dt"
-      ; stats = time_delta_stats
-      ; units = Profiler_units.Nanoseconds
-      }
-      :: { Row.interest; what = "dv"; stats = delta_stats; units }
-      :: accum)
+        assert (Stats.is_empty delta_stats = Stats.is_empty time_delta_stats);
+        let units =
+          Interest.spec interest id_map |> Probe_type.units |> Option.value_exn
+        in
+        { Row.interest
+        ; what = "dt"
+        ; stats = time_delta_stats
+        ; units = Profiler_units.Nanoseconds
+        }
+        :: { Row.interest; what = "dv"; stats = delta_stats; units }
+        :: accum)
   ;;
 
   let main interests buffer selections =
@@ -637,8 +639,8 @@ module Plot_command = struct
         no_arg
         ~doc:" Plot the value (dependent) against a range of percentiles (indep)"
       |> map ~f:(function
-           | true -> Percentiles
-           | false -> Density))
+        | true -> Percentiles
+        | false -> Density))
   ;;
 
   let plot_max_bins =
@@ -658,9 +660,9 @@ module Plot_command = struct
     let range = ref None in
     let update_range x =
       range
-        := match !range with
-           | Some (low, high) -> Some (Int.min x low, Int.max x high)
-           | None -> Some (x, x)
+      := match !range with
+         | Some (low, high) -> Some (Int.min x low, Int.max x high)
+         | None -> Some (x, x)
     in
     Filter.iter_events filter events ~f:(fun event _interests ->
       let var =
@@ -717,12 +719,12 @@ module Plot_command = struct
   let percentile_bars (min, max) reservoir =
     List.range ~start:`inclusive 0 ~stop:`inclusive 100 ~stride:5
     |> List.map ~f:(function
-         | 0 -> 0, min
-         | 100 -> 100, max
-         | p ->
-           let p' = Float.of_int p /. 100. in
-           let v = Reservoir_sampling.percentile_exn reservoir p' in
-           p, v)
+      | 0 -> 0, min
+      | 100 -> 100, max
+      | p ->
+        let p' = Float.of_int p /. 100. in
+        let v = Reservoir_sampling.percentile_exn reservoir p' in
+        p, v)
   ;;
 
   let label_density_bars bars formatter =
@@ -847,9 +849,9 @@ let interests_readme =
     ~summary:"Display the readme for INTERESTs"
     Command.Spec.empty
     (fun () ->
-    Lazy.force Interest.readme
-    |> String_extended.word_wrap ~soft_limit:75
-    |> print_endline)
+       Lazy.force Interest.readme
+       |> String_extended.word_wrap ~soft_limit:75
+       |> print_endline)
 ;;
 
 let command =

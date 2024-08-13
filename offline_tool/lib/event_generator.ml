@@ -243,17 +243,17 @@ let%test_module "iter_group_events" =
         let at id n = Protocol.Writer.write_probe_at (to_id id) (to_time n) n in
         String.to_list ats
         |> List.iteri ~f:(fun n c ->
-             match c with
-             | 'a' -> at 1 n
-             | 'b' -> at 2 n
-             | 'c' -> at 3 n
-             | 'd' -> at 4 n
-             | 'e' -> at 5 n
-             | 'f' -> at 6 n
-             | 'g' -> at 7 n
-             | 'r' -> Protocol.Writer.write_group_reset (to_id 0) (to_time n)
-             | ' ' -> ()
-             | _ -> failwith "Bad test case");
+          match c with
+          | 'a' -> at 1 n
+          | 'b' -> at 2 n
+          | 'c' -> at 3 n
+          | 'd' -> at 4 n
+          | 'e' -> at 5 n
+          | 'f' -> at 6 n
+          | 'g' -> at 7 n
+          | 'r' -> Protocol.Writer.write_group_reset (to_id 0) (to_time n)
+          | ' ' -> ()
+          | _ -> failwith "Bad test case");
         let buffer =
           match Protocol.Buffer.get_chunks () with
           | [ x ] -> x
@@ -294,22 +294,22 @@ let%test_module "iter_group_events" =
     ;;
 
     (* TEST_UNIT "multiple simultaneous events" =
-     *   <:test_eq< event list >>
-     *     (run_case "abc" [ to_path_int "a,c"; to_path_int "b.c" ])
-     *     [ to_event (to_path_int "b.c") 2 1; to_event (to_path_int "a,c") 2 2 ]
-     *
-     * TEST_UNIT "reset" =
-     *   <:test_eq< event list >> (run_case "aaa r ccc" [ to_path_int "a,c" ]) []
-     *
-     * TEST_UNIT "directness" =
-     *   <:test_eq< event list >>
-     *     (run_case "cd d dc r c   d ced r ced" [ to_path_int "c.d" ])
-     *     [ to_event (to_path_int "c.d") 1 1; to_event (to_path_int "c.d") 14 4 ]
-     *
-     * TEST_UNIT "repeated" =
-     *   let p = to_path_int "a.a" in
-     *   <:test_eq< event list >>
-     *     (run_case "aaaaa r a" [ p ])
-     *     [ to_event p 1 1; to_event p 2 1; to_event p 3 1; to_event p 4 1 ] *)
+   *   <:test_eq< event list >>
+   *     (run_case "abc" [ to_path_int "a,c"; to_path_int "b.c" ])
+   *     [ to_event (to_path_int "b.c") 2 1; to_event (to_path_int "a,c") 2 2 ]
+   *
+   * TEST_UNIT "reset" =
+   *   <:test_eq< event list >> (run_case "aaa r ccc" [ to_path_int "a,c" ]) []
+   *
+   * TEST_UNIT "directness" =
+   *   <:test_eq< event list >>
+   *     (run_case "cd d dc r c   d ced r ced" [ to_path_int "c.d" ])
+   *     [ to_event (to_path_int "c.d") 1 1; to_event (to_path_int "c.d") 14 4 ]
+   *
+   * TEST_UNIT "repeated" =
+   *   let p = to_path_int "a.a" in
+   *   <:test_eq< event list >>
+   *     (run_case "aaaaa r a" [ p ])
+   *     [ to_event p 1 1; to_event p 2 1; to_event p 3 1; to_event p 4 1 ] *)
   end)
 ;;

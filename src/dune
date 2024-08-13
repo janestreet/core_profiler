@@ -2,8 +2,9 @@
  (name core_profiler)
  (public_name core_profiler)
  (libraries textutils.ascii_table core_unix.bigstring_unix core
-   core_profiler_disabled core_kernel.iobuf core_unix.sys_unix
-   core_unix.time_ns_unix core_unix.time_stamp_counter)
+   core_profiler_disabled core_unix core_kernel.iobuf core_unix.sys_unix
+   core_unix.time_float_unix core_unix.time_ns_unix
+   core_unix.time_stamp_counter)
  (preprocess
   (pps ppx_jane)))
 

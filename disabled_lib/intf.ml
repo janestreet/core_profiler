@@ -162,15 +162,15 @@ module type Profiler_intf = sig
       because (in [Offline]) the current time is recorded when measurements are made. *)
   module Timer :
     Probe
-      with type 'a create_args := 'a timer_create_args
-       and type 'a record_args := 'a timer_record_args
+    with type 'a create_args := 'a timer_create_args
+     and type 'a record_args := 'a timer_record_args
 
   (** A [Probe] records some integer value that is passed to [at] along with a
       timestamp. *)
   module Probe :
     Probe
-      with type 'a create_args := 'a probe_create_args
-       and type 'a record_args := 'a probe_record_args
+    with type 'a create_args := 'a probe_create_args
+     and type 'a record_args := 'a probe_record_args
 
   (** [Delta_probe] is an optimized two-probe group to track changes to some counter. *)
   module Delta_probe : sig

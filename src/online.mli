@@ -48,5 +48,5 @@ open! Core
 
 include
   Core_profiler_disabled.Intf.Profiler_intf
-    with type Delta_timer.state = private Time_ns.t
-     and type Delta_probe.state = private int
+  with type Delta_timer.state = private Time_ns.t
+   and type Delta_probe.state = private int

@@ -37,15 +37,15 @@ module Name_map = struct
       id_map
       ~init:{ singles = String.Map.empty; groups = String.Map.empty }
       ~f:(fun t id item ->
-      match item with
-      | Single { name; _ } ->
-        warn_if_duplicate "single" t.singles name id;
-        { t with singles = Map.set t.singles ~key:name ~data:id }
-      | Group { name; _ } ->
-        warn_if_duplicate "group" t.groups name id;
-        let data = { id; children = collect_children id name } in
-        { t with groups = Map.set t.groups ~key:name ~data }
-      | Group_point _ -> t)
+        match item with
+        | Single { name; _ } ->
+          warn_if_duplicate "single" t.singles name id;
+          { t with singles = Map.set t.singles ~key:name ~data:id }
+        | Group { name; _ } ->
+          warn_if_duplicate "group" t.groups name id;
+          let data = { id; children = collect_children id name } in
+          { t with groups = Map.set t.groups ~key:name ~data }
+        | Group_point _ -> t)
   ;;
 end
 

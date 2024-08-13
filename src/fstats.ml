@@ -19,7 +19,7 @@ type t =
 
      See "Weighted incremental algorithm" and "Parallel algorithm" at
      http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
-  *)
+    *)
     mutable varsum : float (* sum of running_variance *)
   ; mutable max : float (* largest sample *)
   ; mutable min : float (* smallest sample *)

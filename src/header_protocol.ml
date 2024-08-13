@@ -12,6 +12,8 @@ type ('ty, -'rw) t = ('rw, Iobuf.no_seek) Iobuf.t constraint 'rw = [> read ]
 type ('ty, 'rw) message = ('ty, 'rw) t
 type ('ty, 'rw) t_no_exn = ('ty, 'rw) t
 
+let globalize t = Iobuf.globalize () () t
+
 module R = struct
   type 'message t =
     | Need_more_data
@@ -175,6 +177,7 @@ module New_single = struct
 
   let message_type = 'N'
   let buffer_length = 69
+  let globalize t = Iobuf.globalize () () t
   let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.New_single
   let of_iobuf_local_exn buf = of_iobuf_local_exn buf Message_type_and_errors.New_single
 
@@ -226,6 +229,18 @@ module New_single = struct
     Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos + 5)
   ;;
 
+  let get_name_zero_local_result buf f =
+    let buf = Iobuf.read_only_local buf in
+    let pos = 5 in
+    let len = ref 64 in
+    while
+      !len > 0 && Char.( = ) padding (Iobuf.Unsafe.Peek.char buf ~pos:(pos + !len - 1))
+    do
+      decr len
+    done;
+    f buf ~safe_pos:pos ~safe_len:!len [@nontail]
+  ;;
+
   let get_name_zero_local buf f =
     let buf = Iobuf.read_only_local buf in
     let pos = 5 in
@@ -248,6 +263,12 @@ module New_single = struct
       decr len
     done;
     f buf ~safe_pos:pos ~safe_len:!len
+  ;;
+
+  let get_name_zero_padded_local_result buf f =
+    let buf = Iobuf.read_only_local buf in
+    let pos = 5 in
+    f buf ~safe_pos:pos ~safe_len:64 [@nontail]
   ;;
 
   let get_name_zero_padded_local buf f =
@@ -338,6 +359,7 @@ module New_group = struct
 
   let message_type = 'P'
   let buffer_length = 69
+  let globalize t = Iobuf.globalize () () t
   let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.New_group
   let of_iobuf_local_exn buf = of_iobuf_local_exn buf Message_type_and_errors.New_group
 
@@ -389,6 +411,18 @@ module New_group = struct
     Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos + 5)
   ;;
 
+  let get_name_zero_local_result buf f =
+    let buf = Iobuf.read_only_local buf in
+    let pos = 5 in
+    let len = ref 64 in
+    while
+      !len > 0 && Char.( = ) padding (Iobuf.Unsafe.Peek.char buf ~pos:(pos + !len - 1))
+    do
+      decr len
+    done;
+    f buf ~safe_pos:pos ~safe_len:!len [@nontail]
+  ;;
+
   let get_name_zero_local buf f =
     let buf = Iobuf.read_only_local buf in
     let pos = 5 in
@@ -411,6 +445,12 @@ module New_group = struct
       decr len
     done;
     f buf ~safe_pos:pos ~safe_len:!len
+  ;;
+
+  let get_name_zero_padded_local_result buf f =
+    let buf = Iobuf.read_only_local buf in
+    let pos = 5 in
+    f buf ~safe_pos:pos ~safe_len:64 [@nontail]
   ;;
 
   let get_name_zero_padded_local buf f =
@@ -501,6 +541,7 @@ module New_group_point = struct
 
   let message_type = 'O'
   let buffer_length ~sources_count = 72 + (2 * sources_count)
+  let globalize t = Iobuf.globalize () () t
   let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.New_group_point
 
   let of_iobuf_local_exn buf =
@@ -559,6 +600,18 @@ module New_group_point = struct
     Iobuf.Unsafe.Peek.tail_padded_fixed_string ~padding buf ~len:64 ~pos:(pos + 6)
   ;;
 
+  let get_name_zero_local_result buf f =
+    let buf = Iobuf.read_only_local buf in
+    let pos = 6 in
+    let len = ref 64 in
+    while
+      !len > 0 && Char.( = ) padding (Iobuf.Unsafe.Peek.char buf ~pos:(pos + !len - 1))
+    do
+      decr len
+    done;
+    f buf ~safe_pos:pos ~safe_len:!len [@nontail]
+  ;;
+
   let get_name_zero_local buf f =
     let buf = Iobuf.read_only_local buf in
     let pos = 6 in
@@ -581,6 +634,12 @@ module New_group_point = struct
       decr len
     done;
     f buf ~safe_pos:pos ~safe_len:!len
+  ;;
+
+  let get_name_zero_padded_local_result buf f =
+    let buf = Iobuf.read_only_local buf in
+    let pos = 6 in
+    f buf ~safe_pos:pos ~safe_len:64 [@nontail]
   ;;
 
   let get_name_zero_padded_local buf f =
@@ -718,6 +777,7 @@ module End_of_header = struct
 
   let message_type = 'Z'
   let buffer_length = 2
+  let globalize t = Iobuf.globalize () () t
   let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.End_of_header
 
   let of_iobuf_local_exn buf =
@@ -790,6 +850,7 @@ module Epoch = struct
 
   let message_type = 'E'
   let buffer_length = 10
+  let globalize t = Iobuf.globalize () () t
   let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.Epoch
   let of_iobuf_local_exn buf = of_iobuf_local_exn buf Message_type_and_errors.Epoch
 

@@ -7,11 +7,11 @@ open Core
 open Poly
 
 module Make (E : sig
-  type t [@@deriving sexp, bin_io, compare]
+    type t [@@deriving sexp, bin_io, compare]
 
-  val make_array : len:int -> t array
-  val set : t array -> int -> t -> unit
-end) =
+    val make_array : len:int -> t array
+    val set : t array -> int -> t -> unit
+  end) =
 struct
   type element = E.t [@@deriving sexp, bin_io]
 
@@ -88,8 +88,8 @@ struct
 end
 
 include Make (struct
-  include Int
+    include Int
 
-  let make_array ~len = Array.create ~len 0
-  let set (t : int array) i v = t.(i) <- v
-end)
+    let make_array ~len = Array.create ~len 0
+    let set (t : int array) i v = t.(i) <- v
+  end)

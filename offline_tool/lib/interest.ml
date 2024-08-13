@@ -297,8 +297,8 @@ let readme =
      ; `E (List.nth_exn examples 4)
      ]
      |> List.map ~f:(function
-          | `S s -> s
-          | `E e -> string_t_to_string e)
+       | `S s -> s
+       | `E e -> string_t_to_string e)
      |> String.concat)
 ;;
 
@@ -337,10 +337,8 @@ let default_interests id_map =
   let get_points_sources group_id =
     get_points group_id
     |> List.map ~f:(fun child_id ->
-         let sources =
-           Reader.Header.((find_group_point_exn id_map child_id).Item.sources)
-         in
-         child_id, sources)
+      let sources = Reader.Header.((find_group_point_exn id_map child_id).Item.sources) in
+      child_id, sources)
   in
   let product_fold outer ~init ~get_inner ~f =
     List.fold outer ~init ~f:(fun acc b ->

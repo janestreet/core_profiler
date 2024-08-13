@@ -16,6 +16,7 @@ type ('hierarchy, 'rw) t_no_exn = ('hierarchy, 'rw) t
 val sexp_of_t_no_exn : _ -> _ -> (_, _) t_no_exn -> Sexp.t
 val backing_iobuf : (_, 'rw) t -> ('rw, Iobuf.no_seek) Iobuf.t
 val backing_iobuf_local : (_, 'rw) t -> ('rw, Iobuf.no_seek) Iobuf.t
+val globalize : ('ty, 'rw) t -> ('ty, 'rw) t
 
 module R : sig
   type 'message t =
@@ -84,6 +85,7 @@ module New_single : sig
 
   val message_type : char
   val buffer_length : int
+  val globalize : 'rw t -> 'rw t
   val of_iobuf_exn : ('rw, _) Iobuf.t -> 'rw t
   val of_iobuf_local_exn : ('rw, _) Iobuf.t -> 'rw t
 
@@ -107,12 +109,22 @@ module New_single : sig
   val name_max_len : int
   val get_name : _ t -> string
 
+  val get_name_zero_local_result
+    :  _ t
+    -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
+    -> 'a
+
   val get_name_zero_local
     :  _ t
     -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
     -> 'a
 
   val get_name_zero
+    :  _ t
+    -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
+    -> 'a
+
+  val get_name_zero_padded_local_result
     :  _ t
     -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
     -> 'a
@@ -167,6 +179,7 @@ module New_group : sig
 
   val message_type : char
   val buffer_length : int
+  val globalize : 'rw t -> 'rw t
   val of_iobuf_exn : ('rw, _) Iobuf.t -> 'rw t
   val of_iobuf_local_exn : ('rw, _) Iobuf.t -> 'rw t
 
@@ -190,12 +203,22 @@ module New_group : sig
   val name_max_len : int
   val get_name : _ t -> string
 
+  val get_name_zero_local_result
+    :  _ t
+    -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
+    -> 'a
+
   val get_name_zero_local
     :  _ t
     -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
     -> 'a
 
   val get_name_zero
+    :  _ t
+    -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
+    -> 'a
+
+  val get_name_zero_padded_local_result
     :  _ t
     -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
     -> 'a
@@ -250,6 +273,7 @@ module New_group_point : sig
 
   val message_type : char
   val buffer_length : sources_count:int -> int
+  val globalize : 'rw t -> 'rw t
   val of_iobuf_exn : ('rw, _) Iobuf.t -> 'rw t
   val of_iobuf_local_exn : ('rw, _) Iobuf.t -> 'rw t
 
@@ -275,12 +299,22 @@ module New_group_point : sig
   val name_max_len : int
   val get_name : _ t -> string
 
+  val get_name_zero_local_result
+    :  _ t
+    -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
+    -> 'a
+
   val get_name_zero_local
     :  _ t
     -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
     -> 'a
 
   val get_name_zero
+    :  _ t
+    -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
+    -> 'a
+
+  val get_name_zero_padded_local_result
     :  _ t
     -> ((read, Iobuf.no_seek) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
     -> 'a
@@ -359,6 +393,7 @@ module End_of_header : sig
 
   val message_type : char
   val buffer_length : int
+  val globalize : 'rw t -> 'rw t
   val of_iobuf_exn : ('rw, _) Iobuf.t -> 'rw t
   val of_iobuf_local_exn : ('rw, _) Iobuf.t -> 'rw t
   val write : (read_write, _) Iobuf.t -> int
@@ -389,6 +424,7 @@ module Epoch : sig
 
   val message_type : char
   val buffer_length : int
+  val globalize : 'rw t -> 'rw t
   val of_iobuf_exn : ('rw, _) Iobuf.t -> 'rw t
   val of_iobuf_local_exn : ('rw, _) Iobuf.t -> 'rw t
   val write : epoch:Profiler_epoch.t -> (read_write, _) Iobuf.t -> int

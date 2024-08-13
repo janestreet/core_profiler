@@ -2,8 +2,9 @@
  (modes byte exe)
  (names dump_metrics profiler_tool)
  (libraries textutils.ascii_table core_unix.command_unix textutils.console
-   core core_profiler core_profiler_offline_tool shell.string_extended
-   core_unix.sys_unix textutils_kernel.text_graph)
+   core core_profiler core_profiler_disabled core_profiler_offline_tool
+   shell.string_extended core_unix.sys_unix textutils_kernel.text_graph
+   core_unix.time_ns_unix)
  (preprocess
   (pps ppx_jane)))
 

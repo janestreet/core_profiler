@@ -2,6 +2,7 @@
  (name core_profiler_offline_tool)
  (public_name core_profiler.offline_tool)
  (libraries core_unix.bigstring_unix core core_unix.interval_lib re2
-   core_profiler core_unix.time_float_unix)
+   core_profiler core_profiler_disabled core_unix core_kernel.iobuf
+   core_unix.time_float_unix core_unix.time_ns_unix)
  (preprocess
   (pps ppx_jane)))

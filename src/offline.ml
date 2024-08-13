@@ -72,13 +72,13 @@ let%bench_module "Timer" =
     let timer = Timer.create ~name:"bench_timer"
 
     (* let group = Timer.Group.create "bench_timer_group" ()
-     * let group_probe = Timer.Group.add_probe group "bench_timer_group_probe" *)
+   * let group_probe = Timer.Group.add_probe group "bench_timer_group_probe" *)
 
     let%bench "at" = Timer.record timer
 
     (* BENCH "group_probe_at" = Timer.Group.Probe.at group_probe
-     *
-     * BENCH "group_reset" = Timer.Group.reset group *)
+   *
+   * BENCH "group_reset" = Timer.Group.reset group *)
 
     let () = Protocol.Writer.set_at_exit_handler `Disable
   end)
@@ -129,13 +129,13 @@ let%bench_module "Probe" =
     let timer = Probe.create ~name:"bench_probe" ~units:Profiler_units.Seconds
 
     (* let group = Probe.Group.create "bench_probe_group" Profiler_units.Int
-     * let group_probe = Probe.Group.add_probe group "bench_probe_group_probe" *)
+   * let group_probe = Probe.Group.add_probe group "bench_probe_group_probe" *)
 
     let%bench "at" = Probe.record timer 19827312
 
     (* BENCH "group_probe_at" = Probe.Group.Probe.at group_probe 123812
-     *
-     * BENCH "group_reset" = Probe.Group.reset group *)
+   *
+   * BENCH "group_reset" = Probe.Group.reset group *)
 
     let () = Protocol.Writer.set_at_exit_handler `Disable
   end)
