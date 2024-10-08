@@ -206,94 +206,91 @@ let iter_events t ~f =
       group_state.current_session <- group_state.current_session + 1)
 ;;
 
-let%test_module "iter_group_events" =
-  (module struct
-    module Protocol = Core_profiler.Protocol
+module%test [@name "iter_group_events"] _ = struct
+  module Protocol = Core_profiler.Protocol
 
-    let to_id = Probe_id.of_int_exn
-    let to_time_delta = Time_ns.Span.of_int_sec
-    let to_time n = Profiler_epoch.add Protocol.Writer.epoch (to_time_delta n)
+  let to_id = Probe_id.of_int_exn
+  let to_time_delta = Time_ns.Span.of_int_sec
+  let to_time n = Profiler_epoch.add Protocol.Writer.epoch (to_time_delta n)
 
-    let header =
-      let open Protocol in
-      protect ~finally:Buffer.Unsafe_internals.reset ~f:(fun () ->
-        Writer.Unsafe_internals.write_epoch ();
-        Writer.write_new_group (to_id 0) "group" (Probe_type.Probe Profiler_units.Seconds);
-        List.iter
-          [ "a", 1; "b", 2; "c", 3; "d", 4; "e", 5; "f", 6; "g", 7 ]
-          ~f:(fun (name, id) ->
-            Writer.write_new_group_point ~id:(to_id id) ~group_id:(to_id 0) name [||]);
-        Writer.Unsafe_internals.write_end_of_header ();
-        Buffer.get_header_chunk () |> Reader.consume_header |> snd)
-    ;;
+  let header =
+    let open Protocol in
+    protect ~finally:Buffer.Unsafe_internals.reset ~f:(fun () ->
+      Writer.Unsafe_internals.write_epoch ();
+      Writer.write_new_group (to_id 0) "group" (Probe_type.Probe Profiler_units.Seconds);
+      List.iter
+        [ "a", 1; "b", 2; "c", 3; "d", 4; "e", 5; "f", 6; "g", 7 ]
+        ~f:(fun (name, id) ->
+          Writer.write_new_group_point ~id:(to_id id) ~group_id:(to_id 0) name [||]);
+      Writer.Unsafe_internals.write_end_of_header ();
+      Buffer.get_header_chunk () |> Reader.consume_header |> snd)
+  ;;
 
-    let name_map = Util.Name_map.of_id_map header
-    let header_group = Map.find_exn name_map.groups "group"
+  let name_map = Util.Name_map.of_id_map header
+  let header_group = Map.find_exn name_map.groups "group"
 
-    let to_path s =
-      Path.string_t_of_string s
-      |> Option.value_exn
-      |> Fn.flip Path.lookup_ids header_group
-    ;;
+  let to_path s =
+    Path.string_t_of_string s |> Option.value_exn |> Fn.flip Path.lookup_ids header_group
+  ;;
 
-    let to_path_int s = Interest.Raw.Group_path (to_id 0, to_path s)
+  let to_path_int s = Interest.Raw.Group_path (to_id 0, to_path s)
 
-    let run_case ats interests =
-      protect ~finally:Protocol.Buffer.Unsafe_internals.reset ~f:(fun () ->
-        let at id n = Protocol.Writer.write_probe_at (to_id id) (to_time n) n in
-        String.to_list ats
-        |> List.iteri ~f:(fun n c ->
-          match c with
-          | 'a' -> at 1 n
-          | 'b' -> at 2 n
-          | 'c' -> at 3 n
-          | 'd' -> at 4 n
-          | 'e' -> at 5 n
-          | 'f' -> at 6 n
-          | 'g' -> at 7 n
-          | 'r' -> Protocol.Writer.write_group_reset (to_id 0) (to_time n)
-          | ' ' -> ()
-          | _ -> failwith "Bad test case");
-        let buffer =
-          match Protocol.Buffer.get_chunks () with
-          | [ x ] -> x
-          | _ -> failwith "expected one chunk"
-        in
-        let ev_gen = create Protocol.Writer.epoch header interests buffer in
-        let events_rev = ref [] in
-        iter_events ev_gen ~f:(fun x -> events_rev := x :: !events_rev);
-        List.rev !events_rev)
-    ;;
+  let run_case ats interests =
+    protect ~finally:Protocol.Buffer.Unsafe_internals.reset ~f:(fun () ->
+      let at id n = Protocol.Writer.write_probe_at (to_id id) (to_time n) n in
+      String.to_list ats
+      |> List.iteri ~f:(fun n c ->
+        match c with
+        | 'a' -> at 1 n
+        | 'b' -> at 2 n
+        | 'c' -> at 3 n
+        | 'd' -> at 4 n
+        | 'e' -> at 5 n
+        | 'f' -> at 6 n
+        | 'g' -> at 7 n
+        | 'r' -> Protocol.Writer.write_group_reset (to_id 0) (to_time n)
+        | ' ' -> ()
+        | _ -> failwith "Bad test case");
+      let buffer =
+        match Protocol.Buffer.get_chunks () with
+        | [ x ] -> x
+        | _ -> failwith "expected one chunk"
+      in
+      let ev_gen = create Protocol.Writer.epoch header interests buffer in
+      let events_rev = ref [] in
+      iter_events ev_gen ~f:(fun x -> events_rev := x :: !events_rev);
+      List.rev !events_rev)
+  ;;
 
-    let to_event interest value delta =
-      Probe_path
-        { interest; time = to_time value; time_delta = to_time_delta delta; value; delta }
-    ;;
+  let to_event interest value delta =
+    Probe_path
+      { interest; time = to_time value; time_delta = to_time_delta delta; value; delta }
+  ;;
 
-    let%test_unit "multiple simultaneous events" =
-      [%test_eq: event list]
-        (run_case "abc" [ to_path_int "a..c"; to_path_int "b,c" ])
-        [ to_event (to_path_int "b,c") 2 1; to_event (to_path_int "a..c") 2 2 ]
-    ;;
+  let%test_unit "multiple simultaneous events" =
+    [%test_eq: event list]
+      (run_case "abc" [ to_path_int "a..c"; to_path_int "b,c" ])
+      [ to_event (to_path_int "b,c") 2 1; to_event (to_path_int "a..c") 2 2 ]
+  ;;
 
-    let%test_unit "reset" =
-      [%test_eq: event list] (run_case "aaa r ccc" [ to_path_int "a..c" ]) []
-    ;;
+  let%test_unit "reset" =
+    [%test_eq: event list] (run_case "aaa r ccc" [ to_path_int "a..c" ]) []
+  ;;
 
-    let%test_unit "directness" =
-      [%test_eq: event list]
-        (run_case "cd d dc r c   d ced r ced" [ to_path_int "c,d" ])
-        [ to_event (to_path_int "c,d") 1 1; to_event (to_path_int "c,d") 14 4 ]
-    ;;
+  let%test_unit "directness" =
+    [%test_eq: event list]
+      (run_case "cd d dc r c   d ced r ced" [ to_path_int "c,d" ])
+      [ to_event (to_path_int "c,d") 1 1; to_event (to_path_int "c,d") 14 4 ]
+  ;;
 
-    let%test_unit "repeated" =
-      let p = to_path_int "a,a" in
-      [%test_eq: event list]
-        (run_case "aaaaa r a" [ p ])
-        [ to_event p 1 1; to_event p 2 1; to_event p 3 1; to_event p 4 1 ]
-    ;;
+  let%test_unit "repeated" =
+    let p = to_path_int "a,a" in
+    [%test_eq: event list]
+      (run_case "aaaaa r a" [ p ])
+      [ to_event p 1 1; to_event p 2 1; to_event p 3 1; to_event p 4 1 ]
+  ;;
 
-    (* TEST_UNIT "multiple simultaneous events" =
+  (* TEST_UNIT "multiple simultaneous events" =
    *   <:test_eq< event list >>
    *     (run_case "abc" [ to_path_int "a,c"; to_path_int "b.c" ])
    *     [ to_event (to_path_int "b.c") 2 1; to_event (to_path_int "a,c") 2 2 ]
@@ -311,5 +308,4 @@ let%test_module "iter_group_events" =
    *   <:test_eq< event list >>
    *     (run_case "aaaaa r a" [ p ])
    *     [ to_event p 1 1; to_event p 2 1; to_event p 3 1; to_event p 4 1 ] *)
-  end)
-;;
+end
