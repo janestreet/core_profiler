@@ -60,37 +60,35 @@ let string_t_to_string { first; rest_rev; last } =
   |> String.concat
 ;;
 
-let%test_module _ =
-  (module struct
-    let check s p =
-      [%test_eq: string t option] (string_t_of_string s) (Some p);
-      [%test_eq: string] (string_t_to_string p) s
-    ;;
+module%test _ = struct
+  let check s p =
+    [%test_eq: string t option] (string_t_of_string s) (Some p);
+    [%test_eq: string] (string_t_to_string p) s
+  ;;
 
-    let%test_unit "aaa..bbb" =
-      check "aaa..bbb" { last = "bbb"; rest_rev = []; first = Point "aaa" }
-    ;;
+  let%test_unit "aaa..bbb" =
+    check "aaa..bbb" { last = "bbb"; rest_rev = []; first = Point "aaa" }
+  ;;
 
-    let%test_unit "aaa..b..cc..ddd" =
-      check
-        "aaa..b..cc..ddd"
-        { first = Point "aaa"; rest_rev = [ Point "cc"; Point "b" ]; last = "ddd" }
-    ;;
+  let%test_unit "aaa..b..cc..ddd" =
+    check
+      "aaa..b..cc..ddd"
+      { first = Point "aaa"; rest_rev = [ Point "cc"; Point "b" ]; last = "ddd" }
+  ;;
 
-    let%test_unit "aaa,bbb" =
-      check "aaa,bbb" { first = Direct_point "aaa"; rest_rev = []; last = "bbb" }
-    ;;
+  let%test_unit "aaa,bbb" =
+    check "aaa,bbb" { first = Direct_point "aaa"; rest_rev = []; last = "bbb" }
+  ;;
 
-    let%test_unit "a..b,c..d,e" =
-      check
-        "a..b,c..d,e"
-        { first = Point "a"
-        ; rest_rev = [ Direct_point "d"; Point "c"; Direct_point "b" ]
-        ; last = "e"
-        }
-    ;;
-  end)
-;;
+  let%test_unit "a..b,c..d,e" =
+    check
+      "a..b,c..d,e"
+      { first = Point "a"
+      ; rest_rev = [ Direct_point "d"; Point "c"; Direct_point "b" ]
+      ; last = "e"
+      }
+  ;;
+end
 
 let examples =
   [ { first = Point "a"; last = "b"; rest_rev = [] }

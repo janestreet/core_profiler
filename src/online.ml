@@ -263,43 +263,41 @@ module Timer = struct
   end
 end
 
-let%bench_module "Timer" =
-  (module struct
-    let timer = Timer.create ~name:"bench_timer"
-    let group = Timer.Group.create ~name:"bench_timer_group"
-    let group_probe0 = Timer.Group.add_probe group ~name:"bench_timer_group_probe0" ()
+module%bench Timer = struct
+  let timer = Timer.create ~name:"bench_timer"
+  let group = Timer.Group.create ~name:"bench_timer_group"
+  let group_probe0 = Timer.Group.add_probe group ~name:"bench_timer_group_probe0" ()
 
-    let group_probe1 =
-      Timer.Group.add_probe
-        group
-        ~name:"bench_timer_group_probe1"
-        ()
-        ~sources:[| group_probe0 |]
-    ;;
+  let group_probe1 =
+    Timer.Group.add_probe
+      group
+      ~name:"bench_timer_group_probe1"
+      ()
+      ~sources:[| group_probe0 |]
+  ;;
 
-    let group_probe2 =
-      Timer.Group.add_probe
-        group
-        ~name:"bench_timer_group_probe2"
-        ()
-        ~sources:[| group_probe0; group_probe1 |]
-    ;;
+  let group_probe2 =
+    Timer.Group.add_probe
+      group
+      ~name:"bench_timer_group_probe2"
+      ()
+      ~sources:[| group_probe0; group_probe1 |]
+  ;;
 
-    let () =
-      Timer.record group_probe0;
-      Timer.record group_probe1;
-      Timer.record group_probe2
-    ;;
+  let () =
+    Timer.record group_probe0;
+    Timer.record group_probe1;
+    Timer.record group_probe2
+  ;;
 
-    let%bench "at" = Timer.record timer
-    let%bench "group_probe_at (0 sources)" = Timer.record group_probe0
-    let%bench "group_probe_at (1 sources)" = Timer.record group_probe1
-    let%bench "group_probe_at (2 sources)" = Timer.record group_probe2
-    let group2 = Timer.Group.create ~name:"bench_timer_group2"
-    let%bench "group_reset" = Timer.Group.reset group2
-    let () = internal_disable_print := true
-  end)
-;;
+  let%bench "at" = Timer.record timer
+  let%bench "group_probe_at (0 sources)" = Timer.record group_probe0
+  let%bench "group_probe_at (1 sources)" = Timer.record group_probe1
+  let%bench "group_probe_at (2 sources)" = Timer.record group_probe2
+  let group2 = Timer.Group.create ~name:"bench_timer_group2"
+  let%bench "group_reset" = Timer.Group.reset group2
+  let () = internal_disable_print := true
+end
 
 module Probe = struct
   (* A probe doesn't need to know its name, so we can save an indirection. *)
@@ -410,43 +408,41 @@ module Probe = struct
   end
 end
 
-let%bench_module "Probe" =
-  (module struct
-    let probe = Probe.create ~name:"bench_probe" ~units:Profiler_units.Seconds
-    let group = Probe.Group.create ~name:"bench_probe_group" ~units:Profiler_units.Words
-    let group_probe0 = Probe.Group.add_probe group ~name:"bench_probe_group_probe0" ()
+module%bench Probe = struct
+  let probe = Probe.create ~name:"bench_probe" ~units:Profiler_units.Seconds
+  let group = Probe.Group.create ~name:"bench_probe_group" ~units:Profiler_units.Words
+  let group_probe0 = Probe.Group.add_probe group ~name:"bench_probe_group_probe0" ()
 
-    let group_probe1 =
-      Probe.Group.add_probe
-        group
-        ~name:"bench_probe_group_probe1"
-        ~sources:[| group_probe0 |]
-        ()
-    ;;
+  let group_probe1 =
+    Probe.Group.add_probe
+      group
+      ~name:"bench_probe_group_probe1"
+      ~sources:[| group_probe0 |]
+      ()
+  ;;
 
-    let group_probe2 =
-      Probe.Group.add_probe
-        group
-        ~name:"bench_probe_group_probe2"
-        ~sources:[| group_probe0; group_probe1 |]
-        ()
-    ;;
+  let group_probe2 =
+    Probe.Group.add_probe
+      group
+      ~name:"bench_probe_group_probe2"
+      ~sources:[| group_probe0; group_probe1 |]
+      ()
+  ;;
 
-    let () =
-      Probe.record group_probe0 2;
-      Probe.record group_probe1 3;
-      Probe.record group_probe2 4
-    ;;
+  let () =
+    Probe.record group_probe0 2;
+    Probe.record group_probe1 3;
+    Probe.record group_probe2 4
+  ;;
 
-    let%bench "at" = Probe.record probe 10
-    let%bench "group_probe_at (0 sources)" = Probe.record group_probe0 5
-    let%bench "group_probe_at (1 sources)" = Probe.record group_probe1 6
-    let%bench "group_probe_at (2 sources)" = Probe.record group_probe2 7
-    let group2 = Probe.Group.create ~name:"bench_probe_group2" ~units:Profiler_units.Int
-    let%bench "group_reset" = Probe.Group.reset group2
-    let () = internal_disable_print := true
-  end)
-;;
+  let%bench "at" = Probe.record probe 10
+  let%bench "group_probe_at (0 sources)" = Probe.record group_probe0 5
+  let%bench "group_probe_at (1 sources)" = Probe.record group_probe1 6
+  let%bench "group_probe_at (2 sources)" = Probe.record group_probe2 7
+  let group2 = Probe.Group.create ~name:"bench_probe_group2" ~units:Profiler_units.Int
+  let%bench "group_reset" = Probe.Group.reset group2
+  let () = internal_disable_print := true
+end
 
 (* stateless Delta_timer does not support pausing *)
 module Delta_timer = struct
@@ -557,45 +553,41 @@ module Delta_timer = struct
    *   | Error ex -> Exn.reraise ex "Core_profiler Delta_timer.wrap_async" *)
 end
 
-let%bench_module "Delta_timer" =
-  (module struct
-    let delta = Delta_timer.create ~name:"unittest"
-    let started = Delta_timer.stateless_start delta
-    let%bench "stateless_start" = Delta_timer.stateless_start delta
-    let%bench "stateless_stop" = Delta_timer.stateless_stop delta started
-    let%bench "start" = Delta_timer.start delta
-    let%bench "stop" = Delta_timer.stop delta
-    let () = internal_disable_print := true
-  end)
-;;
+module%bench Delta_timer = struct
+  let delta = Delta_timer.create ~name:"unittest"
+  let started = Delta_timer.stateless_start delta
+  let%bench "stateless_start" = Delta_timer.stateless_start delta
+  let%bench "stateless_stop" = Delta_timer.stateless_stop delta started
+  let%bench "start" = Delta_timer.start delta
+  let%bench "stop" = Delta_timer.stop delta
+  let () = internal_disable_print := true
+end
 
-let%bench_module "Delta_timer.wrap_sync" =
-  (module struct
-    let nop () = ()
+module%bench [@name "Delta_timer.wrap_sync"] _ = struct
+  let nop () = ()
 
-    let wrapped_nop =
-      let delta = Delta_timer.create ~name:"nop" in
-      Delta_timer.wrap_sync delta nop
-    ;;
+  let wrapped_nop =
+    let delta = Delta_timer.create ~name:"nop" in
+    Delta_timer.wrap_sync delta nop
+  ;;
 
-    let count_256 () =
-      for _ = 1 to 256 do
-        ()
-      done
-    ;;
+  let count_256 () =
+    for _ = 1 to 256 do
+      ()
+    done
+  ;;
 
-    let wrapped_count_256 =
-      let delta = Delta_timer.create ~name:"count_256" in
-      Delta_timer.wrap_sync delta count_256
-    ;;
+  let wrapped_count_256 =
+    let delta = Delta_timer.create ~name:"count_256" in
+    Delta_timer.wrap_sync delta count_256
+  ;;
 
-    let%bench "nop" = nop ()
-    let%bench "wrapped_nop" = wrapped_nop ()
-    let%bench "count_256" = count_256 ()
-    let%bench "wrapped_count_256" = wrapped_count_256 ()
-    let () = internal_disable_print := true
-  end)
-;;
+  let%bench "nop" = nop ()
+  let%bench "wrapped_nop" = wrapped_nop ()
+  let%bench "count_256" = count_256 ()
+  let%bench "wrapped_count_256" = wrapped_count_256 ()
+  let () = internal_disable_print := true
+end
 
 (* stateless Delta_probe does not support pausing *)
 module Delta_probe = struct
@@ -637,14 +629,12 @@ module Delta_probe = struct
   ;;
 end
 
-let%bench_module "Delta_probe" =
-  (module struct
-    let delta = Delta_probe.create ~name:"unittest" ~units:Profiler_units.Int
-    let started = Delta_probe.stateless_start delta 123
-    let%bench "start" = Delta_probe.start delta 123
-    let%bench "stop" = Delta_probe.stop delta 456
-    let%bench "start_async" = Delta_probe.stateless_start delta 123
-    let%bench "stop_async" = Delta_probe.stateless_stop delta started 456
-    let () = internal_disable_print := true
-  end)
-;;
+module%bench Delta_probe = struct
+  let delta = Delta_probe.create ~name:"unittest" ~units:Profiler_units.Int
+  let started = Delta_probe.stateless_start delta 123
+  let%bench "start" = Delta_probe.start delta 123
+  let%bench "stop" = Delta_probe.stop delta 456
+  let%bench "start_async" = Delta_probe.stateless_start delta 123
+  let%bench "stop_async" = Delta_probe.stateless_stop delta started 456
+  let () = internal_disable_print := true
+end
