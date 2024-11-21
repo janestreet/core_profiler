@@ -66,23 +66,21 @@ module Timer = struct
   end
 end
 
-let%bench_module "Timer" =
-  (module struct
-    let () = Profiler.configure () ~don't_require_core_profiler_env:()
-    let timer = Timer.create ~name:"bench_timer"
+module%bench Timer = struct
+  let () = Profiler.configure () ~don't_require_core_profiler_env:()
+  let timer = Timer.create ~name:"bench_timer"
 
-    (* let group = Timer.Group.create "bench_timer_group" ()
+  (* let group = Timer.Group.create "bench_timer_group" ()
    * let group_probe = Timer.Group.add_probe group "bench_timer_group_probe" *)
 
-    let%bench "at" = Timer.record timer
+  let%bench "at" = Timer.record timer
 
-    (* BENCH "group_probe_at" = Timer.Group.Probe.at group_probe
+  (* BENCH "group_probe_at" = Timer.Group.Probe.at group_probe
    *
    * BENCH "group_reset" = Timer.Group.reset group *)
 
-    let () = Protocol.Writer.set_at_exit_handler `Disable
-  end)
-;;
+  let () = Protocol.Writer.set_at_exit_handler `Disable
+end
 
 module Probe = struct
   type probe = Probe_id.t
@@ -123,23 +121,21 @@ module Probe = struct
   end
 end
 
-let%bench_module "Probe" =
-  (module struct
-    let () = Profiler.configure () ~don't_require_core_profiler_env:()
-    let timer = Probe.create ~name:"bench_probe" ~units:Profiler_units.Seconds
+module%bench Probe = struct
+  let () = Profiler.configure () ~don't_require_core_profiler_env:()
+  let timer = Probe.create ~name:"bench_probe" ~units:Profiler_units.Seconds
 
-    (* let group = Probe.Group.create "bench_probe_group" Profiler_units.Int
+  (* let group = Probe.Group.create "bench_probe_group" Profiler_units.Int
    * let group_probe = Probe.Group.add_probe group "bench_probe_group_probe" *)
 
-    let%bench "at" = Probe.record timer 19827312
+  let%bench "at" = Probe.record timer 19827312
 
-    (* BENCH "group_probe_at" = Probe.Group.Probe.at group_probe 123812
+  (* BENCH "group_probe_at" = Probe.Group.Probe.at group_probe 123812
    *
    * BENCH "group_reset" = Probe.Group.reset group *)
 
-    let () = Protocol.Writer.set_at_exit_handler `Disable
-  end)
-;;
+  let () = Protocol.Writer.set_at_exit_handler `Disable
+end
 
 module Delta_timer = struct
   type state = Time_ns.t
@@ -260,45 +256,41 @@ module Delta_timer = struct
    *   | Error ex -> Exn.reraise ex "Core_profiler Delta_timer.wrap_async" *)
 end
 
-let%bench_module "Delta_timer" =
-  (module struct
-    let () = Profiler.configure () ~don't_require_core_profiler_env:()
-    let delta = Delta_timer.create ~name:"unittest"
-    let started = Delta_timer.stateless_start delta
-    let%bench "start_async" = Delta_timer.stateless_start delta
-    let%bench "stop_async" = Delta_timer.stateless_stop delta started
-    let%bench "start" = Delta_timer.start delta
-    let%bench "stop" = Delta_timer.stop delta
-  end)
-;;
+module%bench Delta_timer = struct
+  let () = Profiler.configure () ~don't_require_core_profiler_env:()
+  let delta = Delta_timer.create ~name:"unittest"
+  let started = Delta_timer.stateless_start delta
+  let%bench "start_async" = Delta_timer.stateless_start delta
+  let%bench "stop_async" = Delta_timer.stateless_stop delta started
+  let%bench "start" = Delta_timer.start delta
+  let%bench "stop" = Delta_timer.stop delta
+end
 
-let%bench_module "Delta_timer.wrap_sync" =
-  (module struct
-    let () = Profiler.configure () ~don't_require_core_profiler_env:()
-    let nop () = ()
+module%bench [@name "Delta_timer.wrap_sync"] _ = struct
+  let () = Profiler.configure () ~don't_require_core_profiler_env:()
+  let nop () = ()
 
-    let wrapped_nop =
-      let delta = Delta_timer.create ~name:"nop" in
-      Delta_timer.wrap_sync delta nop
-    ;;
+  let wrapped_nop =
+    let delta = Delta_timer.create ~name:"nop" in
+    Delta_timer.wrap_sync delta nop
+  ;;
 
-    let count_256 () =
-      for _ = 1 to 256 do
-        ()
-      done
-    ;;
+  let count_256 () =
+    for _ = 1 to 256 do
+      ()
+    done
+  ;;
 
-    let wrapped_count_256 =
-      let delta = Delta_timer.create ~name:"count_256" in
-      Delta_timer.wrap_sync delta count_256
-    ;;
+  let wrapped_count_256 =
+    let delta = Delta_timer.create ~name:"count_256" in
+    Delta_timer.wrap_sync delta count_256
+  ;;
 
-    let%bench "nop" = nop ()
-    let%bench "wrapped_nop" = wrapped_nop ()
-    let%bench "count_256" = count_256 ()
-    let%bench "wrapped_count_256" = wrapped_count_256 ()
-  end)
-;;
+  let%bench "nop" = nop ()
+  let%bench "wrapped_nop" = wrapped_nop ()
+  let%bench "count_256" = count_256 ()
+  let%bench "wrapped_count_256" = wrapped_count_256 ()
+end
 
 (* stateless Delta_probe does not support pausing *)
 module Delta_probe = struct
@@ -328,14 +320,12 @@ module Delta_probe = struct
   ;;
 end
 
-let%bench_module "Delta_probe" =
-  (module struct
-    let () = Profiler.configure () ~don't_require_core_profiler_env:()
-    let delta = Delta_probe.create ~name:"unittest" ~units:Profiler_units.Int
-    let started = Delta_probe.stateless_start delta 123
-    let%bench "start" = Delta_probe.start delta 123
-    let%bench "stop" = Delta_probe.stop delta 456
-    let%bench "start_async" = Delta_probe.stateless_start delta 123
-    let%bench "stop_async" = Delta_probe.stateless_stop delta started 456
-  end)
-;;
+module%bench Delta_probe = struct
+  let () = Profiler.configure () ~don't_require_core_profiler_env:()
+  let delta = Delta_probe.create ~name:"unittest" ~units:Profiler_units.Int
+  let started = Delta_probe.stateless_start delta 123
+  let%bench "start" = Delta_probe.start delta 123
+  let%bench "stop" = Delta_probe.stop delta 456
+  let%bench "start_async" = Delta_probe.stateless_start delta 123
+  let%bench "stop_async" = Delta_probe.stateless_stop delta started 456
+end

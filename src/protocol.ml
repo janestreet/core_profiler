@@ -84,19 +84,17 @@ end = struct
     let%test_unit "256 100_000" = test 256 1405085600000100000L
   end
 
-  let%bench_module "Short message header packing" =
-    (module struct
-      let epoch =
-        Profiler_epoch.of_time
-          (Time_ns.of_int_ns_since_epoch (Int64.to_int_exn 1405085600000000000L))
-      ;;
+  module%bench [@name "Short message header packing"] _ = struct
+    let epoch =
+      Profiler_epoch.of_time
+        (Time_ns.of_int_ns_since_epoch (Int64.to_int_exn 1405085600000000000L))
+    ;;
 
-      let id = Probe_id.of_int_exn 123
-      let time = Time_ns.of_int_ns_since_epoch (Int64.to_int_exn 1405085600123123000L)
-      let%bench "pack_exn" = ignore (pack_exn epoch id time : int)
-      let%bench "pack_unsafe" = ignore (pack_unsafe epoch id time : int)
-    end)
-  ;;
+    let id = Probe_id.of_int_exn 123
+    let time = Time_ns.of_int_ns_since_epoch (Int64.to_int_exn 1405085600123123000L)
+    let%bench "pack_exn" = ignore (pack_exn epoch id time : int)
+    let%bench "pack_unsafe" = ignore (pack_unsafe epoch id time : int)
+  end
 end
 
 module Buffer : sig

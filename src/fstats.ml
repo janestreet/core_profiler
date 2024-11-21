@@ -171,9 +171,7 @@ module%test Fstats = struct
   ;;
 end
 
-let%bench_module "Fstats" =
-  (module struct
-    let stats = create ()
-    let%bench "update_in_place" = update_in_place stats 5.
-  end)
-;;
+module%bench Fstats = struct
+  let stats = create ()
+  let%bench "update_in_place" = update_in_place stats 5.
+end
