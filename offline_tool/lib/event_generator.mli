@@ -30,10 +30,9 @@ type event =
 
 val event_time : event -> Time_ns.t
 
-(** A [t] emits (via [iter_events]) all [event]s that match the list of
-    raw interests provided. The source of the event is identified
-    by passing the raw interest inside the [event]; interests are hashable
-    and comparable. *)
+(** A [t] emits (via [iter_events]) all [event]s that match the list of raw interests
+    provided. The source of the event is identified by passing the raw interest inside the
+    [event]; interests are hashable and comparable. *)
 val create
   :  Profiler_epoch.t
   -> Reader.Header.t

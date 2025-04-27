@@ -26,7 +26,7 @@ val iter_events_interests
   -> f:(Event_generator.event -> Probe_id.t Interest.t -> unit)
   -> unit
 
-(** All raw interests the filter is (currently) interested in receiving events for.
-    In the basic case, you'll want to construct a [t] (a filter), and then build a
+(** All raw interests the filter is (currently) interested in receiving events for. In the
+    basic case, you'll want to construct a [t] (a filter), and then build a
     [Event_generator.t] using the raw interests specified by this function. *)
 val raw_interests : [> read ] t -> Probe_id.t Interest.Raw.t list

@@ -1,5 +1,5 @@
 (** Units for the measurements made by [Core_profiler], used to get better output
-    formatting.  This has no performance implications. *)
+    formatting. This has no performance implications. *)
 
 open! Core
 

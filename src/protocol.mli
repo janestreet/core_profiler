@@ -5,21 +5,19 @@ val set_current_output_filename : string -> unit
 
 (** Packs [Probe_id.t] and [Time_ns.t] into a single [int]. *)
 module Short_header : sig
-  (** The goal of [Short_header] is to pack a [Timer.record] into one word
-      (we want to write an integer number of words for alignment, and don't
-      want to pay for the size or time of writing a second word if we don't
-      have to).
+  (** The goal of [Short_header] is to pack a [Timer.record] into one word (we want to
+      write an integer number of words for alignment, and don't want to pay for the size
+      or time of writing a second word if we don't have to).
 
-      A short header "contains" an [Probe_id.t] and a [Time_ns.t].
-      A short header is a single word / integer; we have 63 bits to play with.
-      The 9 most significant bits contain [Probe_id.to_int_exn]; the remaining 54 bits
-      contain a time, stored as a number of nanoseconds from some [Profiler_epoch.t]
-      (the epoch is written into the header; see [Writer.write_epoch]).
+      A short header "contains" an [Probe_id.t] and a [Time_ns.t]. A short header is a
+      single word / integer; we have 63 bits to play with. The 9 most significant bits
+      contain [Probe_id.to_int_exn]; the remaining 54 bits contain a time, stored as a
+      number of nanoseconds from some [Profiler_epoch.t] (the epoch is written into the
+      header; see [Writer.write_epoch]).
 
-      2 ** 54 nanoseconds is approximately 208 days.
-      The epoch is set to equal a little before now when OCaml starts up, so the header
-      should continue to work for ~208 days after that.
-  *)
+      2 ** 54 nanoseconds is approximately 208 days. The epoch is set to equal a little
+      before now when OCaml starts up, so the header should continue to work for ~208 days
+      after that. *)
 
   val id_bits : int
   val time_bits : int
@@ -37,9 +35,8 @@ module Buffer : sig
   val get_header_chunk : unit -> (read, _) Iobuf.t
   val ensure_free : int -> unit
 
-  (** All of these will push the current chunk into the list of
-      previous chunks first; a new chunk will then be allocated on the next
-      write. *)
+  (** All of these will push the current chunk into the list of previous chunks first; a
+      new chunk will then be allocated on the next write. *)
 
   (** Is the main (short message) buffer empty? *)
   val is_empty : unit -> bool
@@ -53,8 +50,8 @@ module Buffer : sig
 end
 
 (** The [Writer] module contains functions that invoke parts of [Header_protocol] and
-    [Short_header] in order to write into the relevant (global variable) buffers
-    in [Buffer] *)
+    [Short_header] in order to write into the relevant (global variable) buffers in
+    [Buffer] *)
 module Writer : sig
   val epoch : Profiler_epoch.t
   val max_time : Time_ns.t
@@ -78,9 +75,9 @@ module Writer : sig
   val write_group_reset : Probe_id.t -> Time_ns.t -> unit
   val dump_stats : unit -> unit
 
-  (** Choose what to do with the in memory stats data at exit.
-      The handler function is passed the header chunk and the list of data chunks.
-      Defaults to [`Write_file "stats.dat"]. *)
+  (** Choose what to do with the in memory stats data at exit. The handler function is
+      passed the header chunk and the list of data chunks. Defaults to
+      [`Write_file "stats.dat"]. *)
   val set_at_exit_handler
     :  [ `Write_file of string
        | `Function of

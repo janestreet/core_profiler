@@ -1,6 +1,6 @@
 (** This module is basically copied straight from [Jane.Rstats], however:
-      - [decay] removed (to avoid Option.value branch in [update_in_place])
-      - [update_in_place] optimised so that it doesn't allocate (see below)
+    - [decay] removed (to avoid Option.value branch in [update_in_place])
+    - [update_in_place] optimised so that it doesn't allocate (see below)
 
     This copy can be killed when the original is available publicly. *)
 

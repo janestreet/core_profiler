@@ -17,14 +17,13 @@ val add_slow_task : t -> (unit -> unit) -> unit
     300ns spike.
 
     We _really_ don't want this in [Group.Point.at]s and [Delta_probe.start]s
-    (reluctance:4) since the spike would be included in the calculation of a delta.  We'd
+    (reluctance:4) since the spike would be included in the calculation of a delta. We'd
     rather not on [Timer.record]s (r:3) since they are more liable to be in the middle of
-    something performance sensitive.  We're slightly more happy to calibrate after a
+    something performance sensitive. We're slightly more happy to calibrate after a
     [Group.reset] (r:2), but ideally want to calibrate on a call to [safe_to_delay] (r:1;
     lowest).
 
-    Here [t] specifies the kind of slow tasks to run if the reluctance has been overcome.
-*)
+    Here [t] specifies the kind of slow tasks to run if the reluctance has been overcome. *)
 val now : t -> reluctance:int -> unit -> Time_ns.t
 
 val maybe_do_slow_tasks : t -> reluctance:int -> unit
