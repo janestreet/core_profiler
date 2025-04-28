@@ -6,19 +6,17 @@ open Core_profiler
     convenience when checking the path.
 
     In a path, we might demand that we go from A -> B directly, or A -> B possibly via
-    some other points. This is represented as  [{ first = Direct_point a; last = b; ... }]
+    some other points. This is represented as [{ first = Direct_point a; last = b; ... }]
     and [{ first = Point a; last = b; ... }] respectively; that is, whether or not it must
     go directly is stored on the source, not the destination.
 
-    A final example:
-      [{ first = Point a; middle_rev = [Direct_point b]; last = c }]
+    A final example: [{ first = Point a; middle_rev = [Direct_point b]; last = c }]
     matches any sequence of points that starts at a, goes (possibly via some other
     distinct points) to b, and then directly from b to c.
 
     This and the [Event_generator.t] do not have the full power of regular expressions
-    Notably, the same point may not appear in a path twice, except for when its
-    second appearance is the last point in the path.
-*)
+    Notably, the same point may not appear in a path twice, except for when its second
+    appearance is the last point in the path. *)
 
 type 'a point =
   | Direct_point of 'a

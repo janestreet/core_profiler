@@ -22,8 +22,7 @@
     │ [offline.ml:Delta_probe] start_async                 │   2.44ns │      1.38% │
     │ [offline.ml:Delta_probe] stop_async                  │  22.20ns │     12.54% │
     └──────────────────────────────────────────────────────┴──────────┴────────────┘
-    v}
-*)
+    v} *)
 
 open! Core
 

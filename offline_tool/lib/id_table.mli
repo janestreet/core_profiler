@@ -1,17 +1,16 @@
 open! Core
 open Core_profiler
 
-(** An [Id_table.t] exploits the fact that [Probe_id.t]s should be consecutive integers
-    to make lookups fast *)
+(** An [Id_table.t] exploits the fact that [Probe_id.t]s should be consecutive integers to
+    make lookups fast *)
 (* Perhaps this would be far simpler if we used separate Id spaces for each type
    (with a couple of type bits for the header?) *)
 
 type ('a, +'rw) t
 
-(** To create a table you need to specify which [Probe_id.t]s are valid cells, and give an empty
-    value.
-    This can either be in the form of a list of [Probe_id.t]s, or by copying the list from
-    another [Id_table.t] (whose cell contents are ignored) *)
+(** To create a table you need to specify which [Probe_id.t]s are valid cells, and give an
+    empty value. This can either be in the form of a list of [Probe_id.t]s, or by copying
+    the list from another [Id_table.t] (whose cell contents are ignored) *)
 val create : Probe_id.t list -> 'a -> ('a, _) t
 
 val create' : (_, _) t -> 'a -> ('a, _) t
