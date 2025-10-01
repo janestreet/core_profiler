@@ -8,11 +8,13 @@ let module_name = __MODULE__
 let padding = ' '
 let _ = padding
 
-type ('ty, -'rw) t = ('rw, Iobuf.no_seek) Iobuf.t constraint 'rw = [> read ]
+type ('ty, -'rw) t = ('rw, Iobuf.no_seek, Iobuf.global) Iobuf.Generic.t
+  constraint 'rw = [> read ]
+
 type ('ty, 'rw) message = ('ty, 'rw) t
 type ('ty, 'rw) t_no_exn = ('ty, 'rw) t
 
-let globalize t = Iobuf.globalize0 t
+let globalize t = Iobuf.globalize_shared t
 
 module R = struct
   type 'message t =
@@ -167,7 +169,7 @@ module New_single = struct
 
   let message_type = 'N'
   let buffer_length = 69
-  let globalize t = Iobuf.globalize0 t
+  let globalize t = Iobuf.globalize_shared t
   let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.New_single
   let of_iobuf_local_exn buf = of_iobuf_local_exn buf Message_type_and_errors.New_single
 
@@ -362,7 +364,7 @@ module New_group = struct
 
   let message_type = 'P'
   let buffer_length = 69
-  let globalize t = Iobuf.globalize0 t
+  let globalize t = Iobuf.globalize_shared t
   let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.New_group
   let of_iobuf_local_exn buf = of_iobuf_local_exn buf Message_type_and_errors.New_group
 
@@ -557,7 +559,7 @@ module New_group_point = struct
 
   let message_type = 'O'
   let buffer_length ~sources_count = 72 + (2 * sources_count)
-  let globalize t = Iobuf.globalize0 t
+  let globalize t = Iobuf.globalize_shared t
   let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.New_group_point
 
   let of_iobuf_local_exn buf =
@@ -806,7 +808,7 @@ module End_of_header = struct
 
   let message_type = 'Z'
   let buffer_length = 2
-  let globalize t = Iobuf.globalize0 t
+  let globalize t = Iobuf.globalize_shared t
   let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.End_of_header
 
   let of_iobuf_local_exn buf =
@@ -879,7 +881,7 @@ module Epoch = struct
 
   let message_type = 'E'
   let buffer_length = 10
-  let globalize t = Iobuf.globalize0 t
+  let globalize t = Iobuf.globalize_shared t
   let of_iobuf_exn buf = of_iobuf_exn buf Message_type_and_errors.Epoch
   let of_iobuf_local_exn buf = of_iobuf_local_exn buf Message_type_and_errors.Epoch
 
