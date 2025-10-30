@@ -39,7 +39,7 @@ type t =
   ; point_state : (point_state, read) Id_table.t
       (* Interests at this point, or interests in paths ending at this point. *)
   ; interests : (Probe_id.t Interest.Raw.t array, read) Id_table.t
-  ; buffer : (read, Iobuf.no_seek) Iobuf.t
+  ; buffer : (read, Iobuf.no_seek, Iobuf.global) Iobuf.t
   }
 
 type timer_path =

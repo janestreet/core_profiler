@@ -32,7 +32,7 @@ end
 
 (** Handles allocating [Iobuf.t] and making sure there's enough space in it. *)
 module Buffer : sig
-  val get_header_chunk : unit -> (read, _) Iobuf.t
+  val get_header_chunk : unit -> (read, _, Iobuf.global) Iobuf.t
   val ensure_free : int -> unit
 
   (** All of these will push the current chunk into the list of previous chunks first; a
@@ -41,7 +41,7 @@ module Buffer : sig
   (** Is the main (short message) buffer empty? *)
   val is_empty : unit -> bool
 
-  val get_chunks : unit -> (read_write, Iobuf.no_seek) Iobuf.t list
+  val get_chunks : unit -> (read_write, Iobuf.no_seek, Iobuf.global) Iobuf.t list
 
   (** To aid producing test cases for Reader. *)
   module Unsafe_internals : sig
@@ -81,7 +81,9 @@ module Writer : sig
   val set_at_exit_handler
     :  [ `Write_file of string
        | `Function of
-         (read, Iobuf.no_seek) Iobuf.t -> (read, Iobuf.no_seek) Iobuf.t list -> unit
+         (read, Iobuf.no_seek, Iobuf.global) Iobuf.t
+         -> (read, Iobuf.no_seek, Iobuf.global) Iobuf.t list
+         -> unit
        | `Disable
        ]
     -> unit

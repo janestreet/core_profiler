@@ -99,16 +99,16 @@ end
 
 module Buffer : sig
   (* read_write buffers are exposed to Writer *)
-  val header_chunk : (read_write, _) Iobuf.t Lazy.t
-  val current_chunk : (read_write, _) Iobuf.t
+  val header_chunk : (read_write, _, Iobuf.global) Iobuf.t Lazy.t
+  val current_chunk : (read_write, _, Iobuf.global) Iobuf.t
 
   (* These are public: *)
 
   (** Is the main (short message) buffer empty? *)
   val is_empty : unit -> bool
 
-  val get_chunks : unit -> (read_write, Iobuf.no_seek) Iobuf.t list
-  val get_header_chunk : unit -> (read, _) Iobuf.t
+  val get_chunks : unit -> (read_write, Iobuf.no_seek, Iobuf.global) Iobuf.t list
+  val get_header_chunk : unit -> (read, _, Iobuf.global) Iobuf.t
   val ensure_free : int -> unit
 
   module Unsafe_internals : sig
@@ -125,7 +125,7 @@ end = struct
     then (
       Iobuf.set_bounds_and_buffer ~src:(Lazy.force header_chunk) ~dst:copy;
       Iobuf.flip_lo copy);
-    (copy :> (read, _) Iobuf.t)
+    (copy :> (read, _, Iobuf.global) Iobuf.t)
   ;;
 
   (* Iobufs are mutable to the extent that you can swap the pointer to the underlying
@@ -405,7 +405,9 @@ module Writer = struct
     let chunks = Buffer.get_chunks () in
     if not (List.is_empty chunks)
     then
-      handler (Buffer.get_header_chunk ()) (chunks :> (read, Iobuf.no_seek) Iobuf.t list)
+      handler
+        (Buffer.get_header_chunk ())
+        (chunks :> (read, Iobuf.no_seek, Iobuf.global) Iobuf.t list)
   ;;
 
   let dump_stats () =
