@@ -8,9 +8,7 @@ let module_name = __MODULE__
 let padding = ' '
 let _ = padding
 
-type ('ty, -'rw) t = ('rw, Iobuf.no_seek, Iobuf.global) Iobuf.Generic.t
-  constraint 'rw = [> read ]
-
+type ('ty, -'rw) t = ('rw, Iobuf.no_seek, Iobuf.global) Iobuf.t constraint 'rw = [> read ]
 type ('ty, 'rw) message = ('ty, 'rw) t
 type ('ty, 'rw) t_no_exn = ('ty, 'rw) t
 

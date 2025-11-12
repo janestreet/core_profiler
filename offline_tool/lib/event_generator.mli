@@ -37,7 +37,7 @@ val create
   :  Profiler_epoch.t
   -> Reader.Header.t
   -> Probe_id.t Interest.Raw.t list
-  -> ([> read ], _) Iobuf.t
+  -> ([> read ], _, Iobuf.global) Iobuf.t
   -> t
 
 val iter_events : t -> f:(event -> unit) -> unit

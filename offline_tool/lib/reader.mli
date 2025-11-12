@@ -61,7 +61,9 @@ module Header : sig
     -> ('a, _) Id_table.t
 end
 
-val consume_header : ([> read ], Iobuf.seek) Iobuf.t -> Profiler_epoch.t * Header.t
+val consume_header
+  :  ([> read ], Iobuf.seek, Iobuf.global) Iobuf.t
+  -> Profiler_epoch.t * Header.t
 
 module Short_message : sig
   module Header : module type of Core_profiler.Protocol.Short_header
@@ -76,13 +78,13 @@ module Short_message : sig
 end
 
 val consume_short_message
-  :  ([> read ], Iobuf.seek) Iobuf.t
+  :  ([> read ], Iobuf.seek, Iobuf.global) Iobuf.t
   -> Profiler_epoch.t
   -> Header.t
   -> Short_message.t
 
 val fold_short_messages
-  :  ([> read ], _) Iobuf.t
+  :  ([> read ], _, Iobuf.global) Iobuf.t
   -> Profiler_epoch.t
   -> Header.t
   -> init:'accum
@@ -90,17 +92,17 @@ val fold_short_messages
   -> 'accum
 
 val iter_short_messages
-  :  ([> read ], _) Iobuf.t
+  :  ([> read ], _, Iobuf.global) Iobuf.t
   -> Profiler_epoch.t
   -> Header.t
   -> f:(Short_message.t -> unit)
   -> unit
 
 val iteri_short_messages
-  :  ([> read ], _) Iobuf.t
+  :  ([> read ], _, Iobuf.global) Iobuf.t
   -> Profiler_epoch.t
   -> Header.t
   -> f:(int -> Short_message.t -> unit)
   -> unit
 
-val map_file : string -> (read, _) Iobuf.t
+val map_file : string -> (read, _, Iobuf.global) Iobuf.t
