@@ -145,7 +145,7 @@ let[@inline] get_message_type buf =
 ;;
 
 let[@inline] of_iobuf buf ~trusted:_ = Iobuf.no_seek buf
-let[@inline] of_iobuf_local buf ~trusted:_ = Iobuf.no_seek__local buf
+let[@inline] of_iobuf_local buf ~trusted:_ = (Iobuf.no_seek [@mode local]) buf
 
 let[@inline] of_iobuf_exn buf ty =
   let (Message_type_and_errors.T mt) = get_message_type buf in
@@ -220,7 +220,7 @@ module New_single = struct
   ;;
 
   let get_name_zero_local_result buf f =
-    let buf = Iobuf.read_only__local buf in
+    let buf = (Iobuf.read_only [@mode local]) buf in
     let pos = 5 in
     let len = ref 64 in
     while
@@ -232,7 +232,7 @@ module New_single = struct
   ;;
 
   let get_name_zero_local buf f =
-    let buf = Iobuf.read_only__local buf in
+    let buf = (Iobuf.read_only [@mode local]) buf in
     let pos = 5 in
     let len = ref 64 in
     while
@@ -256,13 +256,13 @@ module New_single = struct
   ;;
 
   let get_name_zero_padded_local_result buf f =
-    let buf = Iobuf.read_only__local buf in
+    let buf = (Iobuf.read_only [@mode local]) buf in
     let pos = 5 in
     f buf ~safe_pos:pos ~safe_len:64 [@nontail]
   ;;
 
   let get_name_zero_padded_local buf f =
-    let buf = Iobuf.read_only__local buf in
+    let buf = (Iobuf.read_only [@mode local]) buf in
     let pos = 5 in
     f buf ~safe_pos:pos ~safe_len:64 [@nontail]
   ;;
@@ -316,7 +316,10 @@ module New_single = struct
   ;;
 
   let to_sub_iobuf t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
-  let to_sub_iobuf_local t = Iobuf.sub_shared__local t ~len:(get_message_length t + 0)
+
+  let to_sub_iobuf_local t =
+    (Iobuf.sub_shared [@mode local]) t ~len:(get_message_length t + 0)
+  ;;
 
   module Unpacked = struct
     type t =
@@ -415,7 +418,7 @@ module New_group = struct
   ;;
 
   let get_name_zero_local_result buf f =
-    let buf = Iobuf.read_only__local buf in
+    let buf = (Iobuf.read_only [@mode local]) buf in
     let pos = 5 in
     let len = ref 64 in
     while
@@ -427,7 +430,7 @@ module New_group = struct
   ;;
 
   let get_name_zero_local buf f =
-    let buf = Iobuf.read_only__local buf in
+    let buf = (Iobuf.read_only [@mode local]) buf in
     let pos = 5 in
     let len = ref 64 in
     while
@@ -451,13 +454,13 @@ module New_group = struct
   ;;
 
   let get_name_zero_padded_local_result buf f =
-    let buf = Iobuf.read_only__local buf in
+    let buf = (Iobuf.read_only [@mode local]) buf in
     let pos = 5 in
     f buf ~safe_pos:pos ~safe_len:64 [@nontail]
   ;;
 
   let get_name_zero_padded_local buf f =
-    let buf = Iobuf.read_only__local buf in
+    let buf = (Iobuf.read_only [@mode local]) buf in
     let pos = 5 in
     f buf ~safe_pos:pos ~safe_len:64 [@nontail]
   ;;
@@ -511,7 +514,10 @@ module New_group = struct
   ;;
 
   let to_sub_iobuf t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
-  let to_sub_iobuf_local t = Iobuf.sub_shared__local t ~len:(get_message_length t + 0)
+
+  let to_sub_iobuf_local t =
+    (Iobuf.sub_shared [@mode local]) t ~len:(get_message_length t + 0)
+  ;;
 
   module Unpacked = struct
     type t =
@@ -617,7 +623,7 @@ module New_group_point = struct
   ;;
 
   let get_name_zero_local_result buf f =
-    let buf = Iobuf.read_only__local buf in
+    let buf = (Iobuf.read_only [@mode local]) buf in
     let pos = 6 in
     let len = ref 64 in
     while
@@ -629,7 +635,7 @@ module New_group_point = struct
   ;;
 
   let get_name_zero_local buf f =
-    let buf = Iobuf.read_only__local buf in
+    let buf = (Iobuf.read_only [@mode local]) buf in
     let pos = 6 in
     let len = ref 64 in
     while
@@ -653,13 +659,13 @@ module New_group_point = struct
   ;;
 
   let get_name_zero_padded_local_result buf f =
-    let buf = Iobuf.read_only__local buf in
+    let buf = (Iobuf.read_only [@mode local]) buf in
     let pos = 6 in
     f buf ~safe_pos:pos ~safe_len:64 [@nontail]
   ;;
 
   let get_name_zero_padded_local buf f =
-    let buf = Iobuf.read_only__local buf in
+    let buf = (Iobuf.read_only [@mode local]) buf in
     let pos = 6 in
     f buf ~safe_pos:pos ~safe_len:64 [@nontail]
   ;;
@@ -739,7 +745,10 @@ module New_group_point = struct
   ;;
 
   let to_sub_iobuf t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
-  let to_sub_iobuf_local t = Iobuf.sub_shared__local t ~len:(get_message_length t + 0)
+
+  let to_sub_iobuf_local t =
+    (Iobuf.sub_shared [@mode local]) t ~len:(get_message_length t + 0)
+  ;;
 
   module Unpacked = struct
     type t_sources = { source_id : Probe_id.t } [@@deriving sexp]
@@ -841,7 +850,10 @@ module End_of_header = struct
   ;;
 
   let to_sub_iobuf t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
-  let to_sub_iobuf_local t = Iobuf.sub_shared__local t ~len:(get_message_length t + 0)
+
+  let to_sub_iobuf_local t =
+    (Iobuf.sub_shared [@mode local]) t ~len:(get_message_length t + 0)
+  ;;
 
   module Unpacked = struct
     type t =
@@ -924,7 +936,10 @@ module Epoch = struct
   ;;
 
   let to_sub_iobuf t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
-  let to_sub_iobuf_local t = Iobuf.sub_shared__local t ~len:(get_message_length t + 0)
+
+  let to_sub_iobuf_local t =
+    (Iobuf.sub_shared [@mode local]) t ~len:(get_message_length t + 0)
+  ;;
 
   module Unpacked = struct
     type t =

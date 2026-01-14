@@ -1,7 +1,4 @@
-(** For a tutorial on using [Core_profiler] please look at:
-    [http://docs/programming/performance/core_profiler.html]
-
-    This interface file defines the [Profiler_intf] interface, which has three
+(** This interface file defines the [Profiler_intf] interface, which has three
     implementations:
 
     (1) By opening [Core_profiler_disabled.Std] you get an implementation of the interface
