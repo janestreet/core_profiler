@@ -172,9 +172,9 @@ module New_single : sig
                -> 'a)
     -> 'a
 
-  val set_id : (read_write, _, Iobuf.global) Iobuf.t -> Probe_id.t -> unit
-  val set_spec : (read_write, _, Iobuf.global) Iobuf.t -> Probe_type.t -> unit
-  val set_name : (read_write, _, Iobuf.global) Iobuf.t -> string -> unit
+  val set_id : local_ (read_write, _, Iobuf.global) Iobuf.t -> Probe_id.t -> unit
+  val set_spec : local_ (read_write, _, Iobuf.global) Iobuf.t -> Probe_type.t -> unit
+  val set_name : local_ (read_write, _, Iobuf.global) Iobuf.t -> string -> unit
 
   (** [set_name_zero buf f a] calls [f] on [buf], with the window adjusted to where [name]
       is. Even though [f] is given a seekable buffer, it must move nothing except the
@@ -290,9 +290,9 @@ module New_group : sig
                -> 'a)
     -> 'a
 
-  val set_id : (read_write, _, Iobuf.global) Iobuf.t -> Probe_id.t -> unit
-  val set_spec : (read_write, _, Iobuf.global) Iobuf.t -> Probe_type.t -> unit
-  val set_name : (read_write, _, Iobuf.global) Iobuf.t -> string -> unit
+  val set_id : local_ (read_write, _, Iobuf.global) Iobuf.t -> Probe_id.t -> unit
+  val set_spec : local_ (read_write, _, Iobuf.global) Iobuf.t -> Probe_type.t -> unit
+  val set_name : local_ (read_write, _, Iobuf.global) Iobuf.t -> string -> unit
 
   (** [set_name_zero buf f a] calls [f] on [buf], with the window adjusted to where [name]
       is. Even though [f] is given a seekable buffer, it must move nothing except the
@@ -416,9 +416,9 @@ module New_group_point : sig
       or segfault. *)
   val get_sources_source_id : local_ 'rw t -> count:int -> index:int -> Probe_id.t
 
-  val set_group_id : (read_write, _, Iobuf.global) Iobuf.t -> Probe_id.t -> unit
-  val set_id : (read_write, _, Iobuf.global) Iobuf.t -> Probe_id.t -> unit
-  val set_name : (read_write, _, Iobuf.global) Iobuf.t -> string -> unit
+  val set_group_id : local_ (read_write, _, Iobuf.global) Iobuf.t -> Probe_id.t -> unit
+  val set_id : local_ (read_write, _, Iobuf.global) Iobuf.t -> Probe_id.t -> unit
+  val set_name : local_ (read_write, _, Iobuf.global) Iobuf.t -> string -> unit
 
   (** [set_name_zero buf f a] calls [f] on [buf], with the window adjusted to where [name]
       is. Even though [f] is given a seekable buffer, it must move nothing except the
@@ -437,7 +437,7 @@ module New_group_point : sig
 
   (** Beware: [count] is trusted. If it is wrong, this function could read the wrong data. *)
   val set_sources_source_id
-    :  (read_write, _, Iobuf.global) Iobuf.t
+    :  local_ (read_write, _, Iobuf.global) Iobuf.t
     -> count:int
     -> index:int
     -> Probe_id.t
@@ -520,7 +520,7 @@ module Epoch : sig
   val get_message_length : local_ _ t -> int
   val get_message_type : local_ _ t -> char
   val get_epoch : local_ _ t -> Profiler_epoch.t
-  val set_epoch : (read_write, _, Iobuf.global) Iobuf.t -> Profiler_epoch.t -> unit
+  val set_epoch : local_ (read_write, _, Iobuf.global) Iobuf.t -> Profiler_epoch.t -> unit
   val to_sub_iobuf : 'rw t -> ('rw, Iobuf.seek, Iobuf.global) Iobuf.t
   val to_sub_iobuf_local : local_ 'rw t -> local_ ('rw, Iobuf.seek, Iobuf.global) Iobuf.t
 
