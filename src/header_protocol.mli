@@ -13,7 +13,9 @@ val sexp_of_t : _ -> _ -> (_, _) t -> Sexp.t
 
 type ('hierarchy, 'rw) t_no_exn = ('hierarchy, 'rw) t
 
-val sexp_of_t_no_exn : _ -> _ -> (_, _) t_no_exn -> Sexp.t
+val%template sexp_of_t_no_exn : _ -> _ -> (_, _) t_no_exn -> Sexp.t
+[@@alloc a @ m = (heap_global, stack_local)]
+
 val backing_iobuf : (_, 'rw) t -> ('rw, Iobuf.no_seek, Iobuf.global) Iobuf.t
 val backing_iobuf_local : (_, 'rw) t -> ('rw, Iobuf.no_seek, Iobuf.global) Iobuf.t
 val globalize : ('ty, 'rw) t -> ('ty, 'rw) t
@@ -180,7 +182,7 @@ module New_single : sig
       ; spec : Probe_type.t
       ; name : string
       }
-    [@@deriving sexp]
+    [@@deriving sexp ~stackify]
 
     val num_bytes : t -> int
     val write : t -> (read_write, _, Iobuf.global) Iobuf.t -> int
@@ -280,7 +282,7 @@ module New_group : sig
       ; spec : Probe_type.t
       ; name : string
       }
-    [@@deriving sexp]
+    [@@deriving sexp ~stackify]
 
     val num_bytes : t -> int
     val write : t -> (read_write, _, Iobuf.global) Iobuf.t -> int
@@ -397,7 +399,7 @@ module New_group_point : sig
   val to_sub_iobuf_local : 'rw t -> ('rw, Iobuf.seek, Iobuf.global) Iobuf.t
 
   module Unpacked : sig
-    type t_sources = { source_id : Probe_id.t } [@@deriving sexp]
+    type t_sources = { source_id : Probe_id.t } [@@deriving sexp ~stackify]
 
     type t =
       { message_length : int
@@ -407,7 +409,7 @@ module New_group_point : sig
       ; name : string
       ; sources_grp : t_sources array
       }
-    [@@deriving sexp]
+    [@@deriving sexp ~stackify]
 
     val num_bytes : t -> int
     val write : t -> (read_write, _, Iobuf.global) Iobuf.t -> int
@@ -438,7 +440,7 @@ module End_of_header : sig
       { message_length : int
       ; message_type : char
       }
-    [@@deriving sexp]
+    [@@deriving sexp ~stackify]
 
     val num_bytes : t -> int
     val write : t -> (read_write, _, Iobuf.global) Iobuf.t -> int
@@ -472,7 +474,7 @@ module Epoch : sig
       ; message_type : char
       ; epoch : Profiler_epoch.t
       }
-    [@@deriving sexp]
+    [@@deriving sexp ~stackify]
 
     val num_bytes : t -> int
     val write : t -> (read_write, _, Iobuf.global) Iobuf.t -> int
@@ -489,7 +491,7 @@ module Unpacked : sig
     | New_group_point of New_group_point.Unpacked.t
     | End_of_header of End_of_header.Unpacked.t
     | Epoch of Epoch.Unpacked.t
-  [@@deriving sexp]
+  [@@deriving sexp ~stackify]
 
   val num_bytes : t -> int
   val message_type : t -> char
