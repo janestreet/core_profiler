@@ -8,7 +8,7 @@ type t =
   | Seconds
   | Nanoseconds
   | Int
-[@@deriving sexp, compare]
+[@@deriving sexp ~stackify, compare ~localize]
 
 val to_string : t -> string
 val of_string : string -> t

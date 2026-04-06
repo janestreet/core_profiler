@@ -6,7 +6,7 @@ type t =
   | Seconds
   | Nanoseconds
   | Int
-[@@deriving sexp, compare]
+[@@deriving sexp ~stackify, compare ~localize]
 
 let to_string t = t |> [%sexp_of: t] |> Sexp.to_string
 let of_string str = str |> Sexp.of_string |> [%of_sexp: t]

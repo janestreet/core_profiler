@@ -9,7 +9,7 @@
 
 open! Core
 
-type t [@@deriving sexp]
+type t [@@deriving sexp ~stackify]
 
 val of_time : Time_ns.t -> t
 val to_time : t -> Time_ns.t

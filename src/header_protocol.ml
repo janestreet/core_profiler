@@ -335,7 +335,7 @@ module New_single = struct
       ; spec : Probe_type.t
       ; name : string
       }
-    [@@deriving sexp]
+    [@@deriving sexp ~stackify]
 
     let num_bytes t = t.message_length + 0
 
@@ -536,7 +536,7 @@ module New_group = struct
       ; spec : Probe_type.t
       ; name : string
       }
-    [@@deriving sexp]
+    [@@deriving sexp ~stackify]
 
     let num_bytes t = t.message_length + 0
 
@@ -760,7 +760,7 @@ module New_group_point = struct
   ;;
 
   module Unpacked = struct
-    type t_sources = { source_id : Probe_id.t } [@@deriving sexp]
+    type t_sources = { source_id : Probe_id.t } [@@deriving sexp ~stackify]
 
     type t =
       { message_length : int
@@ -770,7 +770,7 @@ module New_group_point = struct
       ; name : string
       ; sources_grp : t_sources array
       }
-    [@@deriving sexp]
+    [@@deriving sexp ~stackify]
 
     let num_bytes t = t.message_length + 0
 
@@ -869,7 +869,7 @@ module End_of_header = struct
       { message_length : int
       ; message_type : char
       }
-    [@@deriving sexp]
+    [@@deriving sexp ~stackify]
 
     let num_bytes t = t.message_length + 0
 
@@ -959,7 +959,7 @@ module Epoch = struct
       ; message_type : char
       ; epoch : Profiler_epoch.t
       }
-    [@@deriving sexp]
+    [@@deriving sexp ~stackify]
 
     let num_bytes t = t.message_length + 0
 
@@ -994,7 +994,7 @@ module Unpacked = struct
     | New_group_point of New_group_point.Unpacked.t
     | End_of_header of End_of_header.Unpacked.t
     | Epoch of Epoch.Unpacked.t
-  [@@deriving sexp]
+  [@@deriving sexp ~stackify]
 
   let num_bytes = function
     | New_single m -> New_single.Unpacked.num_bytes m
@@ -1089,21 +1089,22 @@ let sexp_of_t _ _ t =
   | R.Ok (t, _) -> Unpacked.sexp_of_t t
 ;;
 
-let sexp_of_t_no_exn _ _ t =
-  let sexp_of_error error =
-    let len =
-      try num_bytes_in_message t with
-      | _ -> Iobuf.length t
-    in
-    let len = Int.min (Int.min (Iobuf.length t) len) 1000 in
-    let data = Iobuf.to_string t ~len in
-    [%sexp ("invalid message" : string), { error : Error.t; data : string }]
-  in
-  match to_unpacked t with
-  | exception exn -> sexp_of_error (Error.of_exn exn)
-  | R.Need_more_data -> sexp_of_error (Error.of_string "Need_more_data")
-  | R.Junk (exn, _) -> sexp_of_error (Error.of_exn exn)
-  | R.Ok (t, _) -> Unpacked.sexp_of_t t
+let%template[@alloc a @ m = (heap_global, stack_local)] sexp_of_t_no_exn _ _ (t @ m) =
+  (let sexp_of_error error =
+     let len =
+       try num_bytes_in_message t with
+       | _ -> Iobuf.length t
+     in
+     let len = Int.min (Int.min (Iobuf.length t) len) 1000 in
+     let data = Iobuf.to_string t ~len in
+     [%sexp ("invalid message" : string), { error : Error.t; data : string }]
+   in
+   match to_unpacked t with
+   | exception exn -> sexp_of_error (Error.of_exn exn)
+   | R.Need_more_data -> sexp_of_error (Error.of_string "Need_more_data")
+   | R.Junk (exn, _) -> sexp_of_error (Error.of_exn exn)
+   | R.Ok (t, _) -> (Unpacked.sexp_of_t [@alloc a]) t)
+  [@exclave_if_stack a]
 ;;
 
 let backing_iobuf t = t

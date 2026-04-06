@@ -3,7 +3,7 @@
 open! Core
 
 (** Each probe ([Intf.S]) has a unique [Probe_id.t] assigned. *)
-type t = private int [@@deriving bin_io, compare, sexp]
+type t = private int [@@deriving bin_io, compare, sexp ~stackify]
 
 include Intable with type t := t
 include Identifiable.S with type t := t
