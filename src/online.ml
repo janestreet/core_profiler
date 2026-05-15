@@ -194,7 +194,7 @@ module Timer = struct
       ; sources : (t * Fstats.t) array (* [session] is initialised to -1 *)
       ; mutable session : int
           (* [last_time] is initalised to the epoch; the value won't be used since session
-         won't match *)
+             won't match *)
       ; mutable last_time : Time_ns.t
       }
 

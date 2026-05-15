@@ -140,11 +140,9 @@ module Log_command = struct
         in
         dequeue, prune
     in
-    (* matching_event : an event matched! set the state
-                        boolean argument specifies whether the event that matched will
-                        itself be displayed
-       next_event     : on every event: update the state and return
-                        'should this event be displayed' *)
+    (* matching_event : an event matched! set the state boolean argument specifies whether
+       the event that matched will itself be displayed next_event : on every event: update
+       the state and return 'should this event be displayed' *)
     let ( (matching_event : Time_ns.t -> bool -> unit -> unit)
         , (next_event : Time_ns.t -> unit -> bool) )
       =
@@ -699,9 +697,9 @@ module Plot_command = struct
     List.iter reservoir_samples ~f:(fun value ->
       let i = bin_for_value value in
       bins.(i) <- bins.(i) + 1);
-    (* The edges are [min + (tot_width_p1 * i) / num_bins].
-        The upper edge is open, so subtract one.
-        [bin_for_value] will round down, so round the lower edge up and upper down *)
+    (* The edges are [min + (tot_width_p1 * i) / num_bins]. The upper edge is open, so
+       subtract one. [bin_for_value] will round down, so round the lower edge up and upper
+       down *)
     let edges i =
       ( min + (((tot_width_p1 * i) + num_bins - 1) / num_bins)
       , min + (((tot_width_p1 * (i + 1)) - 1) / num_bins) )

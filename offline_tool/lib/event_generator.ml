@@ -4,12 +4,12 @@ open Core_profiler
 open Core_profiler_disabled
 module Time_ns = Time_ns_unix
 
-(* (As per Path.readme,) This does not have the full power of regular expressions
-   Notably, the same point may not appear in a path twice, except for when its
-   second appearance is the last point in the path. *)
+(* (As per Path.readme,) This does not have the full power of regular expressions Notably,
+   the same point may not appear in a path twice, except for when its second appearance is
+   the last point in the path. *)
 
-(* The [current_session] of all groups is initialised to 0; and the session of
-   all points is initialised to -1.
+(* The [current_session] of all groups is initialised to 0; and the session of all points
+   is initialised to -1.
 
    To save memory and avoid allocations, junk values (-1) are stored in
    [point_state.at_index], [point_state.value] and [point_state.time] at startup.
@@ -26,8 +26,8 @@ type group_state =
 type point_state =
   { mutable time : Time_ns.t
   ; mutable session : int
-      (* [at_index]: when this point was marked in this session
-       (i.e., set to [group_state.session_at_count] when marked) *)
+      (* [at_index]: when this point was marked in this session (i.e., set to
+         [group_state.session_at_count] when marked) *)
   ; mutable at_index : int
   ; mutable value : int
   }
@@ -119,9 +119,9 @@ let at_group_point t ~point_id ~group_id time value =
 
 let test_path t group_state (path : Probe_id.t Path.t) =
   let current_session = group_state.current_session in
-  (* [last_at_index] is the [at_index] of the previous point that was considered.
-     It's used to check whether a point was marked before the previous point
-     (it walks from the last point to the first), and whether an edge was direct. *)
+  (* [last_at_index] is the [at_index] of the previous point that was considered. It's
+     used to check whether a point was marked before the previous point (it walks from the
+     last point to the first), and whether an edge was direct. *)
   let test point last_at_index =
     match point with
     | Path.Direct_point id ->
@@ -156,8 +156,8 @@ let iter_events t ~f =
   Reader.iter_short_messages t.buffer t.epoch t.id_map ~f:(fun message ->
     let id = Reader.Short_message.id message in
     let header_item = Id_table.find_exn t.id_map id in
-    (* This variable represents both /whether/ this is a group point, and if so,
-        /what/ its group id is *)
+    (* This variable represents both /whether/ this is a group point, and if so, /what/
+       its group id is *)
     let group_point_parent =
       match header_item with
       | Group_point { parent; _ } -> Some parent

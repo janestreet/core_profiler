@@ -155,8 +155,8 @@ module Delta_timer = struct
 
   let diff n state = Time_ns.diff n state |> Time_ns.Span.to_int_ns
 
-  (* If we calibrate on start, we get back the time before we started calibrating,
-     and those 300ns will be included in the delta. *)
+  (* If we calibrate on start, we get back the time before we started calibrating, and
+     those 300ns will be included in the delta. *)
   let stateless_start _t = Common.now Common.Offline_profiler ~reluctance:4 ()
 
   let stateless_stop t state =

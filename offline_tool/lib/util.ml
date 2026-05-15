@@ -135,9 +135,8 @@ let time_ns_to_ofday_string t =
 ;;
 
 let choices_argtype name choices =
-  (* Not only is this a fast path, but if one choice is a prefix of another
-     (e.g., "time" and "time-delta") we don't want to suggest "time-delta" in
-     response to "time". *)
+  (* Not only is this a fast path, but if one choice is a prefix of another (e.g., "time"
+     and "time-delta") we don't want to suggest "time-delta" in response to "time". *)
   let fast_path = String.Map.of_alist_exn choices in
   let search prefix =
     match Map.find fast_path prefix with

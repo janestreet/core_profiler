@@ -19,9 +19,8 @@ struct
     { mutable total_samples_seen : int (* total number of samples seen by [add] *)
     ; mutable samples_count : int (* number of samples retained in [samples] *)
     ; mutable samples : E.t array
-        (* remembered samples (between the indices 0 and
-                                          samples_count-1 inclusive; the other values are
-                                          meaningless) *)
+        (* remembered samples (between the indices 0 and samples_count-1 inclusive; the
+           other values are meaningless) *)
     ; mutable samples_are_sorted : bool (* flag to avoid resorting *)
     }
   [@@deriving sexp, bin_io]

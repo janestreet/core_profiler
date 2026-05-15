@@ -27,11 +27,11 @@ let () =
 ;;
 
 let maybe_do_slow_tasks' kind now reluctance =
-  (* We don't want to pay for a [now] call to work out whether we should do slow tasks.
-     If Time_stamp_counter gets so far out of sync with reality that the value below
-     is not good enough to compare with values on the order of one second, then we have
-     bigger problems, not least because Time_stamp_counter's EWMA isn't going to catch up
-     quickly enough for the next measurement to be good. *)
+  (* We don't want to pay for a [now] call to work out whether we should do slow tasks. If
+     Time_stamp_counter gets so far out of sync with reality that the value below is not
+     good enough to compare with values on the order of one second, then we have bigger
+     problems, not least because Time_stamp_counter's EWMA isn't going to catch up quickly
+     enough for the next measurement to be good. *)
   let diff = Time_ns.diff now !last_slow_tasks |> Time_ns.Span.to_int_ns |> abs in
   if diff > slow_tasks_every_ns * reluctance
   then (

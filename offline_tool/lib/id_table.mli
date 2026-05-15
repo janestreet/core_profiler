@@ -3,8 +3,8 @@ open Core_profiler
 
 (** An [Id_table.t] exploits the fact that [Probe_id.t]s should be consecutive integers to
     make lookups fast *)
-(* Perhaps this would be far simpler if we used separate Id spaces for each type
-   (with a couple of type bits for the header?) *)
+(* Perhaps this would be far simpler if we used separate Id spaces for each type (with a
+   couple of type bits for the header?) *)
 
 type ('a, +'rw) t
 
