@@ -5,8 +5,8 @@ open Core_profiler_disabled
 module Interval = Interval_lib.Interval
 
 type -'rw t =
-  { (* This table maps raw interests (from the event generator) to
-       (the filter we want to check, the original interest). *)
+  { (* This table maps raw interests (from the event generator) to (the filter we want to
+       check, the original interest). *)
     interests : Probe_id.t Interest.t list Interest.Raw.I.Table.t
   ; id_map : Reader.Header.t
   }
@@ -16,8 +16,8 @@ let create (id_map : Reader.Header.t) =
 ;;
 
 let add_interest t interest =
-  (* Check that value/delta filters are only applied to probes,
-     and that the units on all filters are correct. *)
+  (* Check that value/delta filters are only applied to probes, and that the units on all
+     filters are correct. *)
   (match interest with
    | Interest.All _ -> ()
    | Interest.In_interval (_, Time_delta, iv_units, _) ->
@@ -42,9 +42,9 @@ let add_interest t interest =
 
 let read_only (t : _ t) = (t :> read t)
 
-(* [add_interest] asserts that we only filter on legal subjects, so
-   we can safely pass junk values in delta and time_delta when appropriate,
-   and it won't match a case that uses them *)
+(* [add_interest] asserts that we only filter on legal subjects, so we can safely pass
+   junk values in delta and time_delta when appropriate, and it won't match a case that
+   uses them *)
 let test_one ~value ~time_delta ~delta interest =
   match (interest : 'a Interest.t) with
   | All _ -> true

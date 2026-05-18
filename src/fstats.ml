@@ -9,16 +9,16 @@ open Poly
 
 type t =
   { (* Note: we keep samples as a float instead of an int so that all floats in the record
-     are kept unboxed. *)
+       are kept unboxed. *)
     mutable samples : float (* sum of sample^0 *)
   ; mutable sum : float (* sum of sample^1 *)
   ; mutable sqsum : float (* sum of sample^2 *)
-  ; (* The naive algorithm of (sqsum - sum^2) exhibits catastrophic cancellation,
-     so we use an alternative algorithm that keeps a running total of the variance
-     and gets much better numerical precision.
+  ; (* The naive algorithm of (sqsum - sum^2) exhibits catastrophic cancellation, so we
+       use an alternative algorithm that keeps a running total of the variance and gets
+       much better numerical precision.
 
-     See "Weighted incremental algorithm" and "Parallel algorithm" at
-     http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+       See "Weighted incremental algorithm" and "Parallel algorithm" at
+       http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
     *)
     mutable varsum : float (* sum of running_variance *)
   ; mutable max : float (* largest sample *)
@@ -54,13 +54,11 @@ let stdev t = sqrt (var t)
 let[@inline] update_in_place t value =
   if t.samples <= 0.
   then (
-    (* [Rstats.safe_mean] allocates, even after it's been inlined.
-       It seems that in general, expressions of form
-       [if expr then some_float else other_float]
-       cause allocation, even in cases where it is unnecessary.
+    (* [Rstats.safe_mean] allocates, even after it's been inlined. It seems that in
+       general, expressions of form [if expr then some_float else other_float] cause
+       allocation, even in cases where it is unnecessary.
 
-       So, I handle the [t.samples <= 0] separately, so that [safe_mean] is
-       not needed. *)
+       So, I handle the [t.samples <= 0] separately, so that [safe_mean] is not needed. *)
     t.samples <- 1.;
     t.sum <- value;
     t.sqsum <- value *. value;
@@ -73,13 +71,13 @@ let[@inline] update_in_place t value =
     t.samples <- t.samples +. 1.;
     t.sum <- t.sum +. value;
     t.sqsum <- t.sqsum +. (value *. value);
-    (* [Float.max] suffers the same problem as above and causes allocation even
-       after it's been inlined. *)
+    (* [Float.max] suffers the same problem as above and causes allocation even after it's
+       been inlined. *)
     if value > t.max then t.max <- value;
     if value < t.min then t.min <- value;
     let new_mean = mean t in
-    (* Numerically stable method for computing variance.  On wikipedia page:
-       # Alternatively, "M2 = M2 + weight * delta * (x−mean)" *)
+    (* Numerically stable method for computing variance. On wikipedia page: #
+       Alternatively, "M2 = M2 + weight * delta * (x−mean)" *)
     t.varsum <- t.varsum +. ((value -. old_mean) *. (value -. new_mean)))
 ;;
 

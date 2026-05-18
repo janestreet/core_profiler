@@ -115,8 +115,8 @@ module Buffer : sig
     val reset : unit -> unit
   end
 end = struct
-  (* If we create 512 group points with every other point as a source,
-     this buffer _still_ won't fill up  (512 * (72 + 512 * 2)) *)
+  (* If we create 512 group points with every other point as a source, this buffer _still_
+     won't fill up (512 * (72 + 512 * 2)) *)
   let header_chunk = lazy (Iobuf.create ~len:561152)
 
   let get_header_chunk () =
@@ -129,10 +129,9 @@ end = struct
   ;;
 
   (* Iobufs are mutable to the extent that you can swap the pointer to the underlying
-     memory with another Iobuf. I use this to avoid a [ref] / another indirection:
-     When we want to swap the buffer, we copy its pointer & limits into a new [Iobuf.t]
-     structure, and then overwrite it with the pointer & limits from a freshly created
-     [Iobuf.t] *)
+     memory with another Iobuf. I use this to avoid a [ref] / another indirection: When we
+     want to swap the buffer, we copy its pointer & limits into a new [Iobuf.t] structure,
+     and then overwrite it with the pointer & limits from a freshly created [Iobuf.t] *)
   let current_chunk = Iobuf.create ~len:0
   let chunk_size = 10_000_000
   let previous_chunks = ref []
@@ -146,8 +145,8 @@ end = struct
       previous_chunks := copy :: !previous_chunks);
     let new_memory = Iobuf.create ~len in
     Iobuf.set_bounds_and_buffer ~src:new_memory ~dst:current_chunk;
-    (* We need to force the kernel to actually give us the memory, or we're liable to
-       get spikes in poke times. *)
+    (* We need to force the kernel to actually give us the memory, or we're liable to get
+       spikes in poke times. *)
     if len > 0
     then
       for i = 0 to (len - 1) / 512 do
