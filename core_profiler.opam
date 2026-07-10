@@ -23,6 +23,9 @@ depends: [
   "dune"             {>= "3.17.0"}
 ]
 available: arch != "x86_32"
+conflicts: [
+  "oxcaml-compiler" {< "5.2.0minus39"}
+]
 synopsis: "Profiling library"
 description: "
 Core_profiler is a library that helps you profile programs and
