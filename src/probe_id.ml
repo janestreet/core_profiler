@@ -1,7 +1,7 @@
 open Core
 
 module T = struct
-  type t = int [@@deriving bin_io, compare, sexp ~stackify, hash]
+  type t = int [@@deriving bin_io, compare, sexp, hash]
 
   let to_string = Int.to_string
   let of_string = Int.of_string

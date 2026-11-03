@@ -1,7 +1,7 @@
 open Core
 module Time_ns = Time_ns_unix
 
-type t = Time_ns.t [@@deriving sexp ~stackify]
+type t = Time_ns.t [@@deriving sexp]
 
 let of_time = Fn.id
 let to_time = Fn.id

@@ -2,15 +2,14 @@
     by hand. *)
 
 open! Core
-module Time_ns = Time_ns_unix
 
 let module_name = __MODULE__
 let padding = ' '
 let _ = padding
 
-type ('ty, -'rw) t = ('rw, Iobuf.no_seek, Iobuf.global) Iobuf.t constraint 'rw = [> read ]
-type ('ty, 'rw) message = ('ty, 'rw) t
-type ('ty, 'rw) t_no_exn = ('ty, 'rw) t
+type ('ty, -'rw, 'l) t = ('rw, Iobuf.no_seek, 'l) Iobuf.t constraint 'rw = [> read ]
+type ('ty, 'rw, 'l) message = ('ty, 'rw, 'l) t
+type ('ty, 'rw, 'l) t_no_exn = ('ty, 'rw, 'l) t
 
 let globalize t = Iobuf.globalize_shared t
 
@@ -145,7 +144,7 @@ let[@inline] get_message_type buf =
 ;;
 
 let[@inline] of_iobuf buf ~trusted:_ = Iobuf.no_seek buf
-let[@inline] of_iobuf_local buf ~trusted:_ = (Iobuf.no_seek [@mode local]) buf
+let[@inline] of_iobuf_local buf ~trusted:_ = Iobuf.no_seek buf
 
 let[@inline] of_iobuf_exn buf ty =
   let (Message_type_and_errors.T mt) = get_message_type buf in
@@ -163,7 +162,7 @@ let[@inline] of_iobuf_local_exn buf ty =
 
 module New_single = struct
   type phantom = [ `New_single ]
-  type nonrec -'rw t = (phantom, 'rw) t
+  type nonrec (-'rw, 'l) t = (phantom, 'rw, 'l) t
 
   let message_type = 'N'
   let buffer_length = 69
@@ -220,7 +219,7 @@ module New_single = struct
   ;;
 
   let get_name_zero_local_result buf f =
-    let buf = (Iobuf.read_only [@mode local]) buf in
+    let buf = Iobuf.read_only buf in
     let pos = 5 in
     let len = ref 64 in
     while
@@ -232,7 +231,7 @@ module New_single = struct
   ;;
 
   let get_name_zero_local buf f =
-    let buf = (Iobuf.read_only [@mode local]) buf in
+    let buf = Iobuf.read_only buf in
     let pos = 5 in
     let len = ref 64 in
     while
@@ -256,13 +255,13 @@ module New_single = struct
   ;;
 
   let get_name_zero_padded_local_result buf f =
-    let buf = (Iobuf.read_only [@mode local]) buf in
+    let buf = Iobuf.read_only buf in
     let pos = 5 in
     f buf ~safe_pos:pos ~safe_len:64 [@nontail]
   ;;
 
   let get_name_zero_padded_local buf f =
-    let buf = (Iobuf.read_only [@mode local]) buf in
+    let buf = Iobuf.read_only buf in
     let pos = 5 in
     f buf ~safe_pos:pos ~safe_len:64 [@nontail]
   ;;
@@ -316,10 +315,7 @@ module New_single = struct
   ;;
 
   let to_sub_iobuf t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
-
-  let to_sub_iobuf_local t =
-    (Iobuf.sub_shared [@mode local]) t ~len:(get_message_length t + 0)
-  ;;
+  let to_sub_iobuf_local t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
 
   module Unpacked = struct
     type t =
@@ -329,7 +325,7 @@ module New_single = struct
       ; spec : Probe_type.t
       ; name : string
       }
-    [@@deriving sexp ~stackify]
+    [@@deriving sexp]
 
     let num_bytes t = t.message_length + 0
 
@@ -348,7 +344,7 @@ module New_single = struct
     }
   ;;
 
-  let sexp_of_t _ t = Unpacked.sexp_of_t (to_unpacked t)
+  let sexp_of_t _ _ t = Unpacked.sexp_of_t (to_unpacked t)
 
   let of_unpacked (unpacked : Unpacked.t) =
     let t = Iobuf.create ~len:69 in
@@ -356,12 +352,12 @@ module New_single = struct
     Iobuf.of_string (Iobuf.to_string t)
   ;;
 
-  let t_of_sexp _ sexp = of_unpacked (Unpacked.t_of_sexp sexp)
+  let t_of_sexp _ _ sexp = of_unpacked (Unpacked.t_of_sexp sexp)
 end
 
 module New_group = struct
   type phantom = [ `New_group ]
-  type nonrec -'rw t = (phantom, 'rw) t
+  type nonrec (-'rw, 'l) t = (phantom, 'rw, 'l) t
 
   let message_type = 'P'
   let buffer_length = 69
@@ -418,7 +414,7 @@ module New_group = struct
   ;;
 
   let get_name_zero_local_result buf f =
-    let buf = (Iobuf.read_only [@mode local]) buf in
+    let buf = Iobuf.read_only buf in
     let pos = 5 in
     let len = ref 64 in
     while
@@ -430,7 +426,7 @@ module New_group = struct
   ;;
 
   let get_name_zero_local buf f =
-    let buf = (Iobuf.read_only [@mode local]) buf in
+    let buf = Iobuf.read_only buf in
     let pos = 5 in
     let len = ref 64 in
     while
@@ -454,13 +450,13 @@ module New_group = struct
   ;;
 
   let get_name_zero_padded_local_result buf f =
-    let buf = (Iobuf.read_only [@mode local]) buf in
+    let buf = Iobuf.read_only buf in
     let pos = 5 in
     f buf ~safe_pos:pos ~safe_len:64 [@nontail]
   ;;
 
   let get_name_zero_padded_local buf f =
-    let buf = (Iobuf.read_only [@mode local]) buf in
+    let buf = Iobuf.read_only buf in
     let pos = 5 in
     f buf ~safe_pos:pos ~safe_len:64 [@nontail]
   ;;
@@ -514,10 +510,7 @@ module New_group = struct
   ;;
 
   let to_sub_iobuf t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
-
-  let to_sub_iobuf_local t =
-    (Iobuf.sub_shared [@mode local]) t ~len:(get_message_length t + 0)
-  ;;
+  let to_sub_iobuf_local t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
 
   module Unpacked = struct
     type t =
@@ -527,7 +520,7 @@ module New_group = struct
       ; spec : Probe_type.t
       ; name : string
       }
-    [@@deriving sexp ~stackify]
+    [@@deriving sexp]
 
     let num_bytes t = t.message_length + 0
 
@@ -546,7 +539,7 @@ module New_group = struct
     }
   ;;
 
-  let sexp_of_t _ t = Unpacked.sexp_of_t (to_unpacked t)
+  let sexp_of_t _ _ t = Unpacked.sexp_of_t (to_unpacked t)
 
   let of_unpacked (unpacked : Unpacked.t) =
     let t = Iobuf.create ~len:69 in
@@ -554,12 +547,12 @@ module New_group = struct
     Iobuf.of_string (Iobuf.to_string t)
   ;;
 
-  let t_of_sexp _ sexp = of_unpacked (Unpacked.t_of_sexp sexp)
+  let t_of_sexp _ _ sexp = of_unpacked (Unpacked.t_of_sexp sexp)
 end
 
 module New_group_point = struct
   type phantom = [ `New_group_point ]
-  type nonrec -'rw t = (phantom, 'rw) t
+  type nonrec (-'rw, 'l) t = (phantom, 'rw, 'l) t
 
   let message_type = 'O'
   let buffer_length ~sources_count = 72 + (2 * sources_count)
@@ -623,7 +616,7 @@ module New_group_point = struct
   ;;
 
   let get_name_zero_local_result buf f =
-    let buf = (Iobuf.read_only [@mode local]) buf in
+    let buf = Iobuf.read_only buf in
     let pos = 6 in
     let len = ref 64 in
     while
@@ -635,7 +628,7 @@ module New_group_point = struct
   ;;
 
   let get_name_zero_local buf f =
-    let buf = (Iobuf.read_only [@mode local]) buf in
+    let buf = Iobuf.read_only buf in
     let pos = 6 in
     let len = ref 64 in
     while
@@ -659,13 +652,13 @@ module New_group_point = struct
   ;;
 
   let get_name_zero_padded_local_result buf f =
-    let buf = (Iobuf.read_only [@mode local]) buf in
+    let buf = Iobuf.read_only buf in
     let pos = 6 in
     f buf ~safe_pos:pos ~safe_len:64 [@nontail]
   ;;
 
   let get_name_zero_padded_local buf f =
-    let buf = (Iobuf.read_only [@mode local]) buf in
+    let buf = Iobuf.read_only buf in
     let pos = 6 in
     f buf ~safe_pos:pos ~safe_len:64 [@nontail]
   ;;
@@ -745,13 +738,10 @@ module New_group_point = struct
   ;;
 
   let to_sub_iobuf t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
-
-  let to_sub_iobuf_local t =
-    (Iobuf.sub_shared [@mode local]) t ~len:(get_message_length t + 0)
-  ;;
+  let to_sub_iobuf_local t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
 
   module Unpacked = struct
-    type t_sources = { source_id : Probe_id.t } [@@deriving sexp ~stackify]
+    type t_sources = { source_id : Probe_id.t } [@@deriving sexp]
 
     type t =
       { message_length : int
@@ -761,7 +751,7 @@ module New_group_point = struct
       ; name : string
       ; sources_grp : t_sources array
       }
-    [@@deriving sexp ~stackify]
+    [@@deriving sexp]
 
     let num_bytes t = t.message_length + 0
 
@@ -798,7 +788,7 @@ module New_group_point = struct
     }
   ;;
 
-  let sexp_of_t _ t = Unpacked.sexp_of_t (to_unpacked t)
+  let sexp_of_t _ _ t = Unpacked.sexp_of_t (to_unpacked t)
 
   let of_unpacked (unpacked : Unpacked.t) =
     let t = Iobuf.create ~len:(72 + (2 * Array.length unpacked.sources_grp)) in
@@ -806,12 +796,12 @@ module New_group_point = struct
     Iobuf.of_string (Iobuf.to_string t)
   ;;
 
-  let t_of_sexp _ sexp = of_unpacked (Unpacked.t_of_sexp sexp)
+  let t_of_sexp _ _ sexp = of_unpacked (Unpacked.t_of_sexp sexp)
 end
 
 module End_of_header = struct
   type phantom = [ `End_of_header ]
-  type nonrec -'rw t = (phantom, 'rw) t
+  type nonrec (-'rw, 'l) t = (phantom, 'rw, 'l) t
 
   let message_type = 'Z'
   let buffer_length = 2
@@ -850,17 +840,14 @@ module End_of_header = struct
   ;;
 
   let to_sub_iobuf t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
-
-  let to_sub_iobuf_local t =
-    (Iobuf.sub_shared [@mode local]) t ~len:(get_message_length t + 0)
-  ;;
+  let to_sub_iobuf_local t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
 
   module Unpacked = struct
     type t =
       { message_length : int
       ; message_type : char
       }
-    [@@deriving sexp ~stackify]
+    [@@deriving sexp]
 
     let num_bytes t = t.message_length + 0
 
@@ -874,7 +861,7 @@ module End_of_header = struct
     { message_length = get_message_length buf; message_type = get_message_type buf }
   ;;
 
-  let sexp_of_t _ t = Unpacked.sexp_of_t (to_unpacked t)
+  let sexp_of_t _ _ t = Unpacked.sexp_of_t (to_unpacked t)
 
   let of_unpacked (unpacked : Unpacked.t) =
     let t = Iobuf.create ~len:2 in
@@ -882,12 +869,12 @@ module End_of_header = struct
     Iobuf.of_string (Iobuf.to_string t)
   ;;
 
-  let t_of_sexp _ sexp = of_unpacked (Unpacked.t_of_sexp sexp)
+  let t_of_sexp _ _ sexp = of_unpacked (Unpacked.t_of_sexp sexp)
 end
 
 module Epoch = struct
   type phantom = [ `Epoch ]
-  type nonrec -'rw t = (phantom, 'rw) t
+  type nonrec (-'rw, 'l) t = (phantom, 'rw, 'l) t
 
   let message_type = 'E'
   let buffer_length = 10
@@ -936,10 +923,7 @@ module Epoch = struct
   ;;
 
   let to_sub_iobuf t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
-
-  let to_sub_iobuf_local t =
-    (Iobuf.sub_shared [@mode local]) t ~len:(get_message_length t + 0)
-  ;;
+  let to_sub_iobuf_local t = Iobuf.sub_shared t ~len:(get_message_length t + 0)
 
   module Unpacked = struct
     type t =
@@ -947,7 +931,7 @@ module Epoch = struct
       ; message_type : char
       ; epoch : Profiler_epoch.t
       }
-    [@@deriving sexp ~stackify]
+    [@@deriving sexp]
 
     let num_bytes t = t.message_length + 0
 
@@ -964,7 +948,7 @@ module Epoch = struct
     }
   ;;
 
-  let sexp_of_t _ t = Unpacked.sexp_of_t (to_unpacked t)
+  let sexp_of_t _ _ t = Unpacked.sexp_of_t (to_unpacked t)
 
   let of_unpacked (unpacked : Unpacked.t) =
     let t = Iobuf.create ~len:10 in
@@ -972,7 +956,7 @@ module Epoch = struct
     Iobuf.of_string (Iobuf.to_string t)
   ;;
 
-  let t_of_sexp _ sexp = of_unpacked (Unpacked.t_of_sexp sexp)
+  let t_of_sexp _ _ sexp = of_unpacked (Unpacked.t_of_sexp sexp)
 end
 
 module Unpacked = struct
@@ -982,7 +966,7 @@ module Unpacked = struct
     | New_group_point of New_group_point.Unpacked.t
     | End_of_header of End_of_header.Unpacked.t
     | Epoch of Epoch.Unpacked.t
-  [@@deriving sexp ~stackify]
+  [@@deriving sexp]
 
   let num_bytes = function
     | New_single m -> New_single.Unpacked.num_bytes m
@@ -1070,29 +1054,28 @@ let to_unpacked_exn buf =
           (failure : _ R.t)]
 ;;
 
-let sexp_of_t _ _ t =
+let sexp_of_t _ _ _ t =
   match to_unpacked t with
   | (R.Need_more_data | R.Junk _) as e ->
     failwiths "invalid message" e [%sexp_of: Nothing.t R.t]
   | R.Ok (t, _) -> Unpacked.sexp_of_t t
 ;;
 
-let%template[@alloc a @ m = (heap_global, stack_local)] sexp_of_t_no_exn _ _ t =
-  (let sexp_of_error error =
-     let len =
-       try num_bytes_in_message t with
-       | _ -> Iobuf.length t
-     in
-     let len = Int.min (Int.min (Iobuf.length t) len) 1000 in
-     let data = Iobuf.to_string t ~len in
-     [%sexp ("invalid message" : string), { error : Error.t; data : string }]
-   in
-   match to_unpacked t with
-   | exception exn -> sexp_of_error (Error.of_exn exn)
-   | R.Need_more_data -> sexp_of_error (Error.of_string "Need_more_data")
-   | R.Junk (exn, _) -> sexp_of_error (Error.of_exn exn)
-   | R.Ok (t, _) -> (Unpacked.sexp_of_t [@alloc a]) t)
-  [@exclave_if_stack a]
+let sexp_of_t_no_exn _ _ _ t =
+  let sexp_of_error error =
+    let len =
+      try num_bytes_in_message t with
+      | _ -> Iobuf.length t
+    in
+    let len = Int.min (Int.min (Iobuf.length t) len) 1000 in
+    let data = Iobuf.to_string t ~len in
+    [%sexp ("invalid message" : string), { error : Error.t; data : string }]
+  in
+  match to_unpacked t with
+  | exception exn -> sexp_of_error (Error.of_exn exn)
+  | R.Need_more_data -> sexp_of_error (Error.of_string "Need_more_data")
+  | R.Junk (exn, _) -> sexp_of_error (Error.of_exn exn)
+  | R.Ok (t, _) -> Unpacked.sexp_of_t t
 ;;
 
 let backing_iobuf t = t
