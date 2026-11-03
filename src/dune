@@ -6,6 +6,6 @@
    core_unix.time_float_unix core_unix.time_ns_unix
    core_unix.time_stamp_counter)
  (preprocess
-  (pps ppx_jane)))
+  (pps ppx_jane -compare-require-explicit-locality)))
 
 (documentation)

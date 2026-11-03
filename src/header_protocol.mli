@@ -2,27 +2,31 @@
     by hand. *)
 
 open! Core
-module Time_ns = Time_ns_unix
 
 val module_name : string
 
-type (-'hierarchy, -'rw) t constraint 'rw = [> read ]
-type ('hierarchy, 'rw) message = ('hierarchy, 'rw) t
+type (-'hierarchy, -'rw, 'l) t constraint 'rw = [> read ]
+type ('hierarchy, 'rw, 'l) message = ('hierarchy, 'rw, 'l) t
 
-val sexp_of_t : _ -> _ -> (_, _) t -> Sexp.t
+val sexp_of_t : _ -> _ -> _ -> (_, _, [ `global ]) t -> Sexp.t
 
-type ('hierarchy, 'rw) t_no_exn = ('hierarchy, 'rw) t
+type ('hierarchy, 'rw, 'l) t_no_exn = ('hierarchy, 'rw, 'l) t
 
-val%template sexp_of_t_no_exn : _ -> _ -> (_, _) t_no_exn @ m -> Sexp.t @ m
+val%template sexp_of_t_no_exn
+  :  _
+  -> _
+  -> _
+  -> (_, _, [ `global ]) t_no_exn @ m
+  -> Sexp.t @ m
 [@@alloc a @ m = (heap_global, stack_local)]
 
-val backing_iobuf : (_, 'rw) t -> ('rw, Iobuf.no_seek, Iobuf.global) Iobuf.t
+val backing_iobuf : (_, 'rw, 'l) t -> ('rw, Iobuf.no_seek, 'l) Iobuf.t
 
 val backing_iobuf_local
-  :  (_, 'rw) t @ local
-  -> ('rw, Iobuf.no_seek, Iobuf.global) Iobuf.t @ local
+  :  (_, 'rw, 'l) t @ local
+  -> ('rw, Iobuf.no_seek, 'l) Iobuf.t @ local
 
-val globalize : ('ty, 'rw) t @ local -> ('ty, 'rw) t
+val globalize : ('ty, 'rw, [ `global ]) t @ local -> ('ty, 'rw, [ `global ]) t
 
 module R : sig
   type 'message t =
@@ -70,47 +74,47 @@ module Message_type_and_errors : sig
   val max_index : int
 end
 
-val get_message_type
-  :  ([> read ], _, Iobuf.global) Iobuf.t @ local
-  -> Message_type_and_errors.packed
+val get_message_type : ([> read ], _, _) Iobuf.t @ local -> Message_type_and_errors.packed
 
 (** [of_iobuf] must be fed a message type that comes from a call to [get_message_type] on
     the same window, otherwise it may cause segfaults or nonsensical reads. *)
 val of_iobuf
-  :  ('rw, _, Iobuf.global) Iobuf.t
+  :  ('rw, _, 'l) Iobuf.t
   -> trusted:'ty Message_type_and_errors.t
-  -> ('ty, 'rw) t
+  -> ('ty, 'rw, 'l) t
 
 val of_iobuf_local
-  :  ('rw, _, Iobuf.global) Iobuf.t @ local
+  :  ('rw, _, 'l) Iobuf.t @ local
   -> trusted:'ty Message_type_and_errors.t
-  -> ('ty, 'rw) t @ local
+  -> ('ty, 'rw, 'l) t @ local
 
 val of_iobuf_exn
-  :  ('rw, _, Iobuf.global) Iobuf.t
+  :  ('rw, _, 'l) Iobuf.t
   -> 'ty Message_type_and_errors.t
-  -> ('ty, 'rw) t
+  -> ('ty, 'rw, 'l) t
 
 val of_iobuf_local_exn
-  :  ('rw, _, Iobuf.global) Iobuf.t @ local
+  :  ('rw, _, 'l) Iobuf.t @ local
   -> 'ty Message_type_and_errors.t
-  -> ('ty, 'rw) t @ local
+  -> ('ty, 'rw, 'l) t @ local
 
 module New_single : sig
   type phantom = [ `New_single ]
-  type nonrec -'rw t = (phantom, 'rw) t constraint 'rw = [> read ] [@@deriving sexp]
+  type nonrec (-'rw, 'l) t = (phantom, 'rw, 'l) t constraint 'rw = [> read ]
 
+  val sexp_of_t : ('rw -> Sexp.t) @ global -> _ -> ('rw, [ `global ]) t -> Sexp.t
+  val t_of_sexp : (Sexp.t -> 'rw) @ global -> _ -> Sexp.t -> ('rw, 'l) t
   val message_type : char
   val buffer_length : int
-  val globalize : 'rw t @ local -> 'rw t
-  val of_iobuf_exn : ('rw, _, Iobuf.global) Iobuf.t -> 'rw t
-  val of_iobuf_local_exn : ('rw, _, Iobuf.global) Iobuf.t @ local -> 'rw t @ local
+  val globalize : ('rw, [ `global ]) t @ local -> ('rw, [ `global ]) t
+  val of_iobuf_exn : ('rw, _, 'l) Iobuf.t -> ('rw, 'l) t
+  val of_iobuf_local_exn : ('rw, _, 'l) Iobuf.t @ local -> ('rw, 'l) t @ local
 
   val write
     :  id:Probe_id.t
     -> spec:Probe_type.t
     -> name:string
-    -> (read_write, _, Iobuf.global) Iobuf.t
+    -> (read_write, _, _) Iobuf.t @ local
     -> int
 
   val create
@@ -119,16 +123,16 @@ module New_single : sig
     -> name:string
     -> (read_write, Iobuf.seek, Iobuf.global) Iobuf.t
 
-  val get_message_length : _ t @ local -> int
-  val get_message_type : _ t @ local -> char
-  val get_id : _ t @ local -> Probe_id.t
-  val get_spec : _ t @ local -> Probe_type.t
+  val get_message_length : (_, [ `global ]) t @ local -> int
+  val get_message_type : (_, [ `global ]) t @ local -> char
+  val get_id : (_, [ `global ]) t @ local -> Probe_id.t
+  val get_spec : (_, [ `global ]) t @ local -> Probe_type.t
   val name_max_len : int
-  val get_name : _ t @ local -> string
+  val get_name : (_, [ `global ]) t @ local -> string
 
   val get_name_zero_local_result
-    :  _ t @ local
-    -> ((read, Iobuf.no_seek, Iobuf.global) Iobuf.t @ local
+    :  (_, 'l) t @ local
+    -> ((read, Iobuf.no_seek, 'l) Iobuf.t @ local
         -> safe_pos:int
         -> safe_len:int
         -> 'a @ local)
@@ -136,23 +140,19 @@ module New_single : sig
     -> 'a @ local
 
   val get_name_zero_local
-    :  _ t @ local
-    -> ((read, Iobuf.no_seek, Iobuf.global) Iobuf.t @ local
-        -> safe_pos:int
-        -> safe_len:int
-        -> 'a)
+    :  (_, 'l) t @ local
+    -> ((read, Iobuf.no_seek, 'l) Iobuf.t @ local -> safe_pos:int -> safe_len:int -> 'a)
        @ local
     -> 'a
 
   val get_name_zero
-    :  _ t
-    -> ((read, Iobuf.no_seek, Iobuf.global) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
-       @ local
+    :  (_, 'l) t
+    -> ((read, Iobuf.no_seek, 'l) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a) @ local
     -> 'a
 
   val get_name_zero_padded_local_result
-    :  _ t @ local
-    -> ((read, Iobuf.no_seek, Iobuf.global) Iobuf.t @ local
+    :  (_, 'l) t @ local
+    -> ((read, Iobuf.no_seek, 'l) Iobuf.t @ local
         -> safe_pos:int
         -> safe_len:int
         -> 'a @ local)
@@ -160,43 +160,39 @@ module New_single : sig
     -> 'a @ local
 
   val get_name_zero_padded_local
-    :  _ t @ local
-    -> ((read, Iobuf.no_seek, Iobuf.global) Iobuf.t @ local
-        -> safe_pos:int
-        -> safe_len:int
-        -> 'a)
+    :  (_, 'l) t @ local
+    -> ((read, Iobuf.no_seek, 'l) Iobuf.t @ local -> safe_pos:int -> safe_len:int -> 'a)
        @ local
     -> 'a
 
   val get_name_zero_padded
-    :  _ t
-    -> ((read, Iobuf.no_seek, Iobuf.global) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
-       @ local
+    :  (_, 'l) t
+    -> ((read, Iobuf.no_seek, 'l) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a) @ local
     -> 'a
 
-  val set_id : (read_write, _, Iobuf.global) Iobuf.t @ local -> Probe_id.t -> unit
-  val set_spec : (read_write, _, Iobuf.global) Iobuf.t @ local -> Probe_type.t -> unit
-  val set_name : (read_write, _, Iobuf.global) Iobuf.t @ local -> string -> unit
+  val set_id : (read_write, _, _) Iobuf.t @ local -> Probe_id.t -> unit
+  val set_spec : (read_write, _, _) Iobuf.t @ local -> Probe_type.t -> unit
+  val set_name : (read_write, _, _) Iobuf.t @ local -> string -> unit
 
   (** [set_name_zero buf f a] calls [f] on [buf], with the window adjusted to where [name]
       is. Even though [f] is given a seekable buffer, it must move nothing except the
       lower bound of the window past the data it wrote. *)
   val set_name_zero
-    :  (read_write, Iobuf.seek, Iobuf.global) Iobuf.t
-    -> ('a -> (read_write, Iobuf.seek, Iobuf.global) Iobuf.t -> unit) @ local
+    :  (read_write, Iobuf.seek, 'l) Iobuf.t
+    -> ('a -> (read_write, Iobuf.seek, 'l) Iobuf.t -> unit) @ local
     -> 'a
     -> unit
 
   val set_name_zero_local
-    :  (read_write, Iobuf.seek, Iobuf.global) Iobuf.t
-    -> ('a @ local -> (read_write, Iobuf.seek, Iobuf.global) Iobuf.t -> unit) @ local
+    :  (read_write, Iobuf.seek, 'l) Iobuf.t
+    -> ('a @ local -> (read_write, Iobuf.seek, 'l) Iobuf.t -> unit) @ local
     -> 'a @ local
     -> unit
 
-  val to_sub_iobuf : 'rw t -> ('rw, Iobuf.seek, Iobuf.global) Iobuf.t
+  val to_sub_iobuf : ('rw, [ `global ]) t -> ('rw, Iobuf.seek, Iobuf.global) Iobuf.t
 
   val to_sub_iobuf_local
-    :  'rw t @ local
+    :  ('rw, [ `global ]) t @ local
     -> ('rw, Iobuf.seek, Iobuf.global) Iobuf.t @ local
 
   module Unpacked : sig
@@ -209,29 +205,31 @@ module New_single : sig
       }
     [@@deriving sexp ~stackify]
 
-    val num_bytes : t -> int
-    val write : t -> (read_write, _, Iobuf.global) Iobuf.t -> int
+    val num_bytes : t @ local -> int
+    val write : t -> (read_write, _, _) Iobuf.t @ local -> int
   end
 
-  val to_unpacked : 'rw t @ local -> Unpacked.t
-  val of_unpacked : Unpacked.t -> 'rw t
+  val to_unpacked : ('rw, [ `global ]) t @ local -> Unpacked.t
+  val of_unpacked : Unpacked.t -> ('rw, 'l) t
 end
 
 module New_group : sig
   type phantom = [ `New_group ]
-  type nonrec -'rw t = (phantom, 'rw) t constraint 'rw = [> read ] [@@deriving sexp]
+  type nonrec (-'rw, 'l) t = (phantom, 'rw, 'l) t constraint 'rw = [> read ]
 
+  val sexp_of_t : ('rw -> Sexp.t) @ global -> _ -> ('rw, [ `global ]) t -> Sexp.t
+  val t_of_sexp : (Sexp.t -> 'rw) @ global -> _ -> Sexp.t -> ('rw, 'l) t
   val message_type : char
   val buffer_length : int
-  val globalize : 'rw t @ local -> 'rw t
-  val of_iobuf_exn : ('rw, _, Iobuf.global) Iobuf.t -> 'rw t
-  val of_iobuf_local_exn : ('rw, _, Iobuf.global) Iobuf.t @ local -> 'rw t @ local
+  val globalize : ('rw, [ `global ]) t @ local -> ('rw, [ `global ]) t
+  val of_iobuf_exn : ('rw, _, 'l) Iobuf.t -> ('rw, 'l) t
+  val of_iobuf_local_exn : ('rw, _, 'l) Iobuf.t @ local -> ('rw, 'l) t @ local
 
   val write
     :  id:Probe_id.t
     -> spec:Probe_type.t
     -> name:string
-    -> (read_write, _, Iobuf.global) Iobuf.t
+    -> (read_write, _, _) Iobuf.t @ local
     -> int
 
   val create
@@ -240,16 +238,16 @@ module New_group : sig
     -> name:string
     -> (read_write, Iobuf.seek, Iobuf.global) Iobuf.t
 
-  val get_message_length : _ t @ local -> int
-  val get_message_type : _ t @ local -> char
-  val get_id : _ t @ local -> Probe_id.t
-  val get_spec : _ t @ local -> Probe_type.t
+  val get_message_length : (_, [ `global ]) t @ local -> int
+  val get_message_type : (_, [ `global ]) t @ local -> char
+  val get_id : (_, [ `global ]) t @ local -> Probe_id.t
+  val get_spec : (_, [ `global ]) t @ local -> Probe_type.t
   val name_max_len : int
-  val get_name : _ t @ local -> string
+  val get_name : (_, [ `global ]) t @ local -> string
 
   val get_name_zero_local_result
-    :  _ t @ local
-    -> ((read, Iobuf.no_seek, Iobuf.global) Iobuf.t @ local
+    :  (_, 'l) t @ local
+    -> ((read, Iobuf.no_seek, 'l) Iobuf.t @ local
         -> safe_pos:int
         -> safe_len:int
         -> 'a @ local)
@@ -257,23 +255,19 @@ module New_group : sig
     -> 'a @ local
 
   val get_name_zero_local
-    :  _ t @ local
-    -> ((read, Iobuf.no_seek, Iobuf.global) Iobuf.t @ local
-        -> safe_pos:int
-        -> safe_len:int
-        -> 'a)
+    :  (_, 'l) t @ local
+    -> ((read, Iobuf.no_seek, 'l) Iobuf.t @ local -> safe_pos:int -> safe_len:int -> 'a)
        @ local
     -> 'a
 
   val get_name_zero
-    :  _ t
-    -> ((read, Iobuf.no_seek, Iobuf.global) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
-       @ local
+    :  (_, 'l) t
+    -> ((read, Iobuf.no_seek, 'l) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a) @ local
     -> 'a
 
   val get_name_zero_padded_local_result
-    :  _ t @ local
-    -> ((read, Iobuf.no_seek, Iobuf.global) Iobuf.t @ local
+    :  (_, 'l) t @ local
+    -> ((read, Iobuf.no_seek, 'l) Iobuf.t @ local
         -> safe_pos:int
         -> safe_len:int
         -> 'a @ local)
@@ -281,43 +275,39 @@ module New_group : sig
     -> 'a @ local
 
   val get_name_zero_padded_local
-    :  _ t @ local
-    -> ((read, Iobuf.no_seek, Iobuf.global) Iobuf.t @ local
-        -> safe_pos:int
-        -> safe_len:int
-        -> 'a)
+    :  (_, 'l) t @ local
+    -> ((read, Iobuf.no_seek, 'l) Iobuf.t @ local -> safe_pos:int -> safe_len:int -> 'a)
        @ local
     -> 'a
 
   val get_name_zero_padded
-    :  _ t
-    -> ((read, Iobuf.no_seek, Iobuf.global) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
-       @ local
+    :  (_, 'l) t
+    -> ((read, Iobuf.no_seek, 'l) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a) @ local
     -> 'a
 
-  val set_id : (read_write, _, Iobuf.global) Iobuf.t @ local -> Probe_id.t -> unit
-  val set_spec : (read_write, _, Iobuf.global) Iobuf.t @ local -> Probe_type.t -> unit
-  val set_name : (read_write, _, Iobuf.global) Iobuf.t @ local -> string -> unit
+  val set_id : (read_write, _, _) Iobuf.t @ local -> Probe_id.t -> unit
+  val set_spec : (read_write, _, _) Iobuf.t @ local -> Probe_type.t -> unit
+  val set_name : (read_write, _, _) Iobuf.t @ local -> string -> unit
 
   (** [set_name_zero buf f a] calls [f] on [buf], with the window adjusted to where [name]
       is. Even though [f] is given a seekable buffer, it must move nothing except the
       lower bound of the window past the data it wrote. *)
   val set_name_zero
-    :  (read_write, Iobuf.seek, Iobuf.global) Iobuf.t
-    -> ('a -> (read_write, Iobuf.seek, Iobuf.global) Iobuf.t -> unit) @ local
+    :  (read_write, Iobuf.seek, 'l) Iobuf.t
+    -> ('a -> (read_write, Iobuf.seek, 'l) Iobuf.t -> unit) @ local
     -> 'a
     -> unit
 
   val set_name_zero_local
-    :  (read_write, Iobuf.seek, Iobuf.global) Iobuf.t
-    -> ('a @ local -> (read_write, Iobuf.seek, Iobuf.global) Iobuf.t -> unit) @ local
+    :  (read_write, Iobuf.seek, 'l) Iobuf.t
+    -> ('a @ local -> (read_write, Iobuf.seek, 'l) Iobuf.t -> unit) @ local
     -> 'a @ local
     -> unit
 
-  val to_sub_iobuf : 'rw t -> ('rw, Iobuf.seek, Iobuf.global) Iobuf.t
+  val to_sub_iobuf : ('rw, [ `global ]) t -> ('rw, Iobuf.seek, Iobuf.global) Iobuf.t
 
   val to_sub_iobuf_local
-    :  'rw t @ local
+    :  ('rw, [ `global ]) t @ local
     -> ('rw, Iobuf.seek, Iobuf.global) Iobuf.t @ local
 
   module Unpacked : sig
@@ -330,30 +320,32 @@ module New_group : sig
       }
     [@@deriving sexp ~stackify]
 
-    val num_bytes : t -> int
-    val write : t -> (read_write, _, Iobuf.global) Iobuf.t -> int
+    val num_bytes : t @ local -> int
+    val write : t -> (read_write, _, _) Iobuf.t @ local -> int
   end
 
-  val to_unpacked : 'rw t @ local -> Unpacked.t
-  val of_unpacked : Unpacked.t -> 'rw t
+  val to_unpacked : ('rw, [ `global ]) t @ local -> Unpacked.t
+  val of_unpacked : Unpacked.t -> ('rw, 'l) t
 end
 
 module New_group_point : sig
   type phantom = [ `New_group_point ]
-  type nonrec -'rw t = (phantom, 'rw) t constraint 'rw = [> read ] [@@deriving sexp]
+  type nonrec (-'rw, 'l) t = (phantom, 'rw, 'l) t constraint 'rw = [> read ]
 
+  val sexp_of_t : ('rw -> Sexp.t) @ global -> _ -> ('rw, [ `global ]) t -> Sexp.t
+  val t_of_sexp : (Sexp.t -> 'rw) @ global -> _ -> Sexp.t -> ('rw, 'l) t
   val message_type : char
   val buffer_length : sources_count:int -> int
-  val globalize : 'rw t @ local -> 'rw t
-  val of_iobuf_exn : ('rw, _, Iobuf.global) Iobuf.t -> 'rw t
-  val of_iobuf_local_exn : ('rw, _, Iobuf.global) Iobuf.t @ local -> 'rw t @ local
+  val globalize : ('rw, [ `global ]) t @ local -> ('rw, [ `global ]) t
+  val of_iobuf_exn : ('rw, _, 'l) Iobuf.t -> ('rw, 'l) t
+  val of_iobuf_local_exn : ('rw, _, 'l) Iobuf.t @ local -> ('rw, 'l) t @ local
 
   val write
     :  group_id:Probe_id.t
     -> id:Probe_id.t
     -> name:string
     -> sources_count:int
-    -> (read_write, _, Iobuf.global) Iobuf.t
+    -> (read_write, _, _) Iobuf.t @ local
     -> int
 
   val create
@@ -363,16 +355,16 @@ module New_group_point : sig
     -> sources_count:int
     -> (read_write, Iobuf.seek, Iobuf.global) Iobuf.t
 
-  val get_message_length : _ t @ local -> int
-  val get_message_type : _ t @ local -> char
-  val get_group_id : _ t @ local -> Probe_id.t
-  val get_id : _ t @ local -> Probe_id.t
+  val get_message_length : (_, [ `global ]) t @ local -> int
+  val get_message_type : (_, [ `global ]) t @ local -> char
+  val get_group_id : (_, [ `global ]) t @ local -> Probe_id.t
+  val get_id : (_, [ `global ]) t @ local -> Probe_id.t
   val name_max_len : int
-  val get_name : _ t @ local -> string
+  val get_name : (_, [ `global ]) t @ local -> string
 
   val get_name_zero_local_result
-    :  _ t @ local
-    -> ((read, Iobuf.no_seek, Iobuf.global) Iobuf.t @ local
+    :  (_, 'l) t @ local
+    -> ((read, Iobuf.no_seek, 'l) Iobuf.t @ local
         -> safe_pos:int
         -> safe_len:int
         -> 'a @ local)
@@ -380,23 +372,19 @@ module New_group_point : sig
     -> 'a @ local
 
   val get_name_zero_local
-    :  _ t @ local
-    -> ((read, Iobuf.no_seek, Iobuf.global) Iobuf.t @ local
-        -> safe_pos:int
-        -> safe_len:int
-        -> 'a)
+    :  (_, 'l) t @ local
+    -> ((read, Iobuf.no_seek, 'l) Iobuf.t @ local -> safe_pos:int -> safe_len:int -> 'a)
        @ local
     -> 'a
 
   val get_name_zero
-    :  _ t
-    -> ((read, Iobuf.no_seek, Iobuf.global) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
-       @ local
+    :  (_, 'l) t
+    -> ((read, Iobuf.no_seek, 'l) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a) @ local
     -> 'a
 
   val get_name_zero_padded_local_result
-    :  _ t @ local
-    -> ((read, Iobuf.no_seek, Iobuf.global) Iobuf.t @ local
+    :  (_, 'l) t @ local
+    -> ((read, Iobuf.no_seek, 'l) Iobuf.t @ local
         -> safe_pos:int
         -> safe_len:int
         -> 'a @ local)
@@ -404,48 +392,48 @@ module New_group_point : sig
     -> 'a @ local
 
   val get_name_zero_padded_local
-    :  _ t @ local
-    -> ((read, Iobuf.no_seek, Iobuf.global) Iobuf.t @ local
-        -> safe_pos:int
-        -> safe_len:int
-        -> 'a)
+    :  (_, 'l) t @ local
+    -> ((read, Iobuf.no_seek, 'l) Iobuf.t @ local -> safe_pos:int -> safe_len:int -> 'a)
        @ local
     -> 'a
 
   val get_name_zero_padded
-    :  _ t
-    -> ((read, Iobuf.no_seek, Iobuf.global) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a)
-       @ local
+    :  (_, 'l) t
+    -> ((read, Iobuf.no_seek, 'l) Iobuf.t -> safe_pos:int -> safe_len:int -> 'a) @ local
     -> 'a
 
-  val get_sources_count : _ t @ local -> int
+  val get_sources_count : (_, [ `global ]) t @ local -> int
 
   (** Beware: [count] is trusted. If it is wrong, this function could read the wrong data
       or segfault. *)
-  val get_sources_source_id : 'rw t @ local -> count:int -> index:int -> Probe_id.t
+  val get_sources_source_id
+    :  ('rw, [ `global ]) t @ local
+    -> count:int
+    -> index:int
+    -> Probe_id.t
 
-  val set_group_id : (read_write, _, Iobuf.global) Iobuf.t @ local -> Probe_id.t -> unit
-  val set_id : (read_write, _, Iobuf.global) Iobuf.t @ local -> Probe_id.t -> unit
-  val set_name : (read_write, _, Iobuf.global) Iobuf.t @ local -> string -> unit
+  val set_group_id : (read_write, _, _) Iobuf.t @ local -> Probe_id.t -> unit
+  val set_id : (read_write, _, _) Iobuf.t @ local -> Probe_id.t -> unit
+  val set_name : (read_write, _, _) Iobuf.t @ local -> string -> unit
 
   (** [set_name_zero buf f a] calls [f] on [buf], with the window adjusted to where [name]
       is. Even though [f] is given a seekable buffer, it must move nothing except the
       lower bound of the window past the data it wrote. *)
   val set_name_zero
-    :  (read_write, Iobuf.seek, Iobuf.global) Iobuf.t
-    -> ('a -> (read_write, Iobuf.seek, Iobuf.global) Iobuf.t -> unit) @ local
+    :  (read_write, Iobuf.seek, 'l) Iobuf.t
+    -> ('a -> (read_write, Iobuf.seek, 'l) Iobuf.t -> unit) @ local
     -> 'a
     -> unit
 
   val set_name_zero_local
-    :  (read_write, Iobuf.seek, Iobuf.global) Iobuf.t
-    -> ('a @ local -> (read_write, Iobuf.seek, Iobuf.global) Iobuf.t -> unit) @ local
+    :  (read_write, Iobuf.seek, 'l) Iobuf.t
+    -> ('a @ local -> (read_write, Iobuf.seek, 'l) Iobuf.t -> unit) @ local
     -> 'a @ local
     -> unit
 
   (** Beware: [count] is trusted. If it is wrong, this function could read the wrong data. *)
   val set_sources_source_id
-    :  (read_write, _, Iobuf.global) Iobuf.t @ local
+    :  (read_write, _, _) Iobuf.t @ local
     -> count:int
     -> index:int
     -> Probe_id.t
@@ -453,16 +441,16 @@ module New_group_point : sig
 
   (** Beware: [count] is trusted. If it is wrong, this function could read the wrong data. *)
   val write_sources
-    :  (read_write, _, Iobuf.global) Iobuf.t
+    :  (read_write, _, _) Iobuf.t @ local
     -> count:int
     -> index:int
     -> source_id:Probe_id.t
     -> unit
 
-  val to_sub_iobuf : 'rw t -> ('rw, Iobuf.seek, Iobuf.global) Iobuf.t
+  val to_sub_iobuf : ('rw, [ `global ]) t -> ('rw, Iobuf.seek, Iobuf.global) Iobuf.t
 
   val to_sub_iobuf_local
-    :  'rw t @ local
+    :  ('rw, [ `global ]) t @ local
     -> ('rw, Iobuf.seek, Iobuf.global) Iobuf.t @ local
 
   module Unpacked : sig
@@ -478,31 +466,33 @@ module New_group_point : sig
       }
     [@@deriving sexp ~stackify]
 
-    val num_bytes : t -> int
-    val write : t -> (read_write, _, Iobuf.global) Iobuf.t -> int
+    val num_bytes : t @ local -> int
+    val write : t -> (read_write, _, _) Iobuf.t @ local -> int
   end
 
-  val to_unpacked : 'rw t @ local -> Unpacked.t
-  val of_unpacked : Unpacked.t -> 'rw t
+  val to_unpacked : ('rw, [ `global ]) t @ local -> Unpacked.t
+  val of_unpacked : Unpacked.t -> ('rw, 'l) t
 end
 
 module End_of_header : sig
   type phantom = [ `End_of_header ]
-  type nonrec -'rw t = (phantom, 'rw) t constraint 'rw = [> read ] [@@deriving sexp]
+  type nonrec (-'rw, 'l) t = (phantom, 'rw, 'l) t constraint 'rw = [> read ]
 
+  val sexp_of_t : ('rw -> Sexp.t) @ global -> _ -> ('rw, [ `global ]) t -> Sexp.t
+  val t_of_sexp : (Sexp.t -> 'rw) @ global -> _ -> Sexp.t -> ('rw, 'l) t
   val message_type : char
   val buffer_length : int
-  val globalize : 'rw t @ local -> 'rw t
-  val of_iobuf_exn : ('rw, _, Iobuf.global) Iobuf.t -> 'rw t
-  val of_iobuf_local_exn : ('rw, _, Iobuf.global) Iobuf.t @ local -> 'rw t @ local
-  val write : (read_write, _, Iobuf.global) Iobuf.t -> int
+  val globalize : ('rw, [ `global ]) t @ local -> ('rw, [ `global ]) t
+  val of_iobuf_exn : ('rw, _, 'l) Iobuf.t -> ('rw, 'l) t
+  val of_iobuf_local_exn : ('rw, _, 'l) Iobuf.t @ local -> ('rw, 'l) t @ local
+  val write : (read_write, _, _) Iobuf.t @ local -> int
   val create : unit -> (read_write, Iobuf.seek, Iobuf.global) Iobuf.t
-  val get_message_length : _ t @ local -> int
-  val get_message_type : _ t @ local -> char
-  val to_sub_iobuf : 'rw t -> ('rw, Iobuf.seek, Iobuf.global) Iobuf.t
+  val get_message_length : (_, [ `global ]) t @ local -> int
+  val get_message_type : (_, [ `global ]) t @ local -> char
+  val to_sub_iobuf : ('rw, [ `global ]) t -> ('rw, Iobuf.seek, Iobuf.global) Iobuf.t
 
   val to_sub_iobuf_local
-    :  'rw t @ local
+    :  ('rw, [ `global ]) t @ local
     -> ('rw, Iobuf.seek, Iobuf.global) Iobuf.t @ local
 
   module Unpacked : sig
@@ -512,38 +502,35 @@ module End_of_header : sig
       }
     [@@deriving sexp ~stackify]
 
-    val num_bytes : t -> int
-    val write : t -> (read_write, _, Iobuf.global) Iobuf.t -> int
+    val num_bytes : t @ local -> int
+    val write : t -> (read_write, _, _) Iobuf.t @ local -> int
   end
 
-  val to_unpacked : 'rw t @ local -> Unpacked.t
-  val of_unpacked : Unpacked.t -> 'rw t
+  val to_unpacked : ('rw, [ `global ]) t @ local -> Unpacked.t
+  val of_unpacked : Unpacked.t -> ('rw, 'l) t
 end
 
 module Epoch : sig
   type phantom = [ `Epoch ]
-  type nonrec -'rw t = (phantom, 'rw) t constraint 'rw = [> read ] [@@deriving sexp]
+  type nonrec (-'rw, 'l) t = (phantom, 'rw, 'l) t constraint 'rw = [> read ]
 
+  val sexp_of_t : ('rw -> Sexp.t) @ global -> _ -> ('rw, [ `global ]) t -> Sexp.t
+  val t_of_sexp : (Sexp.t -> 'rw) @ global -> _ -> Sexp.t -> ('rw, 'l) t
   val message_type : char
   val buffer_length : int
-  val globalize : 'rw t @ local -> 'rw t
-  val of_iobuf_exn : ('rw, _, Iobuf.global) Iobuf.t -> 'rw t
-  val of_iobuf_local_exn : ('rw, _, Iobuf.global) Iobuf.t @ local -> 'rw t @ local
-  val write : epoch:Profiler_epoch.t -> (read_write, _, Iobuf.global) Iobuf.t -> int
+  val globalize : ('rw, [ `global ]) t @ local -> ('rw, [ `global ]) t
+  val of_iobuf_exn : ('rw, _, 'l) Iobuf.t -> ('rw, 'l) t
+  val of_iobuf_local_exn : ('rw, _, 'l) Iobuf.t @ local -> ('rw, 'l) t @ local
+  val write : epoch:Profiler_epoch.t -> (read_write, _, _) Iobuf.t @ local -> int
   val create : epoch:Profiler_epoch.t -> (read_write, Iobuf.seek, Iobuf.global) Iobuf.t
-  val get_message_length : _ t @ local -> int
-  val get_message_type : _ t @ local -> char
-  val get_epoch : _ t @ local -> Profiler_epoch.t
-
-  val set_epoch
-    :  (read_write, _, Iobuf.global) Iobuf.t @ local
-    -> Profiler_epoch.t
-    -> unit
-
-  val to_sub_iobuf : 'rw t -> ('rw, Iobuf.seek, Iobuf.global) Iobuf.t
+  val get_message_length : (_, [ `global ]) t @ local -> int
+  val get_message_type : (_, [ `global ]) t @ local -> char
+  val get_epoch : (_, [ `global ]) t @ local -> Profiler_epoch.t
+  val set_epoch : (read_write, _, _) Iobuf.t @ local -> Profiler_epoch.t -> unit
+  val to_sub_iobuf : ('rw, [ `global ]) t -> ('rw, Iobuf.seek, Iobuf.global) Iobuf.t
 
   val to_sub_iobuf_local
-    :  'rw t @ local
+    :  ('rw, [ `global ]) t @ local
     -> ('rw, Iobuf.seek, Iobuf.global) Iobuf.t @ local
 
   module Unpacked : sig
@@ -554,12 +541,12 @@ module Epoch : sig
       }
     [@@deriving sexp ~stackify]
 
-    val num_bytes : t -> int
-    val write : t -> (read_write, _, Iobuf.global) Iobuf.t -> int
+    val num_bytes : t @ local -> int
+    val write : t -> (read_write, _, _) Iobuf.t @ local -> int
   end
 
-  val to_unpacked : 'rw t @ local -> Unpacked.t
-  val of_unpacked : Unpacked.t -> 'rw t
+  val to_unpacked : ('rw, [ `global ]) t @ local -> Unpacked.t
+  val of_unpacked : Unpacked.t -> ('rw, 'l) t
 end
 
 module Unpacked : sig
@@ -571,21 +558,21 @@ module Unpacked : sig
     | Epoch of Epoch.Unpacked.t
   [@@deriving sexp ~stackify]
 
-  val num_bytes : t -> int
+  val num_bytes : t @ local -> int
   val message_type : t -> char
-  val write : t -> (read_write, _, Iobuf.global) Iobuf.t -> int
+  val write : t -> (read_write, _, _) Iobuf.t @ local -> int
 end
 
 val num_bytes_needed_for_message_length : int
 
 (** Assuming the iobuf starts at a message, returns its length or raise if the window
     doesn't contain [num_bytes_needed_for_message_length] bytes. *)
-val num_bytes_in_message : ([> read ], _, Iobuf.global) Iobuf.t @ local -> int
+val num_bytes_in_message : ([> read ], _, _) Iobuf.t @ local -> int
 
 (** Equivalent to [Iobuf.advance buf (num_bytes_in_message buf)] *)
-val skip_message : ([> read ], Iobuf.seek, Iobuf.global) Iobuf.t @ local -> unit
+val skip_message : ([> read ], Iobuf.seek, _) Iobuf.t @ local -> unit
 
-val buffer_contains_full_message : ([> read ], _, Iobuf.global) Iobuf.t @ local -> bool
+val buffer_contains_full_message : ([> read ], _, _) Iobuf.t @ local -> bool
 val of_unpacked : Unpacked.t -> (_, _, Iobuf.global) Iobuf.t
 val to_unpacked : ([> read ], _, Iobuf.global) Iobuf.t @ local -> Unpacked.t R.t
 val to_unpacked_exn : ([> read ], _, Iobuf.global) Iobuf.t @ local -> Unpacked.t
